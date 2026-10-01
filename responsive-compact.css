@@ -241,8 +241,8 @@ html.scroll-locked {
 .leaderboard-panel {
   margin: 12px 0;
   padding: 12px 16px;
-  border: 1px solid #526568;
-  background: #0d3033;
+  border: 1px solid var(--lxa-text-muted);
+  background: var(--lxa-bg-1);
 }
 
 .leaderboard-head {
@@ -254,13 +254,13 @@ html.scroll-locked {
 
 .leaderboard-head span {
   font: 700 14px "Bahnschrift SemiCondensed", "Arial Narrow", Arial, sans-serif;
-  color: #20d5d8;
+  color: var(--lxa-cyan-400);
   letter-spacing: 2px;
 }
 
 .leaderboard-head small {
   font: 700 11px Consolas, monospace;
-  color: #f0d58d;
+  color: var(--lxa-warning);
 }
 
 .leaderboard-tabs {
@@ -272,18 +272,18 @@ html.scroll-locked {
 .leaderboard-tabs button {
   flex: 1;
   padding: 6px;
-  border: 1px solid #526568;
-  background: #0a1517;
-  color: #9db0b0;
+  border: 1px solid var(--lxa-text-muted);
+  background: var(--lxa-bg-0);
+  color: var(--lxa-text);
   font: 700 11px Consolas, monospace;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .leaderboard-tabs button.active {
-  border-color: #20d5d8;
-  background: #0b5156;
-  color: #20d5d8;
+  border-color: var(--lxa-cyan-400);
+  background: var(--lxa-bg-2);
+  color: var(--lxa-cyan-400);
 }
 
 .leaderboard-rows {
@@ -297,14 +297,14 @@ html.scroll-locked {
   justify-content: space-between;
   align-items: center;
   padding: 6px 8px;
-  border-bottom: 1px solid #203b3e;
+  border-bottom: 1px solid var(--lxa-text-muted);
   font: 11px Consolas, monospace;
-  color: #d7e1df;
+  color: var(--lxa-text-strong);
 }
 
 .leaderboard-rows li b {
   min-width: 24px;
-  color: #f0d58d;
+  color: var(--lxa-warning);
   text-align: center;
 }
 
@@ -314,15 +314,15 @@ html.scroll-locked {
 }
 
 .leaderboard-rows li strong {
-  color: #20d5d8;
+  color: var(--lxa-cyan-400);
 }
 
 .leaderboard-position {
   margin-top: 8px;
   padding-top: 8px;
-  border-top: 1px solid #203b3e;
+  border-top: 1px solid var(--lxa-text-muted);
   font: 700 10px Consolas, monospace;
-  color: #f0d58d;
+  color: var(--lxa-warning);
   text-align: center;
 }
 
@@ -330,7 +330,7 @@ html.scroll-locked {
 .leaderboard-loading {
   text-align: center;
   padding: 20px;
-  color: #9db0b0;
+  color: var(--lxa-text);
   font-style: italic;
 }
 
@@ -431,7 +431,7 @@ ol li {
 
   .hero-title {
     border-left: 0;
-    border-bottom: 2px solid #008b92;
+    border-bottom: 2px solid var(--lxa-cyan-500);
     padding-bottom: 12px;
   }
 
@@ -549,7 +549,7 @@ ol li {
     left: 50%;
     transform: translateX(-50%);
     font: 9px Consolas, monospace;
-    color: #20d5d8;
+    color: var(--lxa-cyan-400);
     opacity: 0.6;
     pointer-events: none;
   }
