@@ -37,7 +37,7 @@ describe('Money/Wild actions reach the server for logged-in accounts', () => {
   });
 
   test('RESET calls the real reset-new-game action when drollAccount is set', () => {
-    const body = sliceNear("drollRequest\('reset-new-game'");
+    const body = sliceNear("drollRequest('reset-new-game'");
     // reset-new-game only exists inside the real server call itself; this
     // just confirms it's still present and wired to a live call, not that
     // it's the ONLY listener on #reset (can't verify event ordering

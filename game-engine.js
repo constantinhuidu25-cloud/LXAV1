@@ -387,8 +387,6 @@
   const EXTRA_WILD_FREQ_MIN = 0.2, EXTRA_WILD_FREQ_MAX = 5;
   function setExtraWildFrequency(multiplier) { EXTRA_WILD_FREQUENCY = Math.max(EXTRA_WILD_FREQ_MIN, Math.min(EXTRA_WILD_FREQ_MAX, safeMultiplier(multiplier, 1))); return EXTRA_WILD_FREQUENCY; }
   function resetExtraWildFrequency() { EXTRA_WILD_FREQUENCY = DEFAULT_EXTRA_WILD_FREQUENCY; }
-  const clone = value => JSON.parse(JSON.stringify(value));
-
   function validateConfiguration() {
     activeDifficultyDistributions.forEach((distribution, index) => {
       // Published percentages are rounded to three decimals; allow that final

@@ -3,8 +3,6 @@
  * Rate limiting, audit logging, and input validation
  */
 
-const crypto = require('crypto');
-
 // Rate limiting configuration
 const RATE_LIMITS = {
   CREATE_ACCOUNT: { requests: 5, window: 3600000 }, // 5 per hour

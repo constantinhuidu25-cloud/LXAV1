@@ -15,7 +15,12 @@ const chanceCopy={de:['SÜSS 🍯','SCHARF 🌶️','BRUTAL 💀'],ro:['DULCE �
 // v145: the console-top status line wants the plain difficulty word only
 // (no emoji) - chanceCopy stays emoji-included for the slider label, this
 // just strips it for that one other use.
-const stripEmoji=s=>s.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}️]/gu,'').trim();
+// \uFE0F (variation selector-16) is listed as its own independent
+// alternative here, not meant to combine with the preceding \u{27BF}: this
+// strips that trailing marker wherever it follows ANY emoji, not just the
+// ones in the ranges above.
+// eslint-disable-next-line no-misleading-character-class
+const stripEmoji=s=>s.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\uFE0F]/gu,'').trim();
 const missionCopy={de:{title:'JACKPOT MISSION',goal:'5 VERSCHIEDENE LINIEN AUF 10/10',line:'LINIE',done:'LINIEN ERREICHT',first:'NÄCHSTER JACKPOT: 1/5 · +€1.000',next:'NÄCHSTER JACKPOT',complete:'JACKPOT KOMPLETT · €5.000.000',unlock:'JACKPOT-MISSIONS-BONUS'},ro:{title:'MISIUNE JACKPOT',goal:'5 LINII DIFERITE LA 10/10',line:'LINIA',done:'LINII ATINSE',first:'URMĂTORUL JACKPOT: 1/5 · +€1.000',next:'URMĂTORUL JACKPOT',complete:'JACKPOT COMPLET · 5.000.000 €',unlock:'BONUS MISIUNE JACKPOT'},en:{title:'JACKPOT MISSION',goal:'5 DIFFERENT LINES AT 10/10',line:'LINE',done:'LINES REACHED',first:'NEXT JACKPOT: 1/5 · +€1,000',next:'NEXT JACKPOT',complete:'JACKPOT COMPLETE · €5,000,000',unlock:'JACKPOT MISSION BONUS'}};
 /* V118: one dictionary for every text that the later layers used to hard-code in German. */
 const tx118={
@@ -33,7 +38,6 @@ function render(grid){reels.innerHTML=target.map((_,c)=>`<div class="reel">${gri
 function drawLines(){const p=$('.paylines');p.innerHTML=Array.from({length:5},(_,i)=>`<div data-line="${i}"><b>${t[lang].winLine.toUpperCase()} ${i+1}</b></div>`).join('');}
 function refresh(){const x=t[lang];if(credits>0)bet=Math.min(bet,maxBet());$('#credits').textContent=money(credits);$('#bet').textContent=money(bet);$('#lineStake').textContent=money(bet/5)+x.line;$('#roundLabel').textContent=`${x.round} ${String(round).padStart(3,'0')}`;$('#before').textContent=$('#before').textContent||money(credits);$('#after').textContent=$('#after').textContent||money(credits);}
 function setMsg(s){$('#message').textContent=s}
-function addHistory(text,value){const list=$('#history');const ready=list.querySelector('[data-i="systemReady"]');if(ready)ready.closest('li')?.remove();const detail=window.lastRoundDetails&&window.lastRoundDetails.length?`RUNDE ${String(round).padStart(3,'0')} · ${window.lastRoundDetails.map(d=>`L${d.line+1} · ${d.hits}/10`).join(' · ')}`:text;const li=document.createElement('li');li.innerHTML=`<span>${detail}</span><time>${value?'+'+money(value):'–'}</time>`;list.prepend(li);const all=list.querySelectorAll('li');if(all.length>10)all[all.length-1].remove()}
 function showBoard(details,bonus,gross,missionBonus=0,seriesBonus=0){const x=t[lang],board=$('#winBoard'),jackpot=details.find(d=>d.hits===10),unit=lang==='ro'?'Miză linie':lang==='en'?'Line bet':'Linieneinsatz',bonusLabel=lang==='ro'?`Bonus ${details.length} linii`:lang==='en'?`${details.length}-line bonus`:`Bonus ${details.length} Linien`;$('#boardTitle').textContent=jackpot?'DROLLINGER COMPLET':missionBonus?'JACKPOT TARGET':`${details.length} ${x.winLine}`;const lines=details.map(d=>`<div class="${d.hits===10?'jackpot-result':''}"><span>${d.hits===10?'DROLLINGER COMPLET · ':''}${x.winLine} ${d.line+1} · ${d.hits}/10 · ${unit} €1 ×${d.mult}</span><b>+${money(d.amount)}</b></div>`).join('');const extra=bonus?`<div class="board-bonus"><span>${bonusLabel}</span><b>+${money(bonus)}</b></div>`:'';const mission=missionBonus?`<div class="board-bonus mission-bonus"><span>${missionCopy[lang].unlock}</span><b>+${money(missionBonus)}</b></div>`:'';const series=seriesBonus?`<div class="board-bonus series-bonus"><span>${uiStatic[lang].series}</span><b>+${money(seriesBonus)}</b></div>`:'';$('#boardDetails').innerHTML=`${lines}${extra}${mission}${series}<div class="board-total"><span>${x.gross}</span><b>+${money(gross)}</b></div>`;board.classList.add('show')}
 const uiStatic={de:{payout:'AUSZAHLUNGSLOGIK',perLine:'€ 1 PRO LINIE',consecutive:'KONSEKUTIVE',lines:'GEWINNLINIEN',record:'REKORD',objective:'OBJEKTIV',milestones:'JACKPOT-STUFEN · UNABHÄNGIG VON DER LINIENNUMMER',protocol:'LIVE-PROTOKOLL',system:'VIRTUAL EURO SYSTEM',series:'3+ GEWINNE',seriesValue:'+ €25',wild:'BONUS-WILD',heroWord:'WALZEN'},ro:{payout:'REGULA DE PLATĂ',perLine:'€ 1 PE LINIE',consecutive:'CONSECUTIVE',lines:'LINII CÂȘTIGĂTOARE',record:'RECORD',objective:'OBIECTIV',milestones:'NIVELURI JACKPOT · INDEPENDENT DE NUMĂRUL LINIEI',protocol:'JURNAL LIVE',system:'SISTEM EURO VIRTUAL',series:'3+ CÂȘTIGURI',seriesValue:'+ €25',wild:'BONUS WILD',heroWord:'ROLE'},en:{payout:'PAYOUT RULES',perLine:'€ 1 PER LINE',consecutive:'CONSECUTIVE',lines:'WINNING LINES',record:'RECORD',objective:'OBJECTIVE',milestones:'JACKPOT LEVELS · INDEPENDENT OF LINE NUMBER',protocol:'LIVE LOG',system:'VIRTUAL EURO SYSTEM',series:'3+ WINS',seriesValue:'+ €25',wild:'BONUS WILD',heroWord:'REELS'}};
 function updateStaticCopy(){const x=uiStatic[lang],labels=['10/10 · DROLLINGER',`7–9 ${x.consecutive}`,`4–6 ${x.consecutive}`,`2 ${x.lines}`,`3 ${x.lines}`,`4 ${x.lines}`,`5 ${x.lines}`,x.series],head=document.querySelector('.payout-card-head');if(head)head.innerHTML=`${x.payout} <small>${x.perLine}</small>`;document.querySelectorAll('.payout-card-row b,.payout-row b').forEach((el,i)=>el.textContent=labels[i%8]);document.querySelectorAll('.series-rule strong,.series-rule span').forEach(el=>el.textContent=x.seriesValue);document.querySelectorAll('.mission-line small').forEach(el=>el.textContent=x.record);const milestoneLabel=document.querySelector('.milestone-label');if(milestoneLabel)milestoneLabel.textContent=x.milestones;const protocol=document.querySelector('.history .section-heading small');if(protocol)protocol.textContent=x.protocol}
@@ -54,7 +58,11 @@ Object.assign(missionCopy.en,{record:'RECORD',levels:'JACKPOT LEVELS · INDEPEND
 const v56RenderMission=renderMission;
 renderMission=()=>{v56RenderMission();const x=missionCopy[lang];document.querySelectorAll('.mission-line small').forEach(el=>el.textContent=x.record);const level=document.querySelector('.milestone-label');if(level)level.textContent=x.levels};
 
-addHistory=(text,value)=>{const list=$('#history');const ready=list.querySelector('[data-i="systemReady"]');if(ready)ready.closest('li')?.remove();const lineLabel=missionCopy[lang].line;const detail=window.lastRoundDetails&&window.lastRoundDetails.length?`${t[lang].round} ${String(round).padStart(3,'0')} · ${window.lastRoundDetails.map(d=>`${lineLabel} ${d.line+1} · ${d.hits}/10`).join(' · ')}`:text;const li=document.createElement('li');const amount=Number(value)||0;li.innerHTML=`<span>${detail}</span><time class="${amount<0?'loss':amount>0?'profit':'even'}">${amount>0?'+':''}${money(amount)}</time>`;list.prepend(li);const all=list.querySelectorAll('li');if(all.length>10)all[all.length-1].remove()};
+// v159: removed addHistory() and its v56 override below - both wrote into
+// the same #history list that renderHistoryV79() (further below) now owns
+// exclusively, reading from gameState.spinHistory instead of being called
+// explicitly per-spin. Provably dead: no call site anywhere in this file or
+// elsewhere in the project calls addHistory(name or override).
 
 function setLockLabel(locked){const labels={de:locked?'Seite entsperren':'Seite sperren',ro:locked?'Deblochează pagina':'Blochează pagina',en:locked?'Unlock page':'Lock page'};scrollLock.setAttribute('aria-label',labels[lang])}
 const v56LockClick=scrollLock.onclick;
@@ -65,7 +73,7 @@ document.addEventListener('gesturestart',event=>{if(document.body.classList.cont
 
 const languageControl=$('#languageControl'),languageSelect=$('#language');let languageMenu;
 function buildLanguageMenu(){const toggle=$('#languageToggle');languageMenu=languageMenu||document.querySelector('#languageMenu');if(!toggle||!languageMenu||toggle.dataset.bound)return;toggle.dataset.bound='1';const setOpen=open=>{languageMenu.classList.toggle('open',open);toggle.setAttribute('aria-expanded',String(open))};toggle.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();setOpen(!languageMenu.classList.contains('open'))});toggle.addEventListener('keydown',event=>{if(event.key==='Escape')setOpen(false)});languageMenu.querySelectorAll('button[data-lang]').forEach(button=>button.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();lang=button.dataset.lang;try{localStorage.setItem(DROLL_LANG_KEY,lang)}catch{}languageSelect.value=lang;applyLanguage();setOpen(false)}));const closeIfOutside=event=>{if(!languageControl.contains(event.target))setOpen(false)};document.addEventListener('click',closeIfOutside);document.addEventListener('touchend',closeIfOutside,{capture:true});document.addEventListener('mousedown',closeIfOutside,{capture:true})}
-function updateLanguagePicker(){const flag=$('#flagCurrent');if(flag){flag.dataset.flag=lang;flag.textContent=''};if(languageSelect)languageSelect.value=lang;setLockLabel(document.body.classList.contains('scroll-locked'))}
+function updateLanguagePicker(){const flag=$('#flagCurrent');if(flag){flag.dataset.flag=lang;flag.textContent=''}if(languageSelect)languageSelect.value=lang;setLockLabel(document.body.classList.contains('scroll-locked'))}
 const v56ApplyLanguage=applyLanguage;
 applyLanguage=()=>{v56ApplyLanguage();buildLanguageMenu();updateLanguagePicker()};
 applyLanguage();
@@ -242,7 +250,7 @@ function drollSyncMoney(account){
 }
 const drollHydrateV76=drollHydrate;
 drollHydrate=function(account,token){drollHydrateV76(account,token);drollSyncMoney(account);};
-const drollSetDifficultyV76=async level=>{if(!drollAccount)return;try{const result=await drollRequest('set-difficulty',{id:drollAccount.id,difficulty:level});drollHydrate(result.account)}catch(error){if($('#message'))$('#message').textContent=error.message}};
+const drollSetDifficultyV76=async level=>{if(!drollAccount)return;try{const result=await drollRequest('set-difficulty',{id:drollAccount.id,difficulty:level,token:drollToken});drollHydrate(result.account)}catch(error){if($('#message'))$('#message').textContent=error.message}};
 // v152: removed drollOpenDeposit/drollBuyWild + their addEventListener
 // bindings - both fully unreachable (the v79 layer's capture-phase
 // listeners on the same buttons always run first and call
@@ -501,7 +509,7 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
         // Intl.NumberFormat separates amount/unit with a NON-BREAKING space
         // (char 160), not a plain space — matching ' ' literally always failed,
         // which is why the WILD button stayed on 4 rows instead of 5.
-        const spaceIdx = priceText.search(/[\s ]/);
+        const spaceIdx = priceText.search(/[\s\u00A0]/);
         price.innerHTML = spaceIdx === -1 ? `<span>${priceText}</span>` : `<span>${priceText.slice(0, spaceIdx)}</span><span>${priceText.slice(spaceIdx + 1)}</span>`;
         price.title = euro(wildCost);
       }
@@ -962,6 +970,15 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
     autoSpinButton.setAttribute('aria-pressed', 'true');
     runAutoSpin();
   });
+  // v159 BUG FIX: this was referenced below with no declaration anywhere in
+  // the file - same retry-dedup pattern as pendingSpinRequestId above, but
+  // copy-pasted without its `let`. Reading an identifier that was never
+  // declared/assigned throws a ReferenceError in JS regardless of strict
+  // mode, so the very first BANK deposit by any logged-in account crashed
+  // openLocalMoneyPanel's submit handler outright (caught by the
+  // surrounding try/catch, surfacing as a generic failure message, but the
+  // deposit itself never reached the server).
+  let pendingDepositRequestId = null;
   function openLocalMoneyPanel(mode) {
     const isDeposit = mode === 'deposit';
     accountPanel.innerHTML = `<div class="account-panel-card"><button class="account-close" data-local-close aria-label="Close">×</button><h2>BANK</h2><p class="account-notice">${T118('balance')}: ${euro(gameState.credits)}<br>BANK: ${euro(gameState.bank)}</p><form id="localDepositForm"><label>${T118('amount')}<input name="amount" type="number" min="0.01" step="0.01" required></label><button>${T118('toBank')}</button></form></div>`;
@@ -1186,7 +1203,7 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
   applyLanguage();
 })();
 // The local V84 renderer owns credits, BANK and Wild inventory.
-drollSaveState=async()=>{if(drollAccount){try{const result=await drollRequest('set-difficulty',{id:drollAccount.id,difficulty:chance+1});if(result.account){drollAccount=result.account;drollStore()}}catch{}}};
+drollSaveState=async()=>{if(drollAccount){try{const result=await drollRequest('set-difficulty',{id:drollAccount.id,difficulty:chance+1,token:drollToken});if(result.account){drollAccount=result.account;drollStore()}}catch{}}};
 const drollRenderV76=render;render=function(grid){drollRenderV76(grid);document.querySelectorAll('.wild-symbol img').forEach(image=>{image.title=`BONUS WILD · ${window.__wildChancePct||50}%`});};
 
 /* V152: chance-control now lives statically in index.html right after
