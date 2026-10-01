@@ -115,7 +115,7 @@ updateLockState();
 
 /* v76 account + leaderboard layer.  The reel and payout engine above remains
    the source of truth; this layer persists its resulting state server-side. */
-const DROLL_API='/.netlify/functions/drolly-account',DROLL_CACHE='drolly-account-cache-v1',DROLL_TOKEN_KEY='drolly-session-token-v1';
+const DROLL_API='/api/drolly-account',DROLL_CACHE='drolly-account-cache-v1',DROLL_TOKEN_KEY='drolly-session-token-v1';
 let drollAccount=null,drollSafeWord='',drollLeaderboardLevel=chance+1,drollRtpCache=null,drollPlayersCache=null,drollEditPlayerId=null,drollToken=localStorage.getItem(DROLL_TOKEN_KEY)||'';
 // v151: drollToken is a per-device "remember me" credential (separate from
 // the real password) returned by the server on create/login/password-change.

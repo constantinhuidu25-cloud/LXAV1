@@ -1,5 +1,5 @@
-// Local development server pentru testare fără Netlify
-// Simulează Netlify Functions local + serve static files
+// Local development server pentru testare fara a depinde de platforma de hosting
+// Simuleaza functia API local + serve static files
 
 const http = require('http');
 const url = require('url');
@@ -72,7 +72,7 @@ const server = http.createServer(async (req, res) => {
   const parsedUrl = url.parse(req.url, true);
 
   // Handle API requests
-  if (parsedUrl.pathname === '/.netlify/functions/drolly-account') {
+  if (parsedUrl.pathname === '/api/drolly-account') {
     let body = '';
 
     req.on('data', chunk => {
@@ -108,7 +108,7 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`\n🎰 Drolly Local Server Running`);
-  console.log(`📡 API: http://localhost:${PORT}/.netlify/functions/drolly-account`);
+  console.log(`\n🎰 LXA Local Server Running`);
+  console.log(`📡 API: http://localhost:${PORT}/api/drolly-account`);
   console.log(`📊 Using production Firebase storage (same backend as live)\n`);
 });

@@ -248,15 +248,19 @@ Switch in-game via flag picker in header.
 
 ## Deployment
 
-### Netlify (the only supported target)
+### Vercel (the only supported target)
 
 ```bash
-netlify deploy --prod
+vercel --prod
 ```
 
-`publish = "./"` in `netlify.toml` serves the project root directly - there is no build step required for the static site (the `js/` modular build and `dist/` GitHub Pages output from earlier versions were removed; `scripts/build.js` is a legacy alternate-host helper, unused by the real deploy). Functions in `functions/` are bundled by Netlify's esbuild pipeline automatically.
+No build step is required for the static site - `index.html`/`style.css`/etc. at the project root are served as-is (`scripts/build.js` is a legacy alternate-host helper, unused by the real deploy). The account/game API lives at `api/drolly-account.js`, a thin Vercel Serverless Function adapter around `functions/drolly-account.js` (the actual business logic - auth, rate limiting, idempotency, spin resolution - is unchanged from before the Vercel migration and has no Vercel-specific code in it). `api/keep-alive.js` and `api/lxa-player.js` are the same pattern for the two scheduled jobs, triggered by the Vercel Cron Jobs defined in `vercel.json`.
 
-This project is not a git repository; deploys are manual via the Netlify CLI from this local folder, linked to the existing site via `.netlify/state.json`.
+`middleware.js` blocks public access to files that must never be served (`functions/`, `package.json`/`package-lock.json`, `*.test.js`, dev-only scripts, `*.md`) - the project root has no separate "public" output directory, so without this they'd otherwise be fetchable like any other static file.
+
+**Required environment variables** (Vercel dashboard → Project Settings → Environment Variables): `FIREBASE_SERVICE_ACCOUNT`, `FIREBASE_DATABASE_URL`, `DROLLY_PEPPER`, `DROLLY_BOT_LXA_PW`/`DROLLY_BOT_AXL_PW`/`DROLLY_BOT_WOW_PW` (optional - CRON_SECRET to protect the two cron endpoints beyond Vercel's own invocation).
+
+**Cron frequency note:** `vercel.json` asks for the keep-alive/bot jobs every 10/15 minutes, matching the old Netlify schedule - Vercel's Hobby (free) plan only runs cron jobs once per day; sub-daily schedules need a Pro plan.
 
 ## License
 

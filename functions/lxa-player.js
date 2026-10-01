@@ -1,17 +1,17 @@
-// Keep-alive players ca Netlify Scheduled Function.
+// Keep-alive players ca Vercel Cron Job (api/lxa-player.js).
 // Foloseste exact 3 conturi FIXE, cate unul per dificultate (1, 2, 3),
-// ca sa previna cold-start / stergerea datelor de catre Netlify,
-// fara sa creeze conturi noi la fiecare rulare si fara sa polueze leaderboard-ul.
+// ca sa previna cold-start / stergerea datelor, fara sa creeze conturi noi
+// la fiecare rulare si fara sa polueze leaderboard-ul.
 
 const fetch = require('node-fetch');
 
 const SPIN_COUNT = 2; // spinuri per cont, per rulare
 
 // Cate un cont fix per nivel de dificultate (backend suporta doar 1-3).
-// Parolele vin din env vars (Netlify > Site settings > Environment variables)
-// ca sa nu stea in clar in sursa; fallback-urile de mai jos exista doar ca sa
-// nu se rupa rularea daca env vars nu au fost inca setate, si trebuie
-// rotite/setate ca env vars cat mai rapid.
+// Parolele vin din env vars (Vercel > Project settings > Environment
+// Variables) ca sa nu stea in clar in sursa; fallback-urile de mai jos
+// exista doar ca sa nu se rupa rularea daca env vars nu au fost inca setate,
+// si trebuie rotite/setate ca env vars cat mai rapid.
 const BOTS = [
   { name: 'LXA', safeWord: process.env.DROLLY_BOT_LXA_PW || 'Br1dgeApple7', difficulty: 1 },
   { name: 'AXL', safeWord: process.env.DROLLY_BOT_AXL_PW || 'C0baltRiver4', difficulty: 2 },
@@ -19,8 +19,10 @@ const BOTS = [
 ];
 
 async function drollRequest(action, data = {}) {
-  const baseUrl = process.env.URL || 'http://localhost:8888';
-  const response = await fetch(`${baseUrl}/.netlify/functions/drolly-account`, {
+  // VERCEL_URL e injectat automat de Vercel (doar host, fara protocol) -
+  // spre deosebire de Netlify's `URL`, care includea deja https://.
+  const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
+  const response = await fetch(`${baseUrl}/api/drolly-account`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ action, ...data })

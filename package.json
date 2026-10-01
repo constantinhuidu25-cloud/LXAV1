@@ -1,7 +1,7 @@
 {
   "name": "drolly-virtual-reels",
   "version": "2.0.0",
-  "description": "DrollyV1 - Virtual Reels Casino Demo (No Real Money)",
+  "description": "LXA - Virtual Reels Casino Demo (No Real Money)",
   "private": true,
   "main": "game-engine.js",
   "scripts": {
