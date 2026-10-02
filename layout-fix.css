@@ -5167,3 +5167,24 @@ html body:not(#_):not(#__):not(#___) footer{border-top:1px solid rgba(190,160,25
 html body:not(#_):not(#__):not(#___) .win-board,
 html body:not(#_):not(#__):not(#___) .bottom-grid>div,
 html body:not(#_):not(#__):not(#___) .leaderboard-panel{padding-left:14px!important;padding-right:14px!important}
+
+/* ===== No white anywhere: dark canvas/overscroll/scrollbars in every browser ===== */
+html{background-color:#070f2b!important;color-scheme:dark!important;overscroll-behavior-y:none;scrollbar-color:#8a3dff #0b1546;scrollbar-width:thin}
+body{overscroll-behavior-y:none}
+html::-webkit-scrollbar,body::-webkit-scrollbar{width:10px;height:10px;background:#0b1546}
+html::-webkit-scrollbar-thumb,body::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#1769ff,#8a3dff 60%,#e82cff);border-radius:8px;border:2px solid #0b1546}
+html::-webkit-scrollbar-track,body::-webkit-scrollbar-track{background:#0b1546}
+
+/* ===== JACKPOT MISSION info: detached from the leaderboard, joined to WILD BANK as one split card ===== */
+html body:not(#_):not(#__):not(#___) .leaderboard-panel{margin-bottom:0!important}
+html body:not(#_):not(#__):not(#___) .quick-info{margin-top:16px!important;gap:0!important}
+html body:not(#_):not(#__):not(#___) .quick-info>div:first-child{border-radius:14px 0 0 14px!important;border-right:0!important}
+html body:not(#_):not(#__):not(#___) .quick-info>div:last-child{
+  border-radius:0 14px 14px 0!important;border-left:1px solid rgba(190,160,255,.28)!important;
+}
+@media (max-width:640px){
+  html body:not(#_):not(#__):not(#___) .quick-info>div:first-child{border-radius:14px 14px 0 0!important;border-right:1px solid rgba(190,140,255,.38)!important;border-bottom:0!important}
+  html body:not(#_):not(#__):not(#___) .quick-info>div:last-child{
+    border-radius:0 0 14px 14px!important;border-left:1px solid rgba(190,140,255,.38)!important;border-top:1px solid rgba(190,160,255,.28)!important;
+  }
+}
