@@ -68,8 +68,9 @@ renderMission=()=>{v56RenderMission();const x=missionCopy[lang];document.querySe
 function setLockLabel(locked){const labels={de:locked?'Seite entsperren':'Seite sperren',ro:locked?'Deblochează pagina':'Blochează pagina',en:locked?'Unlock page':'Lock page'};scrollLock.setAttribute('aria-label',labels[lang])}
 const v56LockClick=scrollLock.onclick;
 scrollLock.onclick=()=>{v56LockClick();setLockLabel(document.body.classList.contains('scroll-locked'))};
+const touchScreenOnly=()=>window.matchMedia&&window.matchMedia('(pointer:coarse)').matches;
 document.addEventListener('touchmove',event=>{if(document.body.classList.contains('scroll-locked'))event.preventDefault()},{passive:false});
-document.addEventListener('wheel',event=>{if(document.body.classList.contains('scroll-locked'))event.preventDefault()},{passive:false});
+document.addEventListener('wheel',event=>{if(touchScreenOnly()&&document.body.classList.contains('scroll-locked'))event.preventDefault()},{passive:false});
 document.addEventListener('gesturestart',event=>{if(document.body.classList.contains('scroll-locked'))event.preventDefault()},{passive:false});
 
 const languageControl=$('#languageControl'),languageSelect=$('#language');let languageMenu;
@@ -1377,3 +1378,18 @@ const lxaRenderV76=render;render=function(grid){lxaRenderV76(grid);document.quer
 // it wasn't firing/working reliably and only got in the way of the other
 // floating elements. Idea + original code preserved in
 // INSTALL_BUTTON_IDEA.txt if this should be revisited later.
+
+// Scroll lock that holds in every browser: wheel/touch are blocked above; on top of that the scroll position
+// is pinned (scrollbar drag, middle-click autoscroll, find-in-page...) and scroll keys are swallowed.
+(function pinScrollWhenLocked() {
+  let lockY = 0;
+  const locked = () => document.body.classList.contains('scroll-locked') && window.matchMedia('(pointer:coarse)').matches;
+  new MutationObserver(() => { if (locked()) lockY = window.scrollY; }).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  window.addEventListener('scroll', () => { if (locked() && Math.abs(window.scrollY - lockY) > 0.5) window.scrollTo(0, lockY); }, { passive: true });
+  document.addEventListener('keydown', event => {
+    if (!locked()) return;
+    const tag = event.target && event.target.tagName;
+    if (/^(INPUT|TEXTAREA|SELECT)$/.test(tag)) return;
+    if (['PageUp', 'PageDown', 'Home', 'End', 'ArrowUp', 'ArrowDown'].includes(event.key) || (event.key === ' ' && tag !== 'BUTTON')) event.preventDefault();
+  });
+})();

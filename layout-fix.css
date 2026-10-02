@@ -5169,11 +5169,7 @@ html body:not(#_):not(#__):not(#___) .bottom-grid>div,
 html body:not(#_):not(#__):not(#___) .leaderboard-panel{padding-left:14px!important;padding-right:14px!important}
 
 /* ===== No white anywhere: dark canvas/overscroll/scrollbars in every browser ===== */
-html{background-color:#070f2b!important;color-scheme:dark!important;overscroll-behavior-y:none;scrollbar-color:#8a3dff #0b1546;scrollbar-width:thin}
-body{overscroll-behavior-y:none}
-html::-webkit-scrollbar,body::-webkit-scrollbar{width:10px;height:10px;background:#0b1546}
-html::-webkit-scrollbar-thumb,body::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#1769ff,#8a3dff 60%,#e82cff);border-radius:8px;border:2px solid #0b1546}
-html::-webkit-scrollbar-track,body::-webkit-scrollbar-track{background:#0b1546}
+html{background-color:#070f2b!important;color-scheme:dark!important}
 
 /* ===== JACKPOT MISSION info: detached from the leaderboard, joined to WILD BANK as one split card ===== */
 html body:not(#_):not(#__):not(#___) .leaderboard-panel{margin-bottom:0!important}
@@ -5367,3 +5363,74 @@ html body:not(#_):not(#__):not(#___) .kofi-goal-bar{
     radial-gradient(ellipse 52% 170% at 50% 50%,rgba(255,99,49,.92) 0%,rgba(255,99,49,.55) 28%,rgba(232,44,255,.45) 58%,rgba(120,60,255,.18) 82%,transparent 100%),
     linear-gradient(145deg,rgba(42,76,172,.93) 0%,rgba(26,40,110,.95) 55%,rgba(86,32,136,.92) 100%)!important;
 }
+/* ===== ONE card style for every container: 14px corners, soft 1px border, 2px magenta top, same gradient ===== */
+html body:not(#_):not(#__):not(#___) .payout-card,
+html body:not(#_):not(#__):not(#___) .jackpot-target,
+html body:not(#_):not(#__):not(#___) .console,
+html body:not(#_):not(#__):not(#___) .controls>.stat:not(.spin-stat),
+html body:not(#_):not(#__):not(#___) .win-board,
+html body:not(#_):not(#__):not(#___) .chance-control,
+html body:not(#_):not(#__):not(#___) .leaderboard-panel,
+html body:not(#_):not(#__):not(#___) .bottom-grid>div,
+html body:not(#_):not(#__):not(#___) .quick-info>div,
+html body:not(#_):not(#__):not(#___) .kofi-goal-bar{
+  border-radius:14px!important;
+  border:1px solid rgba(190,140,255,.38)!important;border-top:2px solid var(--lxa-magenta-400)!important;
+}
+html body:not(#_):not(#__):not(#___) .payout-card,
+html body:not(#_):not(#__):not(#___) .jackpot-target,
+html body:not(#_):not(#__):not(#___) .console,
+html body:not(#_):not(#__):not(#___) .controls>.stat:not(.spin-stat){
+  background:linear-gradient(145deg,rgba(42,76,172,.93) 0%,rgba(26,40,110,.95) 55%,rgba(86,32,136,.92) 100%)!important;
+  box-shadow:0 6px 20px rgba(0,0,0,.28),0 0 18px rgba(232,44,255,.12),inset 0 1px rgba(255,255,255,.10)!important;
+}
+html body:not(#_):not(#__):not(#___) .quick-info>div:first-child{border-radius:14px 0 0 14px!important;border-right:0!important}
+html body:not(#_):not(#__):not(#___) .quick-info>div:last-child{border-radius:0 14px 14px 0!important}
+@media (max-width:640px){
+  html body:not(#_):not(#__):not(#___) .quick-info>div:first-child{border-radius:14px 14px 0 0!important;border-right:1px solid rgba(190,140,255,.38)!important;border-bottom:0!important}
+  html body:not(#_):not(#__):not(#___) .quick-info>div:last-child{border-radius:0 0 14px 14px!important}
+}
+html body:not(#_):not(#__):not(#___) .reels-frame{border-radius:10px!important}
+
+/* ===== Controls row: even gaps, nicer buttons ===== */
+html body:not(#_):not(#__):not(#___) .controls{gap:4px!important}
+html body:not(#_):not(#__):not(#___) .controls .money-actions{gap:4px!important;background:none!important;border:0!important}
+html body:not(#_):not(#__):not(#___) .money-action,
+html body:not(#_):not(#__):not(#___) #betDown,
+html body:not(#_):not(#__):not(#___) #betUp,
+html body:not(#_):not(#__):not(#___) #autoSpin,
+html body:not(#_):not(#__):not(#___) #betHalf,
+html body:not(#_):not(#__):not(#___) .controls .stat button{
+  border-radius:12px!important;border:1px solid rgba(190,160,255,.45)!important;
+  background:linear-gradient(160deg,rgba(60,100,210,.88) 0%,rgba(40,44,140,.92) 60%,rgba(80,34,140,.9) 100%)!important;
+  box-shadow:0 3px 10px rgba(0,0,0,.3),inset 0 1px rgba(255,255,255,.18)!important;
+  color:var(--lxa-text-strong)!important;
+  transition:transform .12s ease,box-shadow .15s ease,border-color .15s ease,filter .15s ease;
+}
+html body:not(#_):not(#__):not(#___) .money-action:hover,
+html body:not(#_):not(#__):not(#___) #betDown:hover,html body:not(#_):not(#__):not(#___) #betUp:hover,
+html body:not(#_):not(#__):not(#___) #autoSpin:hover,html body:not(#_):not(#__):not(#___) #betHalf:hover{
+  border-color:var(--lxa-magenta-400)!important;box-shadow:0 3px 14px rgba(232,44,255,.4),inset 0 1px rgba(255,255,255,.22)!important;filter:brightness(1.12);
+}
+html body:not(#_):not(#__):not(#___) .money-action:active,
+html body:not(#_):not(#__):not(#___) #betDown:active,html body:not(#_):not(#__):not(#___) #betUp:active,
+html body:not(#_):not(#__):not(#___) #autoSpin:active,html body:not(#_):not(#__):not(#___) #betHalf:active{transform:translateY(1px) scale(.97);box-shadow:inset 0 2px 6px rgba(0,0,0,.45)!important}
+html body:not(#_):not(#__):not(#___) #wildUpgrade,
+html body:not(#_):not(#__):not(#___) .money-action:first-child{
+  background:linear-gradient(160deg,rgba(130,70,230,.95) 0%,rgba(70,36,160,.95) 100%)!important;border-color:rgba(255,210,90,.6)!important;
+}
+html body:not(#_):not(#__):not(#___) #autoSpin{border-color:var(--lxa-magenta-400)!important;color:#ffd6fb!important}
+html body:not(#_):not(#__):not(#___) #autoSpin[aria-pressed="true"]{background:linear-gradient(160deg,#e82cff,#7a2cff)!important;color:#fff!important;box-shadow:0 0 16px rgba(232,44,255,.7)!important}
+html body:not(#_):not(#__):not(#___) #betHalf{color:var(--lxa-warning)!important}
+html body:not(#_):not(#__):not(#___) #betDown,html body:not(#_):not(#__):not(#___) #betUp{font-size:clamp(20px,5vw,30px)!important}
+
+/* the SPIN button is its own card: no extra rectangle around it */
+html body:not(#_):not(#__):not(#___) .controls>.stat.spin-stat{background:none!important;border:0!important;box-shadow:none!important;padding:0!important;border-radius:14px!important}
+html body:not(#_):not(#__):not(#___) .controls>.stat.spin-stat #spin{border-radius:14px!important}
+/* ===== 1px between side-by-side containers too (hero cards, control row, wild/bank buttons, joined info cards) ===== */
+html body:not(#_):not(#__):not(#___) .hero{column-gap:1px!important;gap:1px!important}
+html body:not(#_):not(#__):not(#___) .controls{gap:1px!important;column-gap:1px!important;row-gap:1px!important}
+html body:not(#_):not(#__):not(#___) .controls .money-actions{gap:1px!important;column-gap:1px!important;row-gap:1px!important}
+html body:not(#_):not(#__):not(#___) .bottom-grid{gap:1px!important;column-gap:1px!important}
+html body:not(#_):not(#__):not(#___) .quick-info{gap:0!important}
+html body:not(#_):not(#__):not(#___) .leaderboard-tabs{gap:1px!important}html body:not(#_):not(#__):not(#___) .mission-line-grid{gap:1px!important;column-gap:1px!important}
