@@ -14,7 +14,9 @@ function initFirebase() {
   if (app) return;
 
   try {
-    const databaseURL = process.env.FIREBASE_DATABASE_URL || 'https://drollyv2-default-rtdb.europe-west1.firebasedatabase.app';
+    const DEFAULT_DB_URL = 'https://lxav1-a5cfd-default-rtdb.europe-west1.firebasedatabase.app';
+    const envUrl = String(process.env.FIREBASE_DATABASE_URL || '').trim().replace(/^["']+|["']+$/g, '').replace(/\/+$/, '');
+    const databaseURL = /^https:\/\/[^\s/]+\.firebasedatabase\.app$|^https:\/\/[^\s/]+\.firebaseio\.com$/.test(envUrl) ? envUrl : DEFAULT_DB_URL;
     const existingApps = getApps();
 
     // Initialize Firebase Admin app
