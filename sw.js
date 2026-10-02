@@ -14,7 +14,8 @@ const ASSETS_TO_CACHE = [
   '/game-engine.js',
   '/renderer.js',
   '/spin-button.js',
-  '/assets/wild.webp',
+  '/assets/wild-wide.webp',
+  '/assets/wild-tall.webp',
   '/manifest.webmanifest',
   '/assets/icons/icon-192.png',
   '/assets/icons/icon-512.png'

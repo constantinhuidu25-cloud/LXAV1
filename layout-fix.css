@@ -5028,3 +5028,15 @@ html.lxa-standalone body:not(#_):not(#__):not(#___) .topbar{
 }
 html.lxa-standalone body:not(#_):not(#__):not(#___) .topbar .brand-cluster,
 html.lxa-standalone body:not(#_):not(#__):not(#___) .topbar #headerActions{grid-row:2!important}
+
+/* ===== WILD bonus image fills its reel cell corner to corner (phone portrait: stacked WI/LD art; elsewhere: wide art) ===== */
+html body:not(#_):not(#__):not(#___) .reel span.wild-symbol{
+  padding:0!important;overflow:hidden!important;display:block!important;position:relative!important;
+}
+html body:not(#_):not(#__):not(#___) .reel span.wild-symbol picture{display:block!important;position:absolute!important;inset:0!important;width:100%!important;height:100%!important}
+html body:not(#_):not(#__):not(#___) .reel span.wild-symbol img{
+  position:absolute!important;inset:0!important;display:block!important;width:100%!important;height:100%!important;
+  max-width:none!important;max-height:none!important;margin:0!important;transform:none!important;
+  object-fit:cover!important;object-position:50% 50%!important;filter:none!important;border-radius:inherit!important;
+}
+html body:not(#_):not(#__):not(#___) .reel span.wild-symbol::after{display:none!important}

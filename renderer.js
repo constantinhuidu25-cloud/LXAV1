@@ -1,4 +1,5 @@
 const target='LEONXOXANA'.split(''), symbols=[...new Set(target)], rows=5, cell=36, WILD='__BONUS_WILD__';
+const WILD_IMG='<picture><source media="(max-width:700px) and (orientation:portrait)" srcset="assets/wild-tall.webp"><img src="assets/wild-wide.webp" alt="BONUS WILD" decoding="sync"></picture>';
 const LXA_LANG_KEY='lxaLang';
 // V219: language selection was never persisted — `lang` always restarted at
 // the hardcoded 'de' default on every page load/reload, even after the user
@@ -34,7 +35,7 @@ const milestoneRewards=[1000000,2000000,3000000,4000000,5000000];
 function renderMission(){const x=missionCopy[lang],done=completedLines.filter(Boolean).length;$('#missionTitle').textContent=x.title;$('#missionGoal').textContent=x.goal;const lineCards=recordHits.map((hits,i)=>`<div class="mission-line ${completedLines[i]?'complete':''}" style="--progress:${hits*10}%"><span>${x.line} ${i+1}</span><b>${hits}/10${completedLines[i]?' ✓':''}</b><small>REKORD</small></div>`).join('');const milestones=milestoneRewards.map((reward,i)=>`<div class="milestone ${done>i?'unlocked':''}"><span>${i+1}/5</span><b>${jackpotMoney(reward)}</b></div>`).join('');$('#missionList').innerHTML=`<div class="mission-line-grid">${lineCards}</div><div class="milestone-label">JACKPOT-STUFEN · UNABHÄNGIG VON DER LINIENNUMMER</div><div class="milestone-list">${milestones}</div>`;}
 function refreshChance(){const label=chanceCopy[lang][chance];$('#chanceValue').textContent=label;$('#chance').value=chance;}
 $('#chance').oninput=e=>{chance=Number(e.target.value);refreshChance()};
-function render(grid){reels.innerHTML=target.map((_,c)=>`<div class="reel">${grid.map((row,r)=>{const value=row[c];const isWild=value===WILD;return `<span data-row="${r}" class="${isWild?'wild-symbol':'letter-'+value}">${isWild?`<img src="assets/wild.webp" alt="BONUS WILD" title="BONUS WILD · ${window.__wildChancePct||50}%">`:value}</span>`}).join('')}</div>`).join('');}
+function render(grid){reels.innerHTML=target.map((_,c)=>`<div class="reel">${grid.map((row,r)=>{const value=row[c];const isWild=value===WILD;return `<span data-row="${r}" class="${isWild?'wild-symbol':'letter-'+value}">${isWild?`${WILD_IMG}`:value}</span>`}).join('')}</div>`).join('');}
 function drawLines(){const p=$('.paylines');p.innerHTML=Array.from({length:5},(_,i)=>`<div data-line="${i}"><b>${t[lang].winLine.toUpperCase()} ${i+1}</b></div>`).join('');}
 function refresh(){const x=t[lang];if(credits>0)bet=Math.min(bet,maxBet());$('#credits').textContent=money(credits);$('#bet').textContent=money(bet);$('#lineStake').textContent=money(bet/5)+x.line;$('#roundLabel').textContent=`${x.round} ${String(round).padStart(3,'0')}`;$('#before').textContent=$('#before').textContent||money(credits);$('#after').textContent=$('#after').textContent||money(credits);}
 function setMsg(s){$('#message').textContent=s}
@@ -764,7 +765,7 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
     const rnd = () => symbols[Math.floor(Math.random() * symbols.length)];
     const cellHtml = value => {
       const isWild = value === game.WILD;
-      return `<span class="${isWild ? 'wild-symbol' : 'letter-' + value}">${isWild ? '<img src="assets/wild.webp" alt="BONUS WILD" decoding="sync">' : value}</span>`;
+      return `<span class="${isWild ? 'wild-symbol' : 'letter-' + value}">${isWild ? '${WILD_IMG}' : value}</span>`;
     };
     const t0 = performance.now();
     const loops = [];
