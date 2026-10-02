@@ -449,6 +449,20 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
     const amount = Math.round(Number(value) || 0);
     return `${amount > 0 ? '+' : amount < 0 ? '−' : ''}${euro(Math.abs(amount))}`;
   }
+  // The "last round" line under the reels: net result in the active language.
+  // Re-rendered on every language switch (see applyLanguage wrapper below) so it
+  // never keeps the previous language or falls back to the placeholder dash.
+  function lastRoundMessage(spin) {
+    const roundNet = Number.isFinite(Number(spin.netResult)) ? Number(spin.netResult) : Number(spin.totalPayout || 0) - Number(spin.totalStake || 0);
+    const netText = `${T118('net')} ${signedEuroV112(roundNet)}`;
+    return spin.jackpotCycleCompleted ? `${T118('missionDone')} · 5/5 · ${netText}` : netText;
+  }
+  const applyLanguageBase = applyLanguage;
+  applyLanguage = (...args) => {
+    const result = applyLanguageBase(...args);
+    if (!spinning && gameState.lastSpin) $('#message').textContent = lastRoundMessage(gameState.lastSpin);
+    return result;
+  };
   // The control-row result is deliberately expressed as NET first.  Gross is
   // still available underneath for auditability, but it must not visually
   // overshadow the amount that actually changed the player's balance.
@@ -887,11 +901,7 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
       // V314: NET is already shown as the primary win-stat value via
       // renderLastWinV116() — repeating "NET -1€" here as well was the
       // duplicate line under CÂȚIG BRUT. Show "ready for next round" instead.
-      {
-        const roundNet = Number.isFinite(Number(result.spin.netResult)) ? Number(result.spin.netResult) : Number(result.spin.totalPayout || 0) - Number(result.spin.totalStake || 0);
-        const netText = `${T118('net')} ${signedEuroV112(roundNet)}`;
-        $('#message').textContent = result.spin.jackpotCycleCompleted ? `${T118('missionDone')} · 5/5 · ${netText}` : netText;
-      }
+      $('#message').textContent = lastRoundMessage(result.spin);
       window.lastRoundDetails = result.spin.finalResults.map((hits, line) => ({ line, hits, amount: result.spin.linePayouts[line], mult: game.PAYTABLE[hits] || 0, wild: (result.spin.wild?.positions || []).some(position => position.line === line) }));
       render(result.spin.board);
       applySpinVisualsV84(result.spin);

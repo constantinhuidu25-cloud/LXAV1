@@ -4709,3 +4709,8 @@ html body:not(#_):not(#__):not(#___) #headerActions .language{box-sizing:border-
 @media (min-width:901px){
   html body:not(#_):not(#__):not(#___) #headerActions .language{width:40px!important;min-width:40px!important;height:38px!important;min-height:38px!important}
 }
+
+/* Payout card heading was hard-coded in English for every language. */
+html[lang^="de"] body:not(#_):not(#__) .payout-card .payout-card-head::before{content:"GEWINN €1/LINIE";font-size:min(12px,calc((100cqw - 8px) / 10.2))}
+html[lang^="ro"] body:not(#_):not(#__) .payout-card .payout-card-head::before{content:"PLATĂ €1/LINIE";font-size:min(12px,calc((100cqw - 8px) / 9.8))}
+html[lang^="en"] body:not(#_):not(#__) .payout-card .payout-card-head::before{content:"PAYOUT €1/LINE"}
