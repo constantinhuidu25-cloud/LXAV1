@@ -4506,21 +4506,19 @@ html body:not(#_):not(#__) .reel span:not(.wild-symbol){
 }
 html body:not(#_):not(#__) .reel span:not(.wild-symbol)::before{
   content:'';
-  display:block!important;
-  height:84%;
-  width:auto;
-  aspect-ratio:591/443;
-  background-image:url('assets/litere-leonxoxana-transparent.png');
+  position:absolute;
+  inset:3%;
   background-repeat:no-repeat;
-  background-size:300% 200%;
+  background-position:center center;
+  background-size:contain;
   pointer-events:none;
 }
-html body:not(#_):not(#__) .reel span.letter-L::before{background-position:0% 0%}
-html body:not(#_):not(#__) .reel span.letter-E::before{background-position:50% 0%}
-html body:not(#_):not(#__) .reel span.letter-O::before{background-position:100% 0%}
-html body:not(#_):not(#__) .reel span.letter-N::before{background-position:0% 100%}
-html body:not(#_):not(#__) .reel span.letter-X::before{background-position:50% 100%}
-html body:not(#_):not(#__) .reel span.letter-A::before{background-position:100% 100%}
+html body:not(#_):not(#__) .reel span.letter-L::before{background-image:url('assets/letters/L.png')}
+html body:not(#_):not(#__) .reel span.letter-E::before{background-image:url('assets/letters/E.png')}
+html body:not(#_):not(#__) .reel span.letter-O::before{background-image:url('assets/letters/O.png')}
+html body:not(#_):not(#__) .reel span.letter-N::before{background-image:url('assets/letters/N.png')}
+html body:not(#_):not(#__) .reel span.letter-X::before{background-image:url('assets/letters/X.png')}
+html body:not(#_):not(#__) .reel span.letter-A::before{background-image:url('assets/letters/A.png')}
 
 /* WILD artwork fills its reel cell edge-to-edge (object-fit:contain still
    guards against distortion - the source image's own aspect ratio differs
@@ -4545,4 +4543,22 @@ html body:not(#_):not(#__) .reel span.hit::before{
 }
 html body:not(#_):not(#__) .reel span.after-miss::before{
   filter:grayscale(60%) brightness(.55) saturate(.7)!important;
+}
+
+/* Header: tagline ("10 WALZEN. EIN MOMENT" + INOFFIZIELLE DEMO line) removed,
+   logo widened to use the freed room. Height is pinned to what each
+   breakpoint already rendered (55/44/30px); only the width grows, by a fixed
+   stretch factor over the natural 2.75:1 ratio so the artwork is stretched, not wrecked.
+   Raise/lower --lxa-logo-stretch to taste. */
+html body:not(#_):not(#__){--lxa-logo-h:55px;--lxa-logo-stretch:5.5}
+@media (max-width:900px){html body:not(#_):not(#__){--lxa-logo-h:44px}}
+@media (orientation:landscape) and (max-height:540px){html body:not(#_):not(#__){--lxa-logo-h:30px}}
+html body:not(#_):not(#__) .topbar .header-tagline{display:none!important}
+html body:not(#_):not(#__) .topbar{grid-template-columns:auto minmax(0,1fr) auto!important}
+html body:not(#_):not(#__) .topbar .brand-cluster .brand img{
+  height:var(--lxa-logo-h)!important;
+  width:calc(var(--lxa-logo-h) * var(--lxa-logo-stretch))!important;
+  max-width:calc(100vw - 170px)!important;
+  max-height:none!important;
+  object-fit:fill!important;
 }
