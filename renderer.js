@@ -1255,3 +1255,38 @@ const drollRenderV76=render;render=function(grid){drollRenderV76(grid);document.
 // it wasn't firing/working reliably and only got in the way of the other
 // floating elements. Idea + original code preserved in
 // INSTALL_BUTTON_IDEA.txt if this should be revisited later.
+
+// Jackpot-mission tier amounts (.milestone b) must never overflow/overlap their
+// cell, however large the bet makes them (e.g. "15.000 €" on a phone). The CSS
+// for these is a stack of breakpoint rules, so fit them at runtime instead:
+// shrink the font until the text fits the cell, re-run on any content/size change.
+(function fitMilestoneAmounts(){
+  let queued = false;
+  function textWidth(el){ const r = document.createRange(); r.selectNodeContents(el); return r.getBoundingClientRect().width; }
+  function fit(){
+    queued = false;
+    document.querySelectorAll('.milestone b, .mission-line > span, .mission-line > b, .mission-line > small').forEach(b => {
+      const cell = b.parentElement;
+      if (!cell) return;
+      b.style.removeProperty('font-size');
+      let size = parseFloat(getComputedStyle(b).fontSize) || 12;
+      const cs = getComputedStyle(cell);
+      const avail = cell.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0) - 2;
+      let guard = 60;
+      while (avail > 0 && textWidth(b) > avail && size > 5 && guard--) {
+        size -= 0.5;
+        b.style.setProperty('font-size', size + 'px', 'important');
+      }
+    });
+  }
+  function queue(){ if (!queued) { queued = true; requestAnimationFrame(fit); } }
+  function start(){
+    const host = document.querySelector('.jackpot-target') || document.body;
+    new MutationObserver(queue).observe(host, { childList: true, characterData: true, subtree: true });
+    if (window.ResizeObserver) new ResizeObserver(queue).observe(host);
+    window.addEventListener('resize', queue);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(queue);
+    queue();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
+})();
