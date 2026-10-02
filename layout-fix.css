@@ -5434,3 +5434,19 @@ html body:not(#_):not(#__):not(#___) .controls .money-actions{gap:1px!important;
 html body:not(#_):not(#__):not(#___) .bottom-grid{gap:1px!important;column-gap:1px!important}
 html body:not(#_):not(#__):not(#___) .quick-info{gap:0!important}
 html body:not(#_):not(#__):not(#___) .leaderboard-tabs{gap:1px!important}html body:not(#_):not(#__):not(#___) .mission-line-grid{gap:1px!important;column-gap:1px!important}
+/* ===== The page background lives on the ROOT (canvas), so it fills everything - status-bar area, safe areas, overscroll,
+   any offset of the body - with one colour system; theme-color / manifest colours match its top ===== */
+html{
+  background-color:#272079!important;
+  background-image:
+    radial-gradient(900px 520px at 88% -6%,rgba(232,44,255,.20),transparent 62%),
+    radial-gradient(900px 620px at 4% 12%,rgba(30,90,255,.34),transparent 62%),
+    radial-gradient(800px 520px at 50% 104%,rgba(113,60,255,.30),transparent 66%),
+    linear-gradient(180deg,#2a2088 0%,#1c1c80 40%,#16186c 100%)!important;
+  background-repeat:no-repeat!important;background-size:100% 100%!important;min-height:100%;
+}
+html body:not(#_):not(#__):not(#___){background:transparent!important}
+/* the hero wrapper had its own dark fill that showed as a rectangle behind the rounded cards */
+html body:not(#_):not(#__):not(#___) .hero,
+html body:not(#_):not(#__):not(#___) .controls,
+html body:not(#_):not(#__):not(#___) .machine{background:none!important}

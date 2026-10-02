@@ -4,7 +4,7 @@
  * old CSS/JS until the cache name was bumped). API calls are never cached.
  */
 
-const CACHE_NAME = 'lxa-v1-cache';
+const CACHE_NAME = 'lxa-v2-cache';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
