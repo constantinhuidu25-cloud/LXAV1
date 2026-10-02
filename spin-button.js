@@ -9,7 +9,7 @@
   const COACH_SPINS = 3;
   const LABEL = { spin: 'SPIN', stop: 'STOP' };
 
-  let btn, main, sub, hint, state = 'idle', lastPointerFire = 0;
+  let btn, main, sub, hint, state = 'idle', lastPointerFire = 0, lastResult = null;
 
   const digits = id => {
     const el = document.getElementById(id);
@@ -24,15 +24,21 @@
     btn.dataset.state = state;
     btn.classList.toggle('coach', state === 'spinning' && learned() < COACH_SPINS);
     main.textContent = state === 'spinning' ? LABEL.stop : LABEL.spin;
-    sub.textContent = '';
+    sub.textContent = state === 'idle' && lastResult ? lastResult.text : '';
+    btn.dataset.net = state === 'idle' && lastResult ? lastResult.sign : '';
     hint.textContent = '';
     const bet = digits('bet'), credits = digits('credits');
     btn.dataset.funds = state === 'idle' && bet !== null && credits !== null && credits < bet ? 'low' : 'ok';
-    btn.setAttribute('aria-label', main.textContent);
+    btn.setAttribute('aria-label', [main.textContent, sub.textContent].filter(Boolean).join(' '));
   }
 
   const api = {
     recentPointer() { return performance.now() - lastPointerFire < 900; },
+    setResult(text, net) {
+      const value = Number(net) || 0;
+      lastResult = { text: String(text || ''), sign: value > 0 ? 'win' : value < 0 ? 'loss' : 'even' };
+      if (state === 'idle' && btn) paint();
+    },
     start() {
       state = 'spinning';
       btn.style.setProperty('--spin-ms', SPIN_MS + 'ms');

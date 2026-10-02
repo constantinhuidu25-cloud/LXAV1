@@ -415,7 +415,7 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
       // end, which leaves this loop almost no room left to shrink further.
       // Starting fresh from a known-large value every time guarantees full
       // shrink range regardless of box width or how it was styled before.
-      const base = 24;
+      const base = 19;
       b.style.setProperty('font-size', `${base}px`, 'important');
       // +2px tolerance: sub-pixel font rendering doesn't scale perfectly
       // linearly with the requested size, so the geometric correction below
@@ -452,17 +452,25 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
   // The "last round" line under the reels: net result in the active language.
   // Re-rendered on every language switch (see applyLanguage wrapper below) so it
   // never keeps the previous language or falls back to the placeholder dash.
+  function spinNetResult(spin) {
+    return Number.isFinite(Number(spin.netResult)) ? Number(spin.netResult) : Number(spin.totalPayout || 0) - Number(spin.totalStake || 0);
+  }
+  function syncSpinButtonResult(spin) {
+    const net = spinNetResult(spin);
+    window.LXASpinButton?.setResult(signedEuroV112(net), net);
+  }
   function lastRoundMessage(spin) {
-    const roundNet = Number.isFinite(Number(spin.netResult)) ? Number(spin.netResult) : Number(spin.totalPayout || 0) - Number(spin.totalStake || 0);
+    const roundNet = spinNetResult(spin);
     const netText = `${T118('net')} ${signedEuroV112(roundNet)}`;
     return spin.jackpotCycleCompleted ? `${T118('missionDone')} · 5/5 · ${netText}` : netText;
   }
   const applyLanguageBase = applyLanguage;
   applyLanguage = (...args) => {
     const result = applyLanguageBase(...args);
-    if (!spinning && gameState.lastSpin) $('#message').textContent = lastRoundMessage(gameState.lastSpin);
+    if (!spinning && gameState.lastSpin) { $('#message').textContent = lastRoundMessage(gameState.lastSpin); syncSpinButtonResult(gameState.lastSpin); }
     return result;
   };
+  if (gameState.lastSpin) syncSpinButtonResult(gameState.lastSpin);
   // The control-row result is deliberately expressed as NET first.  Gross is
   // still available underneath for auditability, but it must not visually
   // overshadow the amount that actually changed the player's balance.
@@ -906,7 +914,8 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
       render(result.spin.board);
       applySpinVisualsV84(result.spin);
       showSpinV79(result.spin);
-      window.LXASpinButton?.finish(result.spin.totalPayout, euro(result.spin.totalPayout));
+      window.LXASpinButton?.finish(result.spin.totalPayout);
+      syncSpinButtonResult(result.spin);
       if (result.spin.totalPayout > 0) {
         await debitAnimation;
         if (myToken !== spinToken || myToken === canceledToken) return;

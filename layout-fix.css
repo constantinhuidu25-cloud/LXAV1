@@ -4714,3 +4714,73 @@ html body:not(#_):not(#__):not(#___) #headerActions .language{box-sizing:border-
 html[lang^="de"] body:not(#_):not(#__) .payout-card .payout-card-head::before{content:"GEWINN €1/LINIE";font-size:min(12px,calc((100cqw - 8px) / 10.2))}
 html[lang^="ro"] body:not(#_):not(#__) .payout-card .payout-card-head::before{content:"PLATĂ €1/LINIE";font-size:min(12px,calc((100cqw - 8px) / 9.8))}
 html[lang^="en"] body:not(#_):not(#__) .payout-card .payout-card-head::before{content:"PAYOUT €1/LINE"}
+
+/* ===== SPIN button: net result line under the label ===== */
+html body:not(#_):not(#__):not(#___) #spin .spin-subtitle:not(:empty){
+  display:block!important;
+  font:800 clamp(12px,4cqw,17px)/1.1 Consolas,Menlo,monospace!important;
+  letter-spacing:.4px;color:rgba(220,236,255,.92)!important;margin-top:1px;
+}
+html body:not(#_):not(#__):not(#___) #spin[data-net="win"] .spin-subtitle{color:#a8ffd9!important;text-shadow:0 0 10px rgba(57,245,167,.75)}
+html body:not(#_):not(#__):not(#___) #spin[data-net="loss"] .spin-subtitle{color:#ffb8c8!important;text-shadow:0 0 10px rgba(255,85,122,.65)}
+
+/* ===== Header cluster: fixed 3-column grid so ID/language never slide into
+   the lock's column when the lock (and Ko-fi) float away as position:fixed ===== */
+html body:not(#_):not(#__):not(#___){--hb:36px;--hb-h:34px}
+@media (min-width:901px){html body:not(#_):not(#__):not(#___){--hb:40px;--hb-h:38px}}
+html body:not(#_):not(#__):not(#___) #headerActions{
+  display:grid!important;
+  grid-template-columns:repeat(3,var(--hb))!important;
+  grid-template-rows:var(--hb-h) auto!important;
+  column-gap:8px!important;justify-content:end!important;align-content:start!important;
+}
+html body:not(#_):not(#__):not(#___) #accountButton{grid-column:1!important;grid-row:1!important}
+html body:not(#_):not(#__):not(#___) #headerActions .language{grid-column:2!important;grid-row:1!important}
+html body:not(#_):not(#__):not(#___) #scrollLock{grid-column:3!important;grid-row:1!important}
+html body:not(#_):not(#__):not(#___) #headerActions .kofi-gif{grid-column:3!important;grid-row:2!important}
+
+/* ===== Compact hero cards (GEWINN/PAYOUT + JACKPOT MISSION) and tighter vertical rhythm ===== */
+html body:not(#_):not(#__):not(#___) .hero{align-items:start!important;gap:6px!important;padding:0 0 2px!important}
+html body:not(#_):not(#__):not(#___) .payout-card{min-height:0!important;padding:4px 8px!important;justify-content:flex-start!important}
+html body:not(#_):not(#__):not(#___) .payout-card-head{padding-bottom:2px!important;margin:0 0 1px!important}
+html body:not(#_):not(#__):not(#___) .payout-card-row{padding:0!important;min-height:0!important;line-height:1.15!important}
+html body:not(#_):not(#__):not(#___) .jackpot-target{min-height:0!important;padding:8px 10px 6px!important;justify-content:flex-start!important;gap:4px!important}
+html body:not(#_):not(#__):not(#___) .target-head{margin-bottom:3px!important;padding-bottom:4px!important}
+html body:not(#_):not(#__):not(#___) .mission-list{gap:4px!important;margin:0!important;padding:0!important;justify-content:flex-start!important;min-height:0!important}
+html body:not(#_):not(#__):not(#___) .mission-line-grid{margin-top:2px!important}
+html body:not(#_):not(#__):not(#___) .mission-line-grid .mission-line{min-height:34px!important;padding:3px 2px!important}
+html body:not(#_):not(#__):not(#___) .milestone-list{min-height:0!important}
+html body:not(#_):not(#__):not(#___) .milestone{min-height:38px!important;padding:2px 0!important}
+html body:not(#_):not(#__):not(#___) .machine{row-gap:0!important}
+html body:not(#_):not(#__):not(#___) .controls{gap:4px!important;padding:2px 0!important}
+html body:not(#_):not(#__):not(#___) .controls>.stat{min-height:0!important;padding:5px 10px!important}
+html body:not(#_):not(#__):not(#___) .chance-control{margin:4px auto 0!important;padding:4px 12px 6px!important}
+html body:not(#_):not(#__):not(#___) .bottom-grid{gap:4px!important;margin-top:4px!important}
+
+/* second pass: much shorter hero cards */
+html body:not(#_):not(#__):not(#___) .payout-card-row{height:auto!important;font-size:clamp(9px,2.6vw,11px)!important;gap:4px!important}
+html body:not(#_):not(#__):not(#___) .payout-card-row b{font-size:clamp(10px,3vw,12px)!important;line-height:1.1!important}
+html body:not(#_):not(#__):not(#___) .payout-card-head{min-height:0!important;line-height:1.1!important}
+html body:not(#_):not(#__):not(#___) .target-head{padding-right:34px!important;padding-bottom:3px!important;margin-bottom:2px!important}
+html body:not(#_):not(#__):not(#___) .target-head span{font-size:clamp(17px,5.2vw,24px)!important;letter-spacing:2px!important;line-height:1!important}
+html body:not(#_):not(#__):not(#___) .target-head strong{font-size:clamp(8px,2.4vw,11px)!important;letter-spacing:.4px!important;margin-top:2px!important;line-height:1.2!important}
+html body:not(#_):not(#__):not(#___) .mission-line-grid .mission-line{min-height:30px!important;padding:2px!important}
+html body:not(#_):not(#__):not(#___) .milestone{min-height:32px!important;padding:1px 0!important}
+html body:not(#_):not(#__):not(#___) .milestone span{line-height:1!important}
+html body:not(#_):not(#__):not(#___) .milestone small{line-height:1!important}
+
+/* third pass */
+html body:not(#_):not(#__):not(#___) .payout-card-row strong{font-size:clamp(10px,3.1vw,12.5px)!important;line-height:1.1!important}
+html body:not(#_):not(#__):not(#___) .target-head{padding-right:0!important}
+html body:not(#_):not(#__):not(#___) .target-head span{padding-right:30px!important}
+html body:not(#_):not(#__):not(#___) .target-head strong{font-size:clamp(7.5px,2.1vw,10px)!important;letter-spacing:.2px!important}
+html body:not(#_):not(#__):not(#___) .mission-line-grid .mission-line b{font-size:clamp(11px,3.2vw,16px)!important;line-height:1.1!important}
+html body:not(#_):not(#__):not(#___) .mission-line-grid .mission-line span{font-size:clamp(7px,2vw,9px)!important;line-height:1.1!important}
+html body:not(#_):not(#__):not(#___) .mission-line-grid .mission-line small{font-size:clamp(6px,1.8vw,8px)!important;line-height:1.1!important}
+
+/* equal-height hero cards; side by side on every portrait width (phone layout scaled up) */
+html body:not(#_):not(#__):not(#___) .hero{align-items:stretch!important}
+html body:not(#_):not(#__):not(#___) .payout-card-row{flex:1 1 auto!important;align-items:center!important}
+@media (min-width:600px) and (max-width:1100px){
+  html body:not(#_):not(#__):not(#___) .hero{grid-template-columns:minmax(190px,.42fr) minmax(0,1fr)!important}
+}
