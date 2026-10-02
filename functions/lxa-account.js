@@ -34,7 +34,8 @@ const GELD_LIMITS = Object.freeze({ enabled: false, cooldownHours: 24, maxUsesPe
 // from game-engine.js (see applyRtpSettings below), so there is exactly one
 // place the odds are defined, whether an admin has customized them or not.
 const json = (body, statusCode = 200) => ({ statusCode, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'access-control-allow-origin': '*', 'access-control-allow-methods': 'GET, POST, OPTIONS', 'access-control-allow-headers': 'Content-Type' }, body: JSON.stringify(body) });
-const cleanName = value => sanitizeInput(String(value || '').trim().replace(/\s+/g, ' '), 30), nameKey = value => cleanName(value).toLocaleLowerCase('en-US'), safeKey = value => String(value || '').trim().toLocaleLowerCase('en-US'), accountKey = id => `account:${Number(id)}`;
+// eslint-disable-next-line no-control-regex
+const cleanName = value => sanitizeInput(String(value || '').trim().replace(/\s+/g, ' '), 30), nameKey = value => cleanName(value).toLocaleLowerCase('en-US'), safeKey = value => String(value || '').trim().toLocaleLowerCase('en-US'), ID_PAD = 3, slugName = value => String(value || '').trim().replace(/[.$#[\]/\u0000-\u001f\u007f]/g, '-').replace(/\s+/g, '_').slice(0, 40), accountKey = (id, name) => `${String(Math.floor(Number(id)) || 0).padStart(ID_PAD, '0')}${slugName(name) ? '_' + slugName(name) : ''}`;
 const number = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback, money = value => Math.round(number(value) * 100) / 100, difficulty = value => Math.min(3, Math.max(1, Math.floor(number(value, 2))));
 const DIFFICULTY_PROFILE_VERSION = 3;
 const words = ['Tiger','Panda','Wolf','Eagle','Fox','Lion','Bear','Rocket','Key','Crown','Coin','Star','Pizza','Apple','Cookie','Coffee','Banana','Moon','Ocean','Galaxy','Thunder','Fire','Forest','Falcon','Otter','Badger','Beaver','Bison','Camel','Cobra','Coyote','Dolphin','Donkey','Dragon','Ferret','Gecko','Giraffe','Gorilla','Hamster','Hawk','Hippo','Jaguar','Koala','Lemur','Leopard','Lizard','Llama','Lobster','Lynx','Moose','Octopus','Owl','Parrot','Pelican','Penguin','Puma','Rabbit','Raven','Rhino','Salmon','Shark','Sparrow','Squid','Swan','Turtle','Walrus','Whale','Zebra','Anchor','Arrow','Barrel','Basket','Bell','Blanket','Bottle','Bridge','Bucket','Candle','Castle','Chair','Clock','Compass','Diamond','Drum','Engine','Feather','Flag','Garden','Guitar','Hammer','Harbor','Helmet','Island','Jacket','Kettle','Ladder','Lantern','Magnet','Mirror','Needle','Paddle','Pencil','Piano','Pillow','Planet','Pocket','Pyramid','Ribbon','Saddle','Shield','Silver','Socket','Spoon','Statue','Tower','Trumpet','Tunnel','Violin','Wagon','Window','Almond','Bagel','Berry','Butter','Carrot','Cherry','Cocoa','Honey','Lemon','Mango','Melon','Muffin','Olive','Onion','Peach','Pepper','Pretzel','Tomato','Waffle','Canyon','Cloud','Comet','Desert','Glacier','Meadow','River','Summit','Valley','Volcano','Breeze','Frost','Rainbow','Sunset','Meteor'];
@@ -88,7 +89,9 @@ const defaults = account => {
   account.geldHistory = Array.isArray(account.geldHistory) ? account.geldHistory.slice(0, 50) : [];
   return account;
 };
-async function read(id) { const accounts = await getAccounts(); const account = accounts[accountKey(id)]; return account ? defaults(account) : null; }
+function findEntryById(accounts, id) { const wanted = Number(id); if (!Number.isFinite(wanted)) return null; return Object.entries(accounts || {}).find(([, acc]) => acc && Number(acc.id) === wanted) || null; }
+const rememberKey = (account, key) => Object.defineProperty(account, '__key', { value: key, enumerable: false, writable: true, configurable: true });
+async function read(id) { const accounts = await getAccounts(); const entry = findEntryById(accounts, id); if (!entry) return null; return rememberKey(defaults(entry[1]), entry[0]); }
 // v325 SECURITY FIX: was a plain read-ALL-accounts -> mutate one -> overwrite
 // the WHOLE collection (`ref.set(accounts)`). Two concurrent requests for
 // TWO DIFFERENT accounts could each read the same collection snapshot and
@@ -100,7 +103,22 @@ async function read(id) { const accounts = await getAccounts(); const account = 
 // firing in the same instant) - the client already guards against the
 // common case (double-click/double-tap) by disabling the spin button for
 // the duration of a request (see renderer.js lxaAccountSpinV76).
-async function save(account) { account.updatedAt = Date.now(); await updateAccount(accountKey(account.id), () => account); }
+// Node key = zero-padded ID + name (e.g. 00013_Leo) so the console lists accounts by ID and the
+// key is refreshed whenever the ID or name changes (or a hand-edited / legacy `account:N` node is saved).
+async function save(account, keepStamp) {
+  if (!keepStamp) account.updatedAt = Date.now();
+  const plain = () => JSON.parse(JSON.stringify(account));
+  const newKey = accountKey(account.id, account.name), oldKey = account.__key;
+  if (oldKey && oldKey !== newKey) {
+    let moved = false;
+    try { await updateAccount(newKey, current => (current && current.createdAt !== account.createdAt) ? undefined : plain()); moved = true; } catch (error) { /* target key busy: keep the node where it is */ }
+    if (moved) { await updateAccount(oldKey, () => null); rememberKey(account, newKey); return; }
+    await updateAccount(oldKey, () => plain());
+    return;
+  }
+  await updateAccount(newKey, () => plain());
+  rememberKey(account, newKey);
+}
 const LEADERBOARD_EXCLUDED_NAMES = new Set(['LXA', 'AXL', 'WOW']);
 async function leaderboard(account) { const level = String(account.difficulty), boardKey = `leaderboard:profile-${DIFFICULTY_PROFILE_VERSION}:${level}`, boards = await getLeaderboard(), board = boards[boardKey] || [], next = board.filter(row => Number(row.id) !== Number(account.id)); if (!LEADERBOARD_EXCLUDED_NAMES.has(String(account.name || '').toUpperCase())) { next.push({ id: account.id, name: account.name, score: number(account.difficultyData[level]?.score), updatedAt: account.updatedAt }); } next.sort((a, b) => number(b.score) - number(a.score) || number(a.updatedAt) - number(b.updatedAt)); boards[boardKey] = next.slice(0, 100); await saveLeaderboard(boards); }
 // v148: reads ALL admin-set game settings from Firebase (falls back to
@@ -189,7 +207,7 @@ exports.handler = async event => {
     } else if (action === 'login' && input.silent !== true) {
       if (!checkRateLimit('LOGIN_ATTEMPT', `LOGIN_ATTEMPT:${clientIp}`)) return json({ error: 'Too many login attempts. Please try again later.' }, 429);
     }
-    if (action === 'create') { const name = cleanName(input.name); if (name.length < 2) return json({ error: 'Name must contain at least 2 characters.' }, 400); const accounts = await getAccounts(); const nameExists = Object.values(accounts).some(acc => nameKey(acc.name) === nameKey(name)); if (nameExists) return json({ error: 'This name is already in use.' }, 409); const existingIds = Object.keys(accounts).map(key => Number(key.replace('account:', ''))).filter(id => id >= 11); let id = Math.max(11, ...existingIds, 10) + 1; const plainSafeWord = makeSafeWord(), token = makeSessionToken(); const account = defaults({ id, name, safeWord: hashSafeWord(plainSafeWord), sessionToken: token, role: 'user', balance: 250, bank: 0, wildLevel: 0, difficulty: 2, difficultyProfileVersion: DIFFICULTY_PROFILE_VERSION, records: [0, 0, 0, 0, 0], jackpotProgress: 0, jackpotFinished: false, stats: {}, history: [], difficultyData: blankDifficulty(), createdAt: Date.now() }); await save(account); return json({ account: publicAccount(account), safeWord: plainSafeWord, token }); }
+    if (action === 'create') { const name = cleanName(input.name); if (name.length < 2) return json({ error: 'Name must contain at least 2 characters.' }, 400); const accounts = await getAccounts(); const nameExists = Object.values(accounts).some(acc => nameKey(acc.name) === nameKey(name)); if (nameExists) return json({ error: 'This name is already in use.' }, 409); const existingIds = Object.values(accounts).map(acc => Number(acc && acc.id)).filter(id => id >= 11); let id = Math.max(11, ...existingIds, 10) + 1; const plainSafeWord = makeSafeWord(), token = makeSessionToken(); const account = defaults({ id, name, safeWord: hashSafeWord(plainSafeWord), sessionToken: token, role: 'user', balance: 250, bank: 0, wildLevel: 0, difficulty: 2, difficultyProfileVersion: DIFFICULTY_PROFILE_VERSION, records: [0, 0, 0, 0, 0], jackpotProgress: 0, jackpotFinished: false, stats: {}, history: [], difficultyData: blankDifficulty(), createdAt: Date.now() }); await save(account); return json({ account: publicAccount(account), safeWord: plainSafeWord, token }); }
     if (action === 'login') {
       let account = null;
       if (input.id !== undefined && input.id !== null && String(input.id).trim() !== '') {
@@ -411,14 +429,21 @@ exports.handler = async event => {
       const admin = await read(input.id); if (!admin) return json({ error: 'ID not found.' }, 404);
       if (!isAdminAccount(admin)) return json({ error: 'Not authorized.' }, 403);
       { const denied = await checkSafeWord(admin, input.safeWord); if (denied) return denied; }
-      const accounts = await getAccounts();
+      let accounts = await getAccounts();
+      for (const [key, acc] of Object.entries(accounts)) {
+        if (!acc || !Number.isFinite(Number(acc.id))) continue;
+        const wanted = accountKey(acc.id, acc.name);
+        if (key === wanted) continue;
+        try { const node = rememberKey(defaults(acc), key); await save(node, true); } catch (error) { /* leave as is */ }
+      }
+      accounts = await getAccounts();
       const players = Object.values(accounts).map(acc => ({ id: acc.id, name: acc.name, lastActive: acc.updatedAt || 0 })).sort((a, b) => number(b.lastActive) - number(a.lastActive));
       return json({ players });
     }
     // Renaming/re-IDing/re-passwording a player never touches its balance,
     // history, stats, wild level etc. - only the three edited fields change,
     // the rest of the record is carried over untouched via {...target,...}.
-    // Changing the id physically moves the record to a new `account:{id}`
+    // Changing the id/name moves the record to a new `{id}_{name}` node (see save())
     // key (old key deleted) since the id IS the Firebase key, so any cached
     // leaderboard rows under the old id are patched in place to the new id
     // instead of being silently orphaned/duplicated.
@@ -445,12 +470,11 @@ exports.handler = async event => {
       if (input.newId !== undefined && String(input.newId).trim() !== '' && Number(input.newId) !== Number(target.id)) {
         newId = Math.floor(Number(input.newId));
         if (!Number.isFinite(newId) || newId <= 0) return json({ error: 'Invalid new ID.' }, 400);
-        if (accounts[accountKey(newId)]) return json({ error: 'This ID is already in use.' }, 409);
+        if (findEntryById(accounts, newId)) return json({ error: 'This ID is already in use.' }, 409);
       }
-      const updated = { ...target, id: newId, name, safeWord, sessionToken, updatedAt: Date.now() };
+      const updated = rememberKey({ ...target, id: newId, name, safeWord, sessionToken }, target.__key);
+      await save(updated);
       if (newId !== Number(target.id)) {
-        await updateAccount(accountKey(newId), () => updated);
-        await updateAccount(accountKey(target.id), () => null);
         const boards = await getLeaderboard();
         let changed = false;
         for (const key of Object.keys(boards)) {
@@ -459,8 +483,6 @@ exports.handler = async event => {
           if (row) { row.id = newId; changed = true; }
         }
         if (changed) await saveLeaderboard(boards);
-      } else {
-        await updateAccount(accountKey(target.id), () => updated);
       }
       return json({ player: { id: updated.id, name: updated.name, lastActive: updated.updatedAt } });
     }
@@ -470,7 +492,7 @@ exports.handler = async event => {
       { const denied = await checkSafeWord(admin, input.safeWord); if (denied) return denied; }
       const target = await read(input.playerId); if (!target) return json({ error: 'Player not found.' }, 404);
       if (Number(target.id) === Number(admin.id)) return json({ error: 'Cannot delete your own account.' }, 400);
-      await updateAccount(accountKey(target.id), () => null);
+      await updateAccount(target.__key || accountKey(target.id, target.name), () => null);
       const boards = await getLeaderboard();
       let changed = false;
       for (const key of Object.keys(boards)) {

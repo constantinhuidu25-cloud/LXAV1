@@ -38,46 +38,46 @@ function freshHandler() {
   storage.__seed({ id: 1, name: 'Tester', safeWord: 'testpass', balance: 10000000, bank: 0, wildLevel: 0, difficulty: 2 });
   const { handler } = require('./functions/lxa-account.js');
   const call = async (action, data) => JSON.parse((await handler({ httpMethod: 'POST', headers: {}, body: JSON.stringify({ action, ...data }) })).body);
-  return { call, accounts: () => storage.__accounts() };
+  return { call, accounts: () => storage.__accounts(), byId: id => Object.values(storage.__accounts()).find(acc => acc && acc.id === id) };
 }
 
 describe('Replay-safety (requestId idempotency) for money-moving actions', () => {
   test('buy-wild: replaying the same requestId does not charge or upgrade twice', async () => {
-    const { call, accounts } = freshHandler();
+    const { call, accounts, byId } = freshHandler();
     const first = await call('buy-wild', { id: 1, safeWord: 'testpass', requestId: 'req-A' });
     expect(first.account.wildLevel).toBe(1);
-    const balanceAfterFirst = accounts()['account:1'].balance, bankAfterFirst = accounts()['account:1'].bank;
+    const balanceAfterFirst = byId(1).balance, bankAfterFirst = byId(1).bank;
     const second = await call('buy-wild', { id: 1, safeWord: 'testpass', requestId: 'req-A' });
     expect(second).toEqual(first);
-    expect(accounts()['account:1'].wildLevel).toBe(1);
-    expect(accounts()['account:1'].balance).toBe(balanceAfterFirst);
-    expect(accounts()['account:1'].bank).toBe(bankAfterFirst);
+    expect(byId(1).wildLevel).toBe(1);
+    expect(byId(1).balance).toBe(balanceAfterFirst);
+    expect(byId(1).bank).toBe(bankAfterFirst);
   });
 
   test('buy-wild: a DIFFERENT requestId is a genuine second purchase', async () => {
-    const { call, accounts } = freshHandler();
+    const { call, accounts, byId } = freshHandler();
     await call('buy-wild', { id: 1, safeWord: 'testpass', requestId: 'req-A' });
     await call('buy-wild', { id: 1, safeWord: 'testpass', requestId: 'req-B' });
-    expect(accounts()['account:1'].wildLevel).toBe(2);
+    expect(byId(1).wildLevel).toBe(2);
   });
 
   test('deposit: replaying the same requestId does not move money twice', async () => {
-    const { call, accounts } = freshHandler();
+    const { call, accounts, byId } = freshHandler();
     const first = await call('deposit', { id: 1, safeWord: 'testpass', amount: 50, requestId: 'req-C' });
     expect(first.account.balance).toBe(9999950);
     expect(first.account.bank).toBe(50);
     const second = await call('deposit', { id: 1, safeWord: 'testpass', amount: 50, requestId: 'req-C' });
     expect(second).toEqual(first);
-    expect(accounts()['account:1'].balance).toBe(9999950);
-    expect(accounts()['account:1'].bank).toBe(50);
+    expect(byId(1).balance).toBe(9999950);
+    expect(byId(1).bank).toBe(50);
   });
 
   test('spin: replaying the same requestId returns the identical cached result, not a second spin', async () => {
-    const { call, accounts } = freshHandler();
+    const { call, accounts, byId } = freshHandler();
     const first = await call('spin', { id: 1, safeWord: 'testpass', bet: 10, requestId: 'req-D' });
-    const spinsAfterFirst = accounts()['account:1'].stats.spins;
+    const spinsAfterFirst = byId(1).stats.spins;
     const second = await call('spin', { id: 1, safeWord: 'testpass', bet: 10, requestId: 'req-D' });
     expect(second).toEqual(first);
-    expect(accounts()['account:1'].stats.spins).toBe(spinsAfterFirst);
+    expect(byId(1).stats.spins).toBe(spinsAfterFirst);
   });
 });
