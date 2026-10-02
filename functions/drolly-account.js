@@ -11,7 +11,7 @@ const game = require('../game-engine.js');
 // spoofed by editing client-side state.
 const isAdminAccount = account => Boolean(account) && account.role === 'admin';
 
-const MAX_WILD_LEVEL = 50, RESET_LIMIT = 25000, RESET_AMOUNT = 250000, TARGET = 'DROLLINGER'.split('');
+const MAX_WILD_LEVEL = 50, RESET_LIMIT = 25000, RESET_AMOUNT = 250000, TARGET = 'LEONXOXANA'.split('');
 // GELD LIMITER (v135) — scaffolding only, OFF by default.
 // enabled:false => behavior is unchanged from before: GELD is usable any time
 // balance <= RESET_LIMIT, with no cooldown and no per-day cap.

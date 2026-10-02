@@ -3139,9 +3139,9 @@ html body .hero {
 }
 
 html body .hero aside {
-  background: linear-gradient(135deg, rgba(0,80,80,0.15), rgba(0,120,120,0.1)) !important;
-  border: 2px solid var(--frame-graphite, var(--lxa-text-muted)) !important;
-  border-left: 4px solid var(--win-cyan, var(--lxa-cyan-400)) !important;
+  background: var(--lxa-surface-1) !important;
+  border: 2px solid var(--lxa-border-strong) !important;
+  border-left: 4px solid var(--lxa-cyan-400) !important;
   padding: 12px 14px !important;
   border-radius: 4px !important;
   min-height: 200px !important;
@@ -3159,8 +3159,8 @@ html body .hero aside > div:first-child {
 html body [aria-label*="info"],
 html body [aria-label*="règle"],
 html body [aria-label*="rules"] {
-  background: rgba(0,100,100,0.08) !important;
-  border: 1px solid rgba(0,200,200,0.3) !important;
+  background: var(--lxa-surface-1) !important;
+  border: 1px solid var(--lxa-border-strong) !important;
   padding: 12px 14px !important;
   border-radius: 4px !important;
   margin: 4px 0 !important;
@@ -3190,9 +3190,9 @@ html body .bottom-grid {
 }
 
 html body .bottom-grid > div {
-  background: linear-gradient(135deg, rgba(0,120,120,0.15), rgba(0,150,150,0.1)) !important;
-  border: 2px solid var(--frame-cyan, var(--lxa-cyan-500)) !important;
-  border-left: 4px solid var(--win-cyan, var(--lxa-cyan-400)) !important;
+  background: var(--lxa-surface-1) !important;
+  border: 2px solid var(--lxa-cyan-500) !important;
+  border-left: 4px solid var(--lxa-cyan-400) !important;
   padding: 12px 14px !important;
   border-radius: 4px !important;
   min-height: auto !important;
@@ -3205,13 +3205,13 @@ html body .bottom-grid .section-heading {
   align-items: center !important;
   padding: 8px 0 !important;
   margin-bottom: 8px !important;
-  border-bottom: 1px solid rgba(0,255,255,0.2) !important;
+  border-bottom: 1px solid var(--lxa-border) !important;
 }
 
 html body .bottom-grid .section-heading span {
   font-size: 11px !important;
   letter-spacing: 1px !important;
-  color: var(--win-cyan, var(--lxa-cyan-400)) !important;
+  color: var(--lxa-cyan-400) !important;
   font-weight: bold !important;
 }
 
@@ -3222,8 +3222,8 @@ html body .bottom-grid .section-heading small {
 
 /* History List */
 html body .bottom-grid .history {
-  background: rgba(0,80,80,0.1) !important;
-  border: 1px solid rgba(0,200,200,0.2) !important;
+  background: var(--lxa-surface-2) !important;
+  border: 1px solid var(--lxa-border) !important;
   padding: 10px 12px !important;
   border-radius: 3px !important;
   max-height: 300px !important;
@@ -3242,7 +3242,7 @@ html body .bottom-grid .history li {
   gap: 12px !important;
   padding: 6px 8px !important;
   margin: 2px 0 !important;
-  border-bottom: 1px solid rgba(0,200,200,0.1) !important;
+  border-bottom: 1px solid var(--lxa-border) !important;
   font-size: 11px !important;
 }
 
@@ -3257,8 +3257,8 @@ html body .bottom-grid .history li time {
 
 /* Payouts Section */
 html body .bottom-grid .payouts {
-  background: rgba(0,80,80,0.1) !important;
-  border: 1px solid rgba(0,200,200,0.2) !important;
+  background: var(--lxa-surface-2) !important;
+  border: 1px solid var(--lxa-border) !important;
   padding: 10px 12px !important;
   border-radius: 3px !important;
 }
@@ -3269,13 +3269,13 @@ html body .payout-row {
   gap: 12px !important;
   padding: 4px 8px !important;
   margin: 2px 0 !important;
-  border: 1px solid rgba(0,200,200,0.15) !important;
+  border: 1px solid var(--lxa-border) !important;
   border-radius: 2px !important;
-  background: rgba(0,100,100,0.05) !important;
+  background: var(--lxa-surface-2) !important;
 }
 
 html body .payout-row b {
-  color: var(--win-cyan, var(--lxa-cyan-400)) !important;
+  color: var(--lxa-cyan-400) !important;
   font-weight: bold !important;
 }
 
@@ -3290,8 +3290,8 @@ html body .payout-row b {
    same var(--lxa-cyan-400) bright teal used by those cards' left accents instead of
    another CSS variable, to avoid this exact mismatch happening again. */
 html body .win-board {
-  background: linear-gradient(135deg, rgba(0,100,100,0.15), rgba(0,150,150,0.1)) !important;
-  border: 2px solid var(--frame-cyan, var(--lxa-cyan-500)) !important;
+  background: var(--lxa-surface-1) !important;
+  border: 2px solid var(--lxa-cyan-500) !important;
   border-left: 4px solid var(--lxa-cyan-400) !important;
   padding: 12px 14px !important;
   border-radius: 4px !important;
@@ -3307,7 +3307,7 @@ html body .win-board-head {
   align-items: center !important;
   margin-bottom: 8px !important;
   padding-bottom: 6px !important;
-  border-bottom: 1px solid rgba(0,255,255,0.2) !important;
+  border-bottom: 1px solid var(--lxa-border) !important;
 }
 
 /* V338: same --info-petrol mismatch as the .win-board border-left above
@@ -3324,9 +3324,9 @@ html body .win-board-head span {
 
 /* Chance Control Container */
 html body .chance-control {
-  background: linear-gradient(135deg, rgba(0,100,100,0.15), rgba(0,150,150,0.1)) !important;
-  border: 2px solid var(--frame-cyan, var(--lxa-cyan-500)) !important;
-  border-left: 4px solid var(--win-cyan, var(--lxa-cyan-400)) !important;
+  background: var(--lxa-surface-1) !important;
+  border: 2px solid var(--lxa-cyan-500) !important;
+  border-left: 4px solid var(--lxa-cyan-400) !important;
   padding: 12px 14px !important;
   border-radius: 4px !important;
   min-height: 50px !important;
@@ -3342,7 +3342,7 @@ html body .chance-head {
 html body .chance-head span {
   font-size: 10px !important;
   letter-spacing: 1px !important;
-  color: var(--win-cyan, var(--lxa-cyan-400)) !important;
+  color: var(--lxa-cyan-400) !important;
   font-weight: bold !important;
 }
 
@@ -3352,15 +3352,15 @@ html body .chance-head small {
 }
 
 html body .chance-head strong {
-  color: var(--info-petrol, var(--lxa-cyan-500)) !important;
+  color: var(--lxa-cyan-400) !important;
   font-weight: bold !important;
 }
 
 /* Console Container */
 html body .console {
-  background: linear-gradient(135deg, rgba(0,80,80,0.1), rgba(0,120,120,0.08)) !important;
-  border: 2px solid var(--frame-graphite, var(--lxa-text-muted)) !important;
-  border-left: 4px solid var(--win-cyan, var(--lxa-cyan-400)) !important;
+  background: linear-gradient(135deg, var(--lxa-bg-1), var(--lxa-bg-0)) !important;
+  border: 2px solid var(--lxa-border-strong) !important;
+  border-left: 4px solid var(--lxa-cyan-400) !important;
   padding: 8px !important;
   border-radius: 4px !important;
 }
@@ -3372,7 +3372,7 @@ html body .console-top {
   gap: 8px !important;
   padding: 6px 8px !important;
   margin-bottom: 8px !important;
-  border-bottom: 1px solid rgba(0,200,200,0.15) !important;
+  border-bottom: 1px solid var(--lxa-border) !important;
   flex-wrap: wrap !important;
 }
 
@@ -3426,9 +3426,9 @@ html body .bottom-grid .history,
 html body .bottom-grid .payouts,
 html body .bottom-grid > [class*="section"],
 html body .bottom-grid > [class*="chapter"] {
-  background: linear-gradient(135deg, rgba(0,100,100,0.12), rgba(0,150,150,0.08)) !important;
-  border: 2px solid var(--frame-cyan, var(--lxa-cyan-500)) !important;
-  border-left: 4px solid var(--win-cyan, var(--lxa-cyan-400)) !important;
+  background: var(--lxa-surface-1) !important;
+  border: 2px solid var(--lxa-cyan-500) !important;
+  border-left: 4px solid var(--lxa-cyan-400) !important;
   padding: 12px 14px !important;
   border-radius: 4px !important;
   min-height: auto !important;
@@ -3441,14 +3441,14 @@ html body .section-heading {
   align-items: baseline !important;
   padding: 0 0 10px 0 !important;
   margin: 0 0 10px 0 !important;
-  border-bottom: 2px solid rgba(0,255,255,0.3) !important;
+  border-bottom: 2px solid var(--lxa-border-strong) !important;
   gap: 12px !important;
 }
 
 html body .section-heading span {
   font-size: 11px !important;
   letter-spacing: 2px !important;
-  color: var(--win-cyan, var(--lxa-cyan-400)) !important;
+  color: var(--lxa-cyan-400) !important;
   font-weight: bold !important;
   text-transform: uppercase !important;
   flex: 1;
@@ -3486,7 +3486,7 @@ html body .bottom-grid .history li {
   grid-template-columns: 1fr auto !important;
   gap: 16px !important;
   padding: 4px 8px !important;
-  background: rgba(0,80,80,0.1) !important;
+  background: var(--lxa-surface-2) !important;
   font-size: 11px !important;
   align-items: center !important;
 }
@@ -3508,14 +3508,14 @@ html body .payout-row {
   grid-template-columns: 60px 1fr 80px !important;
   gap: 12px !important;
   padding: 8px 10px !important;
-  background: rgba(0,80,80,0.1) !important;
-  border: 1px solid rgba(0,200,200,0.15) !important;
+  background: var(--lxa-surface-2) !important;
+  border: 1px solid var(--lxa-border) !important;
   border-radius: 2px !important;
   align-items: center !important;
 }
 
 html body .payout-row b {
-  color: var(--win-cyan, var(--lxa-cyan-400)) !important;
+  color: var(--lxa-cyan-400) !important;
   font-weight: bold !important;
   font-size: 11px !important;
 }
@@ -3532,16 +3532,16 @@ html body .bottom-grid .history ol::-webkit-scrollbar {
 }
 
 html body .bottom-grid .history ol::-webkit-scrollbar-track {
-  background: rgba(0,100,100,0.1) !important;
+  background: var(--lxa-surface-1) !important;
 }
 
 html body .bottom-grid .history ol::-webkit-scrollbar-thumb {
-  background: rgba(0,255,255,0.3) !important;
+  background: var(--lxa-cyan-400) !important;
   border-radius: 2px !important;
 }
 
 html body .bottom-grid .history ol::-webkit-scrollbar-thumb:hover {
-  background: rgba(0,255,255,0.5) !important;
+  background: var(--lxa-cyan-300) !important;
 }
 
 /* Mobile Responsive */
@@ -4473,4 +4473,76 @@ html body:not(#_):not(#__) b{color:var(--lxa-text-strong)!important}
 
 @media (prefers-reduced-motion: reduce){
   html body:not(#_):not(#__) *{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+}
+
+/* LXAV1 letter-reskin (user request): the reel letters move from plain text
+   glyphs to the supplied crystalline-neon badge artwork (one badge per
+   unique letter of the new target word LEONXOXANA: L/E/O/N/X/A). The source
+   file is a single 1774x887 sprite sheet, 3 columns x 2 rows - L E O on the
+   top row, N X A on the bottom - so each letter is isolated with
+   background-position/background-size instead of being split into six
+   separate image files. Each cell's real text node stays in the DOM
+   (transparent, not display:none) so nothing here touches game logic,
+   grid-letters tests, or accessibility - only paint. --cell drives both the
+   per-letter box height AND .reel's own height (height:calc(var(--cell)*5 +
+   2px) upstream), so enlarging it here is enough to make every breakpoint's
+   reel grid taller for the new artwork, per the explicit request to grow
+   the containers vertically. */
+:root{--cell:clamp(66px,11vh,90px)!important}
+@media (max-width:1199px){
+  :root{--cell:clamp(46px,7.6vw,72px)!important}
+}
+@media (orientation:landscape) and (max-height:540px){
+  :root{--cell:clamp(38px,12.5vh,54px)!important}
+}
+@media (orientation:portrait) and (max-width:640px){
+  :root{--cell:clamp(44px,14vw,62px)!important}
+}
+
+html body:not(#_):not(#__) .reel span:not(.wild-symbol){
+  color:transparent!important;
+  text-shadow:none!important;
+  position:relative!important;
+}
+html body:not(#_):not(#__) .reel span:not(.wild-symbol)::before{
+  content:'';
+  display:block!important;
+  height:84%;
+  width:auto;
+  aspect-ratio:591/443;
+  background-image:url('assets/litere-leonxoxana-transparent.png');
+  background-repeat:no-repeat;
+  background-size:300% 200%;
+  pointer-events:none;
+}
+html body:not(#_):not(#__) .reel span.letter-L::before{background-position:0% 0%}
+html body:not(#_):not(#__) .reel span.letter-E::before{background-position:50% 0%}
+html body:not(#_):not(#__) .reel span.letter-O::before{background-position:100% 0%}
+html body:not(#_):not(#__) .reel span.letter-N::before{background-position:0% 100%}
+html body:not(#_):not(#__) .reel span.letter-X::before{background-position:50% 100%}
+html body:not(#_):not(#__) .reel span.letter-A::before{background-position:100% 100%}
+
+/* WILD artwork fills its reel cell edge-to-edge (object-fit:contain still
+   guards against distortion - the source image's own aspect ratio differs
+   from the cell's, so "fill the container" means "as large as the
+   container allows without stretching", not a forced 1:1 crop). */
+html body:not(#_):not(#__) .reel span.wild-symbol{padding:0!important}
+html body:not(#_):not(#__) .reel span.wild-symbol img{
+  width:100%!important;
+  height:100%!important;
+  max-width:none!important;
+  max-height:none!important;
+  object-fit:contain!important;
+}
+
+/* The badge art itself is the same colour for every letter, so hit/miss can
+   no longer be told apart by text colour (the old cyan-vs-gold signal) -
+   restore that distinction on the artwork itself instead: full vivid
+   brightness + a cyan glow for a correct/consecutive letter, dimmed and
+   desaturated for a miss, same roles the old text colours played. */
+html body:not(#_):not(#__) .reel span.hit::before{
+  filter:drop-shadow(0 0 7px var(--lxa-cyan-400)) saturate(1.2) brightness(1.1)!important;
+}
+html body:not(#_):not(#__) .reel span.after-miss::before{
+  filter:grayscale(60%) brightness(.55) saturate(.7)!important;
 }

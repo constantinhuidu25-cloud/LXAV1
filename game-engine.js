@@ -407,7 +407,7 @@
   }
 
   function makeBoard(finalResults, wildPositions, rng = Math.random) {
-    const letters = 'DROLLINGER'.split('');
+    const letters = 'LEONXOXANA'.split('');
     const alternatives = [...new Set(letters)];
     const board = Array.from({ length: LINE_COUNT }, (_, row) => Array.from({ length: COLUMN_COUNT }, (_, column) => {
       if (column < finalResults[row]) return letters[column];

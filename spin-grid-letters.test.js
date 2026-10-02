@@ -1,9 +1,9 @@
 // v158 (user request): the spin grid must never show a letter outside
-// DROLLINGER (D/R/O/L/I/N/G/E) - no 'X', no fallback-alphabet letters like
-// B/H/C/F/J/K. Was broken: the server's makeGrid() sent a literal 'X' for
-// every miss cell, and renderer.js mapped that 'X' to an ad-hoc fallback
-// alphabet client-side that included several non-DROLLINGER letters. Fixed
-// at the source (makeGrid now picks a random DROLLINGER letter, excluding
+// LEONXOXANA (L/E/O/N/X/A) - no fallback-alphabet letters like B/H/C/F/J/K.
+// Was broken: the server's makeGrid() sent a literal 'X' for every miss
+// cell, and renderer.js mapped that 'X' to an ad-hoc fallback alphabet
+// client-side that included several letters outside the target word. Fixed
+// at the source (makeGrid now picks a random target-word letter, excluding
 // the "correct" one for that column, same approach game-engine.js's
 // makeBoard already used for guest play) and the now-unnecessary client
 // substitution was removed. This test exercises the REAL server handler
@@ -23,9 +23,9 @@ jest.mock('./functions/firebase-storage.js', () => {
   };
 });
 
-const ALLOWED = new Set(['D', 'R', 'O', 'L', 'I', 'N', 'G', 'E']);
+const ALLOWED = new Set(['L', 'E', 'O', 'N', 'X', 'A']);
 
-test('spin grid only ever contains DROLLINGER letters or the Wild marker, never X or any other letter', async () => {
+test('spin grid only ever contains LEONXOXANA letters or the Wild marker, never any other letter', async () => {
   const storage = require('./functions/firebase-storage.js');
   storage.__seed({ id: 1, name: 'Tester', safeWord: 'testpass', balance: 10000000, bank: 0, wildLevel: 50, difficulty: 2 });
   const { handler } = require('./functions/drolly-account.js');

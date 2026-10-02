@@ -29,6 +29,8 @@ const mimeTypes = {
 };
 
 function serveStaticFile(pathname, res) {
+  pathname = decodeURIComponent(pathname);
+
   // Default to index.html for root
   if (pathname === '/' || pathname === '') {
     pathname = '/index.html';
