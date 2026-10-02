@@ -1,4 +1,4 @@
-﻿// Account nodes are keyed "<id> : <name>" (e.g. "25 : ANA"); lookups use the id FIELD, so legacy `account:N` and hand-edited nodes still work, and
+// Account nodes are keyed "<id> : <name>" (e.g. "25 : ANA"); lookups use the id FIELD, so legacy `account:N` and hand-edited nodes still work, and
 // every save refreshes the node key after an ID/name edit.
 jest.mock('./functions/firebase-storage.js', () => {
   let accounts = {}, leaderboards = {}, rtpSettings = {};
@@ -78,4 +78,15 @@ describe('account node keys', () => {
     expect(Object.keys(storage.__accounts()).sort()).toEqual(['1 : Admin', '12 : Bob', '13 : Cleo']);
     expect(storage.__accounts()['12 : Bob'].updatedAt).toBe(7);
   });
-});
+
+  test('an account with role admin and a low or hand-edited id (0-10) logs in and keeps its admin role', async () => {
+    const { storage, call } = setup();
+    storage.__put('account:13', player(3, 'Leo', { role: 'admin' }));
+    storage.__put('account:1', player(1, 'Boss', { role: 'admin' }));
+    storage.__put('account:0', player(0, 'Zero', { role: 'admin' }));
+    for (const id of [3, 1, 0]) {
+      const login = await call('login', { id, safeWord: 'pw' });
+      expect(login.account.role).toBe('admin');
+      expect((await call('list-players', { id, safeWord: 'pw' })).players.length).toBeGreaterThan(0);
+    }
+  });});

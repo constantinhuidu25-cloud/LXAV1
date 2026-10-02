@@ -5188,3 +5188,120 @@ html body:not(#_):not(#__):not(#___) .quick-info>div:last-child{
     border-radius:0 0 14px 14px!important;border-left:1px solid rgba(190,140,255,.38)!important;border-top:1px solid rgba(190,160,255,.28)!important;
   }
 }
+
+/* ===== Header icons: emoji only (no frame, no background) ===== */
+html body:not(#_):not(#__):not(#___) #accountButton,
+html body:not(#_):not(#__):not(#___) #headerActions .language-toggle,
+html body:not(#_):not(#__):not(#___) #scrollLock{
+  border:0!important;background:none!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+}
+html body:not(#_):not(#__):not(#___) #accountButton:active,
+html body:not(#_):not(#__):not(#___) #headerActions .language-toggle:active,
+html body:not(#_):not(#__):not(#___) #scrollLock:active{border:0!important;transform:scale(.9)!important;filter:drop-shadow(0 0 8px rgba(255,120,240,.8))}
+
+/* ===== Language menu in the new theme ===== */
+html body:not(#_):not(#__):not(#___) .language-menu{
+  background:linear-gradient(150deg,rgba(40,72,165,.97) 0%,rgba(60,26,120,.97) 100%)!important;
+  border:1px solid rgba(255,120,240,.55)!important;border-radius:14px!important;padding:6px!important;gap:6px!important;
+  box-shadow:0 12px 28px rgba(0,0,0,.5),0 0 20px rgba(232,44,255,.28),inset 0 1px rgba(255,255,255,.14)!important;
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+}
+html body:not(#_):not(#__):not(#___) .language-menu button{
+  border:1px solid rgba(190,160,255,.25)!important;border-radius:10px!important;background:rgba(255,255,255,.07)!important;box-shadow:none!important;
+  transition:background .15s ease,border-color .15s ease,box-shadow .15s ease,transform .1s ease;
+}
+html body:not(#_):not(#__):not(#___) .language-menu button:hover,
+html body:not(#_):not(#__):not(#___) .language-menu button:focus-visible{background:rgba(232,44,255,.22)!important;border-color:var(--lxa-magenta-400)!important;outline:none}
+html body:not(#_):not(#__):not(#___) .language-menu button:active{transform:scale(.94)}
+html[lang^="de"] body:not(#_):not(#__):not(#___) .language-menu button[data-lang="de"],
+html[lang^="ro"] body:not(#_):not(#__):not(#___) .language-menu button[data-lang="ro"],
+html[lang^="en"] body:not(#_):not(#__):not(#___) .language-menu button[data-lang="en"]{
+  border-color:var(--lxa-magenta-400)!important;background:rgba(232,44,255,.28)!important;box-shadow:0 0 12px rgba(232,44,255,.55)!important;
+}
+
+/* ===== Same small gap between every main container (no margins stacking, nothing overlapping) ===== */
+html body:not(#_):not(#__):not(#___) .machine{row-gap:4px!important}
+html body:not(#_):not(#__):not(#___) .machine>*{margin-top:0!important;margin-bottom:0!important}
+html body:not(#_):not(#__):not(#___) .quick-info{margin-top:0!important}
+html body:not(#_):not(#__):not(#___) .leaderboard-panel,
+html body:not(#_):not(#__):not(#___) .win-board,
+html body:not(#_):not(#__):not(#___) .chance-control{margin-top:0!important;margin-bottom:0!important}
+
+/* ===== Status line over the reels (id/name, round, rank, difficulty): readable, same height ===== */
+html body:not(#_):not(#__):not(#___) .console-top{height:24px!important;min-height:24px!important;line-height:24px!important;overflow:visible!important;padding-top:0!important;padding-bottom:0!important}
+html body:not(#_):not(#__):not(#___) .console-top>span,
+html body:not(#_):not(#__):not(#___) .console-top .status-part{
+  color:#eef4ff!important;font-weight:700!important;font-size:clamp(9.5px,2.8vw,14px)!important;letter-spacing:.5px!important;line-height:24px!important;
+  text-shadow:0 0 8px rgba(120,170,255,.65),0 1px 0 rgba(0,0,0,.6)!important;white-space:nowrap!important;
+}
+html body:not(#_):not(#__):not(#___) .console-top .status-part:nth-child(3){color:#ffc9f7!important}
+
+/* ===== Jackpot header: title and goal each on ONE line (JS shrinks the font to fit) ===== */
+html body:not(#_):not(#__):not(#___) .jackpot-target .target-head{
+  display:flex!important;flex-wrap:nowrap!important;align-items:baseline!important;gap:12px!important;
+}
+html body:not(#_):not(#__):not(#___) .jackpot-target .target-head span{
+  flex:0 0 auto!important;white-space:nowrap!important;overflow:visible!important;padding-right:0!important;
+}
+html body:not(#_):not(#__):not(#___) .jackpot-target .target-head strong{
+  flex:1 1 0!important;min-width:0!important;white-space:nowrap!important;overflow:visible!important;text-align:right!important;margin-top:0!important;padding-right:0!important;
+}
+@media (max-width:699px){
+  html body:not(#_):not(#__):not(#___) .jackpot-target .target-head{flex-direction:column!important;align-items:stretch!important;gap:2px!important}
+  html body:not(#_):not(#__):not(#___) .jackpot-target .target-head strong{text-align:left!important;flex:0 0 auto!important}
+}
+
+/* the display:none result strip still owned a 0px grid row, which added a second 4px gap above the leaderboard */
+html body:not(#_):not(#__):not(#___) .machine{
+  grid-template-areas:"topbar" "hero" "console" "controls" "winboard" "chance" "leaderboard" "quickinfo" "history" "kofibar" "footer"!important;
+}
+html body:not(#_):not(#__):not(#___) .machine>.result-strip{display:none!important;grid-area:auto!important}
+html body:not(#_):not(#__):not(#___) .jackpot-target .target-head span#missionTitle,
+html body:not(#_):not(#__):not(#___) .jackpot-target .target-head>span:first-child{font-size:clamp(19px,6.2vw,27px)!important;letter-spacing:1.6px!important}
+@media (min-width:700px){
+  html body:not(#_):not(#__):not(#___) .jackpot-target .target-head span#missionTitle,
+  html body:not(#_):not(#__):not(#___) .jackpot-target .target-head>span:first-child{font-size:clamp(22px,2.3vw,32px)!important;letter-spacing:2.4px!important}
+}
+html body:not(#_):not(#__):not(#___) .jackpot-target .target-head strong#missionGoal,
+html body:not(#_):not(#__):not(#___) .jackpot-target .target-head>strong{font-size:clamp(10px,3.1vw,13px)!important;letter-spacing:.3px!important}
+@media (min-width:700px){
+  html body:not(#_):not(#__):not(#___) .jackpot-target .target-head strong#missionGoal,
+  html body:not(#_):not(#__):not(#___) .jackpot-target .target-head>strong{font-size:clamp(11px,1.15vw,15px)!important}
+}
+html body:not(#_):not(#__):not(#___) .jackpot-target .target-head strong#missionGoal,
+html body:not(#_):not(#__):not(#___) .jackpot-target .target-head>strong{
+  font-family:var(--v117-num,"LxaNum","Bahnschrift SemiCondensed","Arial Narrow",sans-serif)!important;font-weight:600!important;letter-spacing:.2px!important;
+  font-size:clamp(12px,3.9vw,17px)!important;
+}
+@media (min-width:700px){
+  html body:not(#_):not(#__):not(#___) .jackpot-target .target-head strong#missionGoal,
+  html body:not(#_):not(#__):not(#___) .jackpot-target .target-head>strong{font-size:clamp(13px,1.3vw,19px)!important}
+}
+/* ===== Banner: ONE continuous deep-blue band; the animated LXA (transparent WebP) glows straight on it ===== */
+html body:not(#_):not(#__):not(#___) .topbar .brand-cluster .brand{
+  background:
+    radial-gradient(ellipse 36% 140% at 50% 50%,rgba(30,90,255,.38),transparent 70%),
+    linear-gradient(180deg,#0a1346 0%,#101c64 55%,#1a1470 100%)!important;
+  box-shadow:inset 0 -1px rgba(120,150,255,.25)!important;
+}
+html body:not(#_):not(#__):not(#___) .topbar .brand-cluster .brand img{
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 8%,#000 92%,transparent 100%)!important;
+  mask-image:linear-gradient(90deg,transparent 0,#000 8%,#000 92%,transparent 100%)!important;
+  -webkit-mask-composite:source-over!important;mask-composite:add!important;
+  mix-blend-mode:screen;
+}
+html body:not(#_):not(#__):not(#___) .topbar .brand-cluster .brand::before{opacity:.55}
+/* page canvas: same family of blues as the banner so nothing reads as a pasted rectangle */
+html body:not(#_):not(#__):not(#___){
+  background:
+    radial-gradient(900px 520px at 88% -6%,rgba(232,44,255,.20),transparent 62%),
+    radial-gradient(900px 620px at 4% 12%,rgba(30,90,255,.34),transparent 62%),
+    radial-gradient(800px 520px at 50% 104%,rgba(113,60,255,.30),transparent 66%),
+    linear-gradient(180deg,#0b1550 0%,#0a1248 50%,#0c1050 100%)!important;
+}
+html{background-color:#0a1248!important}
+
+/* ===== Jackpot goal text: always one line (JS shrinks it); never wraps under any language or width ===== */
+html body:not(#_):not(#__):not(#___) .jackpot-target .target-head strong,
+html body:not(#_):not(#__):not(#___) #missionGoal{white-space:nowrap!important;overflow:hidden!important;text-overflow:clip!important}
+html body:not(#_):not(#__):not(#___) .jackpot-target .target-head{flex-wrap:nowrap!important}
