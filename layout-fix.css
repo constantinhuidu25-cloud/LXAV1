@@ -4883,3 +4883,35 @@ html body:not(#_):not(#__):not(#___) .topbar #headerActions{grid-row:1!important
 html body:not(#_):not(#__):not(#___) .topbar{
   grid-template-rows:calc(var(--lxa-logo-h) + 8px)!important;grid-auto-rows:0!important;
 }
+
+/* ===== Full-width header banner (>=700px): the LXA GIF stays centred and the light rails
+   continue to both edges of the bar in CSS; the icon cluster may sit over the rails,
+   never over the lettering in the middle ===== */
+@keyframes lxaRailTint{0%,100%{filter:hue-rotate(0deg) brightness(1)}50%{filter:hue-rotate(38deg) brightness(1.15)}}
+@media (min-width:700px){
+  html body:not(#_):not(#__):not(#___) .topbar .brand-cluster{
+    grid-column:1 / -1!important;grid-row:1!important;justify-self:stretch!important;width:100%!important;z-index:1!important;
+  }
+  html body:not(#_):not(#__):not(#___) .topbar .brand-cluster .brand{
+    display:block!important;position:relative!important;width:100%!important;height:var(--lxa-logo-h)!important;
+    overflow:hidden!important;border-radius:10px!important;gap:0!important;
+    background:
+      radial-gradient(ellipse 60% 120% at 50% 50%,rgba(40,100,255,.30),transparent 70%),
+      linear-gradient(180deg,#060c2c 0%,#0a1650 60%,#14104c 100%)!important;
+  }
+  html body:not(#_):not(#__):not(#___) .topbar .brand-cluster .brand::before{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:
+      linear-gradient(90deg,transparent 0%,rgba(90,170,255,.85) 22%,rgba(180,100,255,.85) 78%,transparent 100%) 0 60%/100% 1.6px no-repeat,
+      linear-gradient(90deg,transparent 0%,rgba(70,140,255,.6) 24%,rgba(220,80,255,.6) 76%,transparent 100%) 0 74%/100% 1px no-repeat,
+      linear-gradient(90deg,transparent 0%,rgba(120,190,255,.4) 26%,rgba(255,110,240,.4) 74%,transparent 100%) 0 46%/100% 1px no-repeat;
+    animation:lxaRailTint 6.9s ease-in-out infinite;
+  }
+  html body:not(#_):not(#__):not(#___) .topbar .brand-cluster .brand img{
+    position:absolute!important;left:50%!important;top:0!important;transform:translateX(-50%)!important;
+    width:calc(var(--lxa-logo-h) * 16)!important;max-width:none!important;height:100%!important;
+    -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 16%,#000 84%,transparent 100%);
+    mask-image:linear-gradient(90deg,transparent 0,#000 16%,#000 84%,transparent 100%);
+  }
+  html body:not(#_):not(#__):not(#___) .topbar #headerActions{z-index:6!important}
+}
