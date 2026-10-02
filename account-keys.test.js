@@ -1,5 +1,4 @@
-﻿// Account nodes are keyed "<zero-padded id>_<name>" (e.g. 001_Tester) so the Firebase console lists
-// them by ID; lookups use the id FIELD, so legacy `account:N` and hand-edited nodes still work, and
+﻿// Account nodes are keyed "<id> : <name>" (e.g. "25 : ANA"); lookups use the id FIELD, so legacy `account:N` and hand-edited nodes still work, and
 // every save refreshes the node key after an ID/name edit.
 jest.mock('./functions/firebase-storage.js', () => {
   let accounts = {}, leaderboards = {}, rtpSettings = {};
@@ -30,11 +29,18 @@ function setup() {
 const player = (id, name, extra = {}) => ({ id, name, safeWord: 'pw', balance: 1000, bank: 0, wildLevel: 0, difficulty: 2, createdAt: 1000 + id, ...extra });
 
 describe('account node keys', () => {
-  test('a new account is stored under a zero-padded id + name key', async () => {
+  test('ids above 999 keep a plain number in the key', async () => {
+    const { storage, call } = setup();
+    storage.__put('account:1500', player(1500, 'Zed'));
+    await call('spin', { id: 1500, safeWord: 'pw', bet: 5, difficulty: 2 });
+    expect(Object.keys(storage.__accounts())).toEqual(['1500 : Zed']);
+  });
+
+  test('a new account is stored under a "<id> : <name>" key', async () => {
     const { storage, call } = setup();
     const created = await call('create', { name: 'Anna' });
     const id = created.account.id;
-    expect(Object.keys(storage.__accounts())).toEqual([`${String(id).padStart(3, '0')}_Anna`]);
+    expect(Object.keys(storage.__accounts())).toEqual([`${id} : Anna`]);
   });
 
   test('a legacy account:N node is found by id and renamed on the next save', async () => {
@@ -42,7 +48,7 @@ describe('account node keys', () => {
     storage.__put('account:13', player(13, 'Leo'));
     const res = await call('spin', { id: 13, safeWord: 'pw', bet: 5, difficulty: 2 });
     expect(res.account).toBeDefined();
-    expect(Object.keys(storage.__accounts())).toEqual(['013_Leo']);
+    expect(Object.keys(storage.__accounts())).toEqual(['13 : Leo']);
   });
 
   test('a node whose id field was edited by hand is found by the new id', async () => {
@@ -55,21 +61,21 @@ describe('account node keys', () => {
 
   test('admin edit of id and name moves the node to the refreshed key and drops the old one', async () => {
     const { storage, call } = setup();
-    storage.__put('001_Admin', player(1, 'Admin', { role: 'admin' }));
-    storage.__put('012_Bob', player(12, 'Bob'));
+    storage.__put('1 : Admin', player(1, 'Admin', { role: 'admin' }));
+    storage.__put('12 : Bob', player(12, 'Bob'));
     const res = await call('admin-update-player', { id: 1, safeWord: 'pw', playerId: 12, newId: 40, newName: 'Bobby' });
     expect(res.error).toBeUndefined();
-    expect(Object.keys(storage.__accounts()).sort()).toEqual(['001_Admin', '040_Bobby']);
+    expect(Object.keys(storage.__accounts()).sort()).toEqual(['1 : Admin', '40 : Bobby']);
   });
 
   test('opening the admin players list normalises every legacy key once', async () => {
     const { storage, call } = setup();
-    storage.__put('001_Admin', player(1, 'Admin', { role: 'admin', updatedAt: 5 }));
+    storage.__put('1 : Admin', player(1, 'Admin', { role: 'admin', updatedAt: 5 }));
     storage.__put('account:12', player(12, 'Bob', { updatedAt: 7 }));
     storage.__put('account:13', player(13, 'Cleo', { updatedAt: 9 }));
     const res = await call('list-players', { id: 1, safeWord: 'pw' });
     expect(res.players.map(p => p.id).sort((a, b) => a - b)).toEqual([1, 12, 13]);
-    expect(Object.keys(storage.__accounts()).sort()).toEqual(['001_Admin', '012_Bob', '013_Cleo']);
-    expect(storage.__accounts()['012_Bob'].updatedAt).toBe(7);
+    expect(Object.keys(storage.__accounts()).sort()).toEqual(['1 : Admin', '12 : Bob', '13 : Cleo']);
+    expect(storage.__accounts()['12 : Bob'].updatedAt).toBe(7);
   });
 });

@@ -303,4 +303,4 @@ Yes, the game works offline. Leaderboard and account sync require internet.
 
 ## Firebase account nodes
 
-Accounts live under ccounts/<id>_<name> (e.g.  13_Leo, id zero-padded to 3 digits so the console lists them by ID). The server looks accounts up by their id field, so a hand-edited node is still found; the node key is refreshed on every save and after an admin edit of the ID or name. Opening the admin PLAYERS list renames any leftover legacy ccount:N nodes once.
+Accounts live under `accounts/<id> : <name>` (e.g. `25 : ANA`). The server looks accounts up by their `id` field, so a hand-edited node is still found; the node key is refreshed on every save and after an admin edit of the ID or name. Opening the admin PLAYERS list renames any leftover legacy `account:N` nodes once. Note: the Firebase console sorts keys as text, so `100 : X` is listed before `25 : ANA`.
