@@ -4552,7 +4552,7 @@ html body:not(#_):not(#__) .reel span.after-miss::before{
    breakpoint already rendered (55/44/30px); only the width grows, by a fixed
    stretch factor over the natural 2.75:1 ratio so the artwork is stretched, not wrecked.
    Raise/lower --lxa-logo-stretch to taste. */
-html body:not(#_):not(#__){--lxa-logo-h:55px;--lxa-logo-stretch:8.5}
+html body:not(#_):not(#__){--lxa-logo-h:55px;--lxa-logo-stretch:8}
 @media (max-width:900px){html body:not(#_):not(#__){--lxa-logo-h:44px}}
 @media (orientation:landscape) and (max-height:540px){html body:not(#_):not(#__){--lxa-logo-h:30px}}
 html body:not(#_):not(#__) .topbar .header-tagline{display:none!important}
