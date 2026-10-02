@@ -5329,3 +5329,8 @@ html body:not(#_):not(#__):not(#___) .topbar .brand-cluster .brand img{
   mask-image:linear-gradient(90deg,transparent 0,#000 22%,#000 78%,transparent 100%),linear-gradient(180deg,transparent 0,#000 24%,#000 76%,transparent 100%)!important;
   -webkit-mask-composite:source-in!important;mask-composite:intersect!important;
 }
+/* ===== 1px between every main container, top to bottom (the hero's own bottom padding was adding 2px extra) ===== */
+html body:not(#_):not(#__):not(#___) .machine{row-gap:1px!important}
+html body:not(#_):not(#__):not(#___) .hero{padding-bottom:0!important;margin-bottom:0!important}
+html body:not(#_):not(#__):not(#___) .footer,
+html body:not(#_):not(#__):not(#___) footer{margin-top:0!important}
