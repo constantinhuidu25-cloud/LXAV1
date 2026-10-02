@@ -755,38 +755,62 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
   // waiting for it. Lets the user click SPIN quickly in succession while each
   // individual spin's letters still visually roll at the slower speed.
   let activeSpinHandle = null, stopRequested = false;
-  function animateReferenceSpin(grid) {
+  // Reels start the instant SPIN is pressed: they roll a looping strip of random
+  // letters at once, and only when the server's result arrives (land) do they switch to
+  // the decelerating final run that stops on the real board. The network wait is hidden
+  // inside the rolling instead of delaying its start.
+  function startReelSpin() {
     const nodes = [...document.querySelectorAll('.reel')];
-    const animations = [];
+    const rnd = () => symbols[Math.floor(Math.random() * symbols.length)];
+    const cellHtml = value => {
+      const isWild = value === game.WILD;
+      return `<span class="${isWild ? 'wild-symbol' : 'letter-' + value}">${isWild ? '<img src="assets/wild.webp" alt="BONUS WILD" decoding="sync">' : value}</span>`;
+    };
+    const t0 = performance.now();
+    const loops = [];
     nodes.forEach(node => {
-      const column = nodes.indexOf(node);
-      const filler = Array.from({ length: 30 }, () => symbols[Math.floor(Math.random() * symbols.length)]);
-      node.innerHTML = `<div class="reel-track rolling">${[...grid.map(row => row[column]), ...filler].map(value => {const isWild = value === game.WILD; return `<span class="${isWild ? 'wild-symbol' : 'letter-' + value}">${isWild ? '<img src="assets/wild.webp" alt="BONUS WILD" decoding="sync">' : value}</span>`;}).join('')}</div>`;
+      const strip = Array.from({ length: 12 }, rnd);
+      node.innerHTML = `<div class="reel-track rolling">${[...strip, ...strip].map(cellHtml).join('')}</div>`;
       const track = node.firstElementChild;
       const height = track.firstElementChild?.getBoundingClientRect().height || cell;
-      const finish = filler.length * height;
-      track.style.transform = `translateY(-${finish}px)`;
-      // v245: normal, uninterrupted spin slowed from 1900ms to 2300ms per
-      // reel per user request. fastForward() above still lets a second SPIN
-      // click snap this early, so the slower pace only affects the
-      // uninterrupted case.
-      animations.push(track.animate([{ transform: `translateY(-${finish}px)` }, { transform: 'translateY(0)' }], { duration: 2300, easing: 'cubic-bezier(.12,.71,.15,1)', fill: 'forwards' }));
+      loops.push(track.animate([{ transform: `translateY(-${strip.length * height}px)` }, { transform: 'translateY(0)' }], { duration: strip.length * 48, iterations: Infinity, easing: 'linear' }));
     });
-    let timer = null, resolvePromise = null;
-    const promise = new Promise(resolve => {
-      resolvePromise = resolve;
-      timer = setTimeout(resolve, 2500);
-    });
-    activeSpinHandle = {
-      // Snaps every reel straight to its resting frame and resolves the
-      // pending promise right away, so a new spin can start immediately.
+    let landed = false, stopWanted = false, animations = [], timer = null, resolvePromise = null;
+    const finishAll = () => {
+      animations.forEach(anim => { try { anim.finish(); } catch (error) { /* already done */ } });
+      clearTimeout(timer);
+      if (resolvePromise) resolvePromise();
+    };
+    const handle = {
+      land(grid) {
+        landed = true;
+        loops.forEach(loop => { try { loop.cancel(); } catch (error) { /* gone */ } });
+        const duration = Math.max(1000, 2300 - (performance.now() - t0));
+        nodes.forEach((node, column) => {
+          const filler = Array.from({ length: 30 }, rnd);
+          node.innerHTML = `<div class="reel-track rolling">${[...grid.map(row => row[column]), ...filler].map(cellHtml).join('')}</div>`;
+          const track = node.firstElementChild;
+          const height = track.firstElementChild?.getBoundingClientRect().height || cell;
+          const finish = filler.length * height;
+          track.style.transform = `translateY(-${finish}px)`;
+          animations.push(track.animate([{ transform: `translateY(-${finish}px)` }, { transform: 'translateY(0)' }], { duration, easing: 'cubic-bezier(.12,.71,.15,1)', fill: 'forwards' }));
+        });
+        const promise = new Promise(resolve => { resolvePromise = resolve; timer = setTimeout(resolve, duration + 200); });
+        if (stopWanted) finishAll();
+        return promise;
+      },
+      // Snaps the reels to rest now; if the result has not arrived yet they snap the moment it does.
       fastForward() {
-        animations.forEach(anim => { try { anim.finish(); } catch (error) { /* already done */ } });
-        clearTimeout(timer);
-        if (resolvePromise) resolvePromise();
+        if (!landed) { stopWanted = true; return; }
+        finishAll();
+      },
+      abort() {
+        loops.forEach(loop => { try { loop.cancel(); } catch (error) { /* gone */ } });
+        if (!landed) render(gameState.lastSpin?.board || Array.from({ length: rows }, () => target.slice()));
       }
     };
-    return promise;
+    activeSpinHandle = handle;
+    return handle;
   }
   const legacyApplyLanguage = applyLanguage;
   applyLanguage = () => {
@@ -887,11 +911,12 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
     try {
       // Resolve once, then debit the full stake immediately while the reels
       // run. The winnings are added only after the final board is visible.
+      const reels = startReelSpin();
       const result = lxaAccount ? await lxaAccountResolveSpin(gameState, chance) : game.resolveSpin(gameState);
       const afterStake = before - result.spin.totalStake;
       const debitAnimation = animateCredits(before, afterStake, 180);
-      const reelAnimation = animateReferenceSpin(result.spin.board);
-      if (stopRequested) { stopRequested = false; activeSpinHandle?.fastForward(); }
+      const reelAnimation = reels.land(result.spin.board);
+      if (stopRequested) { stopRequested = false; reels.fastForward(); }
       await reelAnimation;
       // A newer spin already took over while this one's animation was
       // running (or being fast-forwarded) — drop this run's result entirely,
@@ -926,7 +951,7 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
       if (myToken !== spinToken || myToken === canceledToken) return;
       renderGameV79();
     } catch (error) {
-      if (myToken === spinToken) $('#message').textContent = error.message || 'Spin failed.';
+      if (myToken === spinToken) { activeSpinHandle?.abort(); $('#message').textContent = error.message || 'Spin failed.'; }
       // A rejected spin must never be retried forever by AUTO, and a balance
       // the server disagrees with (stale cache / different device) is re-read
       // from the server so the stake is rescaled to what is really available.
