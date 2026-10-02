@@ -4842,3 +4842,44 @@ html body:not(#_):not(#__):not(#___) #spin[data-state="idle"]{
 
 html body:not(#_):not(#__):not(#___) .target-head strong{padding-right:0!important}
 html body:not(#_):not(#__):not(#___) .reel span.wild-symbol img{object-fit:contain!important;width:96%!important;height:96%!important;filter:drop-shadow(0 0 8px rgba(232,44,255,.8))!important}
+
+/* ===== Header banner: panoramic 16:1 GIF, centred on the page from 700px up,
+   left-aligned beside the icons on narrow portrait phones; never overlaps the
+   icon cluster or the cards below it ===== */
+html body:not(#_):not(#__):not(#___){--lxa-logo-h:48px;--act-w:calc(var(--hb) * 3 + 16px)}
+@media (max-width:900px){html body:not(#_):not(#__):not(#___){--lxa-logo-h:40px}}
+@media (orientation:landscape) and (max-height:540px){html body:not(#_):not(#__):not(#___){--lxa-logo-h:28px}}
+html body:not(#_):not(#__):not(#___) .topbar{
+  height:calc(var(--lxa-logo-h) + 8px)!important;min-height:calc(var(--lxa-logo-h) + 8px)!important;
+  margin-bottom:4px!important;align-items:center!important;
+}
+html body:not(#_):not(#__):not(#___) .topbar .brand-cluster{
+  grid-row:1!important;align-self:center!important;min-width:0!important;
+}
+html body:not(#_):not(#__):not(#___) .topbar .brand-cluster .brand img{
+  height:var(--lxa-logo-h)!important;max-height:none!important;
+  width:min(calc(var(--lxa-logo-h) * 16), calc(100vw - var(--act-w) - 44px))!important;max-width:none!important;
+  object-fit:cover!important;object-position:50% 50%!important;display:block!important;
+}
+html body:not(#_):not(#__):not(#___) .topbar #headerActions{grid-row:1!important;align-self:start!important}
+@media (min-width:700px){
+  html body:not(#_):not(#__):not(#___) .topbar{
+    grid-template-columns:minmax(var(--act-w),1fr) auto minmax(var(--act-w),1fr)!important;
+  }
+  html body:not(#_):not(#__):not(#___) .topbar .brand-cluster{grid-column:2!important;justify-self:center!important}
+  html body:not(#_):not(#__):not(#___) .topbar #headerActions{grid-column:3!important;justify-self:end!important}
+  html body:not(#_):not(#__):not(#___) .topbar .brand-cluster .brand img{
+    width:min(calc(var(--lxa-logo-h) * 16), calc(100vw - 2 * var(--act-w) - 64px))!important;
+  }
+}
+@media (max-width:699px){
+  html body:not(#_):not(#__):not(#___) .topbar{grid-template-columns:auto minmax(0,1fr) auto!important}
+  html body:not(#_):not(#__):not(#___) .topbar .brand-cluster{grid-column:1 / 3!important;justify-self:start!important}
+  html body:not(#_):not(#__):not(#___) .topbar #headerActions{grid-column:3!important;justify-self:end!important}
+}
+
+/* the Ko-fi mug makes #headerActions taller than the bar; keep the bar's row at the logo height
+   so the banner can never be pushed down onto the cards */
+html body:not(#_):not(#__):not(#___) .topbar{
+  grid-template-rows:calc(var(--lxa-logo-h) + 8px)!important;grid-auto-rows:0!important;
+}
