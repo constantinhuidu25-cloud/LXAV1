@@ -637,7 +637,7 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
     const reset = spin.jackpotCycleCompleted ? `<span class="board-total board-bonus mission-bonus"><span>${T118('missionDone')}</span><b>5/5</b></span>` : '';
     const wildLineSet = new Set((spin.wild?.positions || []).map(position => position.line));
     const winningLines = spin.finalResults.map((hits, index) => ({ hits, index, amount: spin.linePayouts[index], wild: wildLineSet.has(index) })).filter(line => line.amount > 0);
-    $('#boardTitle').textContent = spin.jackpotPayout ? T118('missionTitle') : winningLines.length ? `${winningLines.length} ${winningLines.length === 1 ? T118('winLine') : T118('winLines')}` : T118('noWinLine');
+    $('#boardTitle').textContent = spin.jackpotPayout ? T118('missionTitle') : winningLines.length ? `${winningLines.length} ${({de:['LINIE','LINIEN'],ro:['LINIE','LINII'],en:['LINE','LINES']}[lang] || ['LINE','LINES'])[winningLines.length === 1 ? 0 : 1]}` : T118('noWinLine');
     // V225: GEWINN BRUTTO / NETTO render in their own #boardSummary
     // container, separate from the LINIE chips in #boardDetails.
     // v158 (user request): #boardSummary now sits AFTER #boardDetails in
@@ -645,7 +645,7 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
     // meant to be read before the totals now. This file only ever targets
     // these by id, so the content logic below is unchanged; only the
     // markup order (and the CSS layout built around it) moved.
-    const totalHtml = `<span class="board-total"><span>${T118('gross')}${wild}</span><b>+${euro(spin.totalPayout)}</b></span><span class="board-total net-result ${spin.netResult < 0 ? 'loss' : spin.netResult > 0 ? 'profit' : 'even'}"><span>${T118('netFormula')}</span><b>${signedEuroV112(spin.netResult)}</b></span>`;
+    const totalHtml = `<span class="board-total"><span>${({de:'BRUTTO',ro:'BRUT',en:'GROSS'}[lang] || 'GROSS')}${wild}</span><b>+${euro(spin.totalPayout)}</b></span><span class="board-total net-result ${spin.netResult < 0 ? 'loss' : spin.netResult > 0 ? 'profit' : 'even'}"><span>${T118('net')}</span><b>${signedEuroV112(spin.netResult)}</b></span>`;
     if (!winningLines.length && !spin.jackpotPayout) {
       $('#boardDetails').innerHTML = `<span>${T118('noWinNext')}${wild}</span>`;
       $('#boardSummary').innerHTML = '';
