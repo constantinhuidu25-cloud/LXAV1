@@ -12,9 +12,5 @@
         { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains" }
       ]
     }
-  ],
-  "crons": [
-    { "path": "/api/keep-alive", "schedule": "*/10 * * * *" },
-    { "path": "/api/lxa-player", "schedule": "*/15 * * * *" }
   ]
 }

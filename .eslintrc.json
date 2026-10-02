@@ -15,7 +15,7 @@
   },
   "overrides": [
     {
-      "files": ["functions/**/*.js", "api/**/*.js", "local-server.js", "bot-player.js", "scripts/**/*.js", "deployment-check.js", "audit-simulations.js", "jest.setup.js"],
+      "files": ["functions/**/*.js", "api/**/*.js", "local-server.js","scripts/**/*.js", "deployment-check.js", "audit-simulations.js", "jest.setup.js"],
       "env": { "node": true, "es2021": true }
     },
     {
