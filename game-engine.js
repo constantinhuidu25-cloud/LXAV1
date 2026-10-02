@@ -1,8 +1,8 @@
-/* DROLLY v130 game engine – the only source for game maths. */
+/* LXA v130 game engine – the only source for game maths. */
 (function (root, factory) {
   const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
-  root.DrollyGameEngine = api;
+  root.LxaGameEngine = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
 
@@ -376,7 +376,7 @@
     return Math.round(base * WILD_COST_MULTIPLIER);
   };
   const wildChance = level => Math.min(1, NATURAL_WILD_CHANCE + Math.max(0, Math.min(WILD_LEVEL_MAX, Number(level) || 0)) * WILD_CHANCE_PER_LEVEL);
-  // v152: applyWild() (functions/drolly-account.js) draws the "level"-source
+  // v152: applyWild() (functions/lxa-account.js) draws the "level"-source
   // extra-Wild count from a fixed 78%/20%/2% band distribution capped by the
   // player's Wild level - that shape itself isn't exposed (would mean a
   // screen full of percentages), but its OUTPUT is scaled by this single
@@ -460,7 +460,7 @@
     // alone) still pays its normal 10/10 line payout via paytableResults
     // above, but must NOT count as a jackpot-mission completion or award
     // the jackpot bonus - that stays reserved for a genuinely natural
-    // (non-Wild) 10/10. See resolveSpin()/drolly-account.js jackpotLine.
+    // (non-Wild) 10/10. See resolveSpin()/lxa-account.js jackpotLine.
     const wildAssistedTen = baseResults.map((hits, line) => hits < COLUMN_COUNT && finalResults[line] === COLUMN_COUNT);
     // A line that shows a Wild icon is excluded from the jackpot mission
     // altogether: it may still pay normally, but it can neither complete the

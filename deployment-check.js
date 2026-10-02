@@ -3,7 +3,7 @@
 const gameEngine = require('./game-engine.js');
 const fs = require('fs');
 
-// Server distributions (manually extracted from drolly-account.js line 22)
+// Server distributions (manually extracted from lxa-account.js line 22)
 const serverDist = [
   { 0: 10, 3: 30.5, 4: 24, 5: 15, 6: 8, 7: 5, 8: 3, 9: 3.5, 10: 1 },
   { 0: 18, 3: 28, 4: 21, 5: 15, 6: 8, 7: 4.5, 8: 2.5, 9: 2, 10: 1 },

@@ -6,7 +6,7 @@ const url = require('url');
 const fs = require('fs');
 const path = require('path');
 
-const handler = require('./functions/drolly-account.js').handler;
+const handler = require('./functions/lxa-account.js').handler;
 
 const PORT = 8888;
 
@@ -74,7 +74,7 @@ const server = http.createServer(async (req, res) => {
   const parsedUrl = url.parse(req.url, true);
 
   // Handle API requests
-  if (parsedUrl.pathname === '/api/drolly-account') {
+  if (parsedUrl.pathname === '/api/lxa-account') {
     let body = '';
 
     req.on('data', chunk => {
@@ -111,6 +111,6 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, () => {
   console.log(`\n🎰 LXA Local Server Running`);
-  console.log(`📡 API: http://localhost:${PORT}/api/drolly-account`);
+  console.log(`📡 API: http://localhost:${PORT}/api/lxa-account`);
   console.log(`📊 Using production Firebase storage (same backend as live)\n`);
 });

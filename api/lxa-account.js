@@ -1,7 +1,7 @@
 // Vercel Node.js Serverless Function adapter for the account/game API.
 //
 // All real logic (auth, rate limiting, idempotency, spin resolution, admin
-// actions) lives unchanged in ../functions/drolly-account.js, which was
+// actions) lives unchanged in ../functions/lxa-account.js, which was
 // written for Netlify Functions' AWS-Lambda-style contract:
 //   exports.handler = async (event) => ({ statusCode, headers, body })
 // Vercel's Node.js functions instead use (req, res) like a plain Node HTTP
@@ -10,7 +10,7 @@
 // translates one calling convention to the other and delegates everything
 // else - the migration brief explicitly calls for preserving API
 // behavior/auth/idempotency/rate limiting/response formats as-is.
-const { handler } = require('../functions/drolly-account.js');
+const { handler } = require('../functions/lxa-account.js');
 
 module.exports = async (req, res) => {
   const event = {

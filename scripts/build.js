@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
- * Build script for DrollyV1
+ * Build script for LXA
  * Prepares production bundle
  */
 
 const fs = require('fs');
 const path = require('path');
 
-console.log('🔨 Building DrollyV1...\n');
+console.log('🔨 Building LXA...\n');
 
 // Create dist directory
 const distDir = path.join(__dirname, '..', 'dist');

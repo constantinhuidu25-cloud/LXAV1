@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 const game = require('./game-engine.js');
 
-describe('DrollyGameEngine', () => {
+describe('LxaGameEngine', () => {
   describe('Configuration', () => {
     test('should validate configuration', () => {
       expect(() => game.validateConfiguration()).not.toThrow();

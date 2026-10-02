@@ -8,9 +8,9 @@
 // first, since it's a new dependency. This static check can't verify
 // runtime event ordering, but it DOES verify the thing that was actually
 // missing: that each money/Wild-affecting action's source still contains
-// a real server call, gated on drollAccount, near where the action is
+// a real server call, gated on lxaAccount, near where the action is
 // triggered. It would have failed before today's fix (buyWildDirectly/
-// the deposit submit handler had no drollRequest call at all).
+// the deposit submit handler had no lxaRequest call at all).
 const fs = require('fs');
 const path = require('path');
 const source = fs.readFileSync(path.join(__dirname, 'renderer.js'), 'utf8');
@@ -22,42 +22,42 @@ function sliceNear(marker, windowSize = 1200) {
 }
 
 describe('Money/Wild actions reach the server for logged-in accounts', () => {
-  test('buyWildDirectly() calls the real buy-wild action when drollAccount is set', () => {
+  test('buyWildDirectly() calls the real buy-wild action when lxaAccount is set', () => {
     const body = sliceNear('function buyWildDirectly()');
     expect(body).not.toBeNull();
-    expect(body).toMatch(/drollAccount/);
-    expect(body).toMatch(/drollRequest\(\s*'buy-wild'/);
+    expect(body).toMatch(/lxaAccount/);
+    expect(body).toMatch(/lxaRequest\(\s*'buy-wild'/);
   });
 
-  test('the BANK deposit form submit calls the real deposit action when drollAccount is set', () => {
+  test('the BANK deposit form submit calls the real deposit action when lxaAccount is set', () => {
     const body = sliceNear("localDepositForm').onsubmit");
     expect(body).not.toBeNull();
-    expect(body).toMatch(/drollAccount/);
-    expect(body).toMatch(/drollRequest\(\s*'deposit'/);
+    expect(body).toMatch(/lxaAccount/);
+    expect(body).toMatch(/lxaRequest\(\s*'deposit'/);
   });
 
-  test('RESET calls the real reset-new-game action when drollAccount is set', () => {
-    const body = sliceNear("drollRequest('reset-new-game'");
+  test('RESET calls the real reset-new-game action when lxaAccount is set', () => {
+    const body = sliceNear("lxaRequest('reset-new-game'");
     // reset-new-game only exists inside the real server call itself; this
     // just confirms it's still present and wired to a live call, not that
     // it's the ONLY listener on #reset (can't verify event ordering
     // statically - see file header comment).
-    expect(source).toMatch(/drollRequest\(\s*'reset-new-game'/);
+    expect(source).toMatch(/lxaRequest\(\s*'reset-new-game'/);
   });
 
-  test('the account-aware spin path (drollAccountResolveSpin) calls the real spin action with a token', () => {
-    const body = sliceNear('async function drollAccountResolveSpin');
+  test('the account-aware spin path (lxaAccountResolveSpin) calls the real spin action with a token', () => {
+    const body = sliceNear('async function lxaAccountResolveSpin');
     expect(body).not.toBeNull();
-    expect(body).toMatch(/drollRequest\(\s*'spin'/);
-    expect(body).toMatch(/token:\s*drollToken/);
+    expect(body).toMatch(/lxaRequest\(\s*'spin'/);
+    expect(body).toMatch(/token:\s*lxaToken/);
   });
 
   test('no dead duplicate handler remains for #buyWild/#deposit (the actual root cause)', () => {
-    // The old, correctly-written-but-unreachable handlers (drollBuyWild,
-    // drollOpenDeposit) were removed as part of today's fix. If either
+    // The old, correctly-written-but-unreachable handlers (lxaBuyWild,
+    // lxaOpenDeposit) were removed as part of today's fix. If either
     // name reappears, it's a sign the same shadowing bug may have been
     // reintroduced (a second handler added without checking who wins).
-    expect(source).not.toMatch(/function drollBuyWild\(/);
-    expect(source).not.toMatch(/function drollOpenDeposit\(/);
+    expect(source).not.toMatch(/function lxaBuyWild\(/);
+    expect(source).not.toMatch(/function lxaOpenDeposit\(/);
   });
 });

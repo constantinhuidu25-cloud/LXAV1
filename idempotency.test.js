@@ -36,7 +36,7 @@ function freshHandler() {
   // the buy-wild tests exercise a genuine successful purchase, not just the
   // "insufficient funds" rejection path.
   storage.__seed({ id: 1, name: 'Tester', safeWord: 'testpass', balance: 10000000, bank: 0, wildLevel: 0, difficulty: 2 });
-  const { handler } = require('./functions/drolly-account.js');
+  const { handler } = require('./functions/lxa-account.js');
   const call = async (action, data) => JSON.parse((await handler({ httpMethod: 'POST', headers: {}, body: JSON.stringify({ action, ...data }) })).body);
   return { call, accounts: () => storage.__accounts() };
 }

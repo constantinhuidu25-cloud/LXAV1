@@ -35,8 +35,8 @@
       "files": ["renderer.js"],
       "env": { "browser": true, "es2021": true },
       "globals": {
-        "DrollyGameEngine": "readonly",
-        "drollSaveState": "writable"
+        "LxaGameEngine": "readonly",
+        "lxaSaveState": "writable"
       },
       "rules": {
         "no-func-assign": "off"

@@ -1,9 +1,9 @@
 /**
- * DROLLY AUDIT - Monte Carlo Simulations
+ * LXA AUDIT - Monte Carlo Simulations
  * Verifică RTP, Wild distribution, jackpot progression pe 100k+ spins
  */
 
-const DrollyGameEngine = require('./game-engine.js');
+const LxaGameEngine = require('./game-engine.js');
 
 const SIMULATION_RUNS = 100000;
 const INITIAL_BALANCE = 250000;
@@ -39,7 +39,7 @@ function simulateSpinDistribution(difficulty, runs = SIMULATION_RUNS) {
   console.log(`\n=== SPIN DISTRIBUTION SIMULATION: Difficulty ${difficulty} ===`);
   console.log(`Runs: ${runs.toLocaleString()}`);
 
-  let state = DrollyGameEngine.initialState({ difficulty, credits: INITIAL_BALANCE, bet: BET_PER_SPIN });
+  let state = LxaGameEngine.initialState({ difficulty, credits: INITIAL_BALANCE, bet: BET_PER_SPIN });
 
   const hitDistribution = {}; // câte 0/10, 1/10, ... 10/10 per linie
   const wildDistribution = {}; // câte Wild-uri per spin
@@ -52,7 +52,7 @@ function simulateSpinDistribution(difficulty, runs = SIMULATION_RUNS) {
   let totalJackpots = 0;
 
   for (let i = 0; i < runs; i++) {
-    const result = DrollyGameEngine.resolveSpin(state);
+    const result = LxaGameEngine.resolveSpin(state);
     state = result.state;
 
     const spin = result.spin;
@@ -146,7 +146,7 @@ function simulateLongSession(difficulty, runs = SIMULATION_RUNS) {
   console.log(`\n=== LONG SESSION RTP SIMULATION: Difficulty ${difficulty} ===`);
   console.log(`Runs: ${runs.toLocaleString()}, Bet: €${BET_PER_SPIN}, Initial: €${INITIAL_BALANCE}`);
 
-  let state = DrollyGameEngine.initialState({ difficulty, credits: INITIAL_BALANCE, bet: BET_PER_SPIN });
+  let state = LxaGameEngine.initialState({ difficulty, credits: INITIAL_BALANCE, bet: BET_PER_SPIN });
 
   let totalWagered = 0;
   let totalWon = 0;
@@ -166,7 +166,7 @@ function simulateLongSession(difficulty, runs = SIMULATION_RUNS) {
 
     const balanceBefore = state.credits;
 
-    const result = DrollyGameEngine.resolveSpin(state);
+    const result = LxaGameEngine.resolveSpin(state);
     state = result.state;
 
     const spin = result.spin;
@@ -244,7 +244,7 @@ function simulateWildLevelScaling(difficulty = 2) {
   console.log(`Runs per level: ${runsPerLevel.toLocaleString()}\n`);
 
   levels.forEach(level => {
-    let state = DrollyGameEngine.initialState({
+    let state = LxaGameEngine.initialState({
       difficulty,
       credits: INITIAL_BALANCE,
       bet: BET_PER_SPIN,
@@ -257,7 +257,7 @@ function simulateWildLevelScaling(difficulty = 2) {
     let totalWildCount = 0;
 
     for (let i = 0; i < runsPerLevel; i++) {
-      const result = DrollyGameEngine.resolveSpin(state);
+      const result = LxaGameEngine.resolveSpin(state);
       state = result.state;
 
       const spin = result.spin;
@@ -278,7 +278,7 @@ function simulateWildLevelScaling(difficulty = 2) {
     const rtp = (totalWon / totalWagered * 100).toFixed(2);
     const wildRate = (spinsWithWild / runsPerLevel * 100).toFixed(2);
     const avgWildPerSpin = spinsWithWild > 0 ? (totalWildCount / spinsWithWild).toFixed(2) : '0';
-    const wildChance = (DrollyGameEngine.wildChance(level) * 100).toFixed(1);
+    const wildChance = (LxaGameEngine.wildChance(level) * 100).toFixed(1);
 
     console.log(`Level ${level} (${wildChance}% chance):`);
     console.log(`  RTP: ${rtp}%`);
@@ -298,10 +298,10 @@ function verifyClientServerMatch() {
 
   console.log('Testing client-side game-engine.js logic...\n');
 
-  let state = DrollyGameEngine.initialState({ difficulty, credits: 1000000, bet: 5000 });
+  let state = LxaGameEngine.initialState({ difficulty, credits: 1000000, bet: 5000 });
 
   for (let i = 0; i < testCases; i++) {
-    const result = DrollyGameEngine.resolveSpin(state);
+    const result = LxaGameEngine.resolveSpin(state);
     state = result.state;
 
     const spin = result.spin;
@@ -338,16 +338,16 @@ function verifyClientServerMatch() {
 
   console.log(`✓ Tested ${testCases} spins - logic consistency verified`);
   console.log('✓ All internal consistency checks passed');
-  console.log('\nNote: Server-side logic in drolly-account.js must be manually compared.');
+  console.log('\nNote: Server-side logic in lxa-account.js must be manually compared.');
 }
 
 // Main execution
 console.log('╔════════════════════════════════════════════════════════════╗');
-console.log('║         DROLLY COMPREHENSIVE AUDIT SIMULATIONS             ║');
+console.log('║         LXA COMPREHENSIVE AUDIT SIMULATIONS             ║');
 console.log('╚════════════════════════════════════════════════════════════╝');
 
 console.log('\nStarting Monte Carlo simulations...');
-console.log(`Engine version: ${DrollyGameEngine.VERSION || 'unknown'}`);
+console.log(`Engine version: ${LxaGameEngine.VERSION || 'unknown'}`);
 
 // 1. Verificare logică
 verifyClientServerMatch();

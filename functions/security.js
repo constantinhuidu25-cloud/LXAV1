@@ -25,7 +25,7 @@ class RateLimiter {
     // handling regardless; this only matters for short-lived processes like
     // local scripts or `jest`, which would otherwise hang after all tests
     // finish - found while adding idempotency.test.js, the first test file
-    // to actually require drolly-account.js/security.js).
+    // to actually require lxa-account.js/security.js).
     this.timer = setInterval(() => {
       const now = Date.now();
       for (const [key, timestamps] of this.attempts.entries()) {
@@ -62,7 +62,7 @@ class RateLimiter {
 const limiter = new RateLimiter();
 
 // v155: idempotency cache for the 'spin' action - closes the residual gap
-// from the drollRequest() fetch-timeout fix (renderer.js): if a request
+// from the lxaRequest() fetch-timeout fix (renderer.js): if a request
 // merely runs slow (not truly hung) and the CLIENT times out at 20s while
 // the SERVER finishes and commits the spin anyway, a naive retry would be
 // a genuinely new spin. The client now resends the SAME requestId on a

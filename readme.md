@@ -1,4 +1,4 @@
-# DrollyV1 - Virtual Reels Casino Demo
+# LXA - Virtual Reels Casino Demo
 
 A fair, transparent virtual slots demo with 10-letter reels, 5 paylines, and progressive jackpot missions. **No real money involved.**
 
@@ -17,7 +17,7 @@ A fair, transparent virtual slots demo with 10-letter reels, 5 paylines, and pro
 ### Installation
 
 ```bash
-cd Drollyv3
+cd LXAV1
 npm install
 npm test
 npm start
@@ -55,7 +55,7 @@ npm run lint
 
 ### Objective
 - Get matching letters from left to right on 5 paylines
-- Hit 10/10 (DROLLINGER complete) on 5 different lines to complete jackpot mission
+- Hit 10/10 (LXA complete) on 5 different lines to complete jackpot mission
 - Mission resets and rewards 5 jackpot tiers (€1K → €5M)
 
 ### Payouts (per €1 line bet)
@@ -109,7 +109,7 @@ Upgrade your wild level to increase bonus symbol frequency:
 
 ### Backend (functions/)
 
-- **drolly-account.js** - Account API, authentication, persistence, admin-gated RTP settings
+- **lxa-account.js** - Account API, authentication, persistence, admin-gated RTP settings
 - **firebase-storage.js** - Firebase Realtime Database access (accounts, leaderboard, rtpSettings)
 - **security.js** - Rate limiting, audit logging, fraud detection
 
@@ -253,10 +253,10 @@ Switch in-game via flag picker in header.
 vercel --prod
 ```
 
-No build step is required for the static site - `index.html`/`style.css`/etc. at the project root are served as-is. The account/game API lives at `api/drolly-account.js`, a thin Vercel Serverless Function adapter around `functions/drolly-account.js` (the actual business logic - auth, rate limiting, idempotency, spin resolution - is unchanged from before the Vercel migration and has no Vercel-specific code in it).
+No build step is required for the static site - `index.html`/`style.css`/etc. at the project root are served as-is. The account/game API lives at `api/lxa-account.js`, a thin Vercel Serverless Function adapter around `functions/lxa-account.js` (the actual business logic - auth, rate limiting, idempotency, spin resolution - is unchanged from before the Vercel migration and has no Vercel-specific code in it).
 `middleware.js` blocks public access to files that must never be served (`functions/`, `package.json`/`package-lock.json`, `*.test.js`, dev-only scripts, `*.md`) - the project root has no separate "public" output directory, so without this they'd otherwise be fetchable like any other static file.
 
-**Required environment variables** (Vercel dashboard → Project Settings → Environment Variables): `FIREBASE_SERVICE_ACCOUNT`, `FIREBASE_DATABASE_URL`, `DROLLY_PEPPER` (optional, has a default).
+**Required environment variables** (Vercel dashboard → Project Settings → Environment Variables): `FIREBASE_SERVICE_ACCOUNT`, `FIREBASE_DATABASE_URL`, `LXA_PEPPER` (optional, has a default).
 
 **No cron jobs / no demo bots:** `vercel.json` defines none - Vercel's Hobby (free) plan only runs cron jobs once per day and rejects the deploy for sub-daily schedules, and a keep-alive is not needed on Vercel.
 

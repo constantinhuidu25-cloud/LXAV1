@@ -45,9 +45,9 @@ const blankDifficulty = () => Object.fromEntries([1, 2, 3].map(level => [String(
 // `sha256$<salt>$<hex>`. Fast hash on purpose: brute force is stopped by the
 // per-account attempt limiter below, not by a slow hash. Legacy plaintext
 // values are accepted once and re-hashed on the next successful check.
-// DROLLINGER_PEPPER must never change once accounts exist (changing it
+// LXA_PEPPER must never change once accounts exist (changing it
 // invalidates every stored password).
-const SAFEWORD_PEPPER = process.env.DROLLY_PEPPER || 'drolly-v137-default-pepper';
+const SAFEWORD_PEPPER = process.env.LXA_PEPPER || 'drolly-v137-default-pepper';
 const SAFEWORD_MAX_FAILS = 5, SAFEWORD_LOCK_MS = 15 * 60 * 1000;
 const hashSafeWord = (plain, salt = crypto.randomBytes(16).toString('hex')) => `sha256$${salt}$${crypto.createHash('sha256').update(`${SAFEWORD_PEPPER}:${salt}:${safeKey(plain)}`).digest('hex')}`;
 const safeWordMatches = (stored, plain) => { const given = safeKey(plain); if (!stored || !given) return false; const text = String(stored); if (!text.startsWith('sha256$')) return safeKey(text) === given; const salt = text.split('$')[1] || '', a = Buffer.from(hashSafeWord(given, salt)), b = Buffer.from(text); return a.length === b.length && crypto.timingSafeEqual(a, b); };
@@ -99,7 +99,7 @@ async function read(id) { const accounts = await getAccounts(); const account = 
 // concurrent requests on the SAME account (rare: needs two tabs/devices
 // firing in the same instant) - the client already guards against the
 // common case (double-click/double-tap) by disabling the spin button for
-// the duration of a request (see renderer.js drollAccountSpinV76).
+// the duration of a request (see renderer.js lxaAccountSpinV76).
 async function save(account) { account.updatedAt = Date.now(); await updateAccount(accountKey(account.id), () => account); }
 const LEADERBOARD_EXCLUDED_NAMES = new Set(['LXA', 'AXL', 'WOW']);
 async function leaderboard(account) { const level = String(account.difficulty), boardKey = `leaderboard:profile-${DIFFICULTY_PROFILE_VERSION}:${level}`, boards = await getLeaderboard(), board = boards[boardKey] || [], next = board.filter(row => Number(row.id) !== Number(account.id)); if (!LEADERBOARD_EXCLUDED_NAMES.has(String(account.name || '').toUpperCase())) { next.push({ id: account.id, name: account.name, score: number(account.difficultyData[level]?.score), updatedAt: account.updatedAt }); } next.sort((a, b) => number(b.score) - number(a.score) || number(a.updatedAt) - number(b.updatedAt)); boards[boardKey] = next.slice(0, 100); await saveLeaderboard(boards); }
@@ -147,14 +147,14 @@ async function applyRtpSettings() {
   return settings;
 }
 function applyWild(results, level) { const wildLevel = Math.max(0, Math.min(MAX_WILD_LEVEL, Math.floor(number(level)))); const chance = game.wildChance(wildLevel), naturalCount = Math.random() < chance ? 1 : 0, maximumExtra = Math.min(wildLevel, 50 - naturalCount); let levelCount = 0; const pick = (low, high) => low + Math.floor(Math.random() * (high - low + 1)); if (maximumExtra <= 2) levelCount = pick(0, maximumExtra); else { const roll = Math.random(); if (roll < .78) levelCount = pick(0, Math.min(2, maximumExtra)); else if (roll < .98) levelCount = pick(3, Math.min(8, maximumExtra)); else levelCount = pick(Math.min(9, maximumExtra), maximumExtra); } levelCount = Math.max(0, Math.min(maximumExtra, Math.round(levelCount * game.EXTRA_WILD_FREQUENCY))); const totalCount = naturalCount + levelCount, cells = Array.from({ length: 50 }, (_, index) => ({ line: Math.floor(index / 10), column: index % 10 })), wilds = []; for (let index = 0; index < totalCount; index++) { const swapIndex = index + Math.floor(Math.random() * (cells.length - index)); [cells[index], cells[swapIndex]] = [cells[swapIndex], cells[index]]; wilds.push({ ...cells[index], source: index === 0 && naturalCount ? 'natural' : 'level' }); } const perLine = [0, 0, 0, 0, 0]; wilds.forEach(wild => { perLine[wild.line]++; }); return { results: results.map((hits, line) => Math.min(10, hits + perLine[line])), paytableResults: results.map((hits, line) => Math.min(10, hits + Math.min(perLine[line], game.PAYTABLE_WILD_CAP))), wildAssistedTen: results.map((hits, line) => hits < 10 && Math.min(10, hits + perLine[line]) === 10), lineHasWild: perLine.map(count => count > 0), wilds, chance, naturalCount, levelCount, totalCount }; }
-// v158 (user request): miss cells must only ever show a DROLLINGER letter
+// v158 (user request): miss cells must only ever show a LXA letter
 // - never 'X' or any character outside D/R/O/L/I/N/G/E. Was sending a
 // literal 'X' placeholder for every miss cell, which renderer.js then
 // mapped to an ad-hoc fallback alphabet (A,B,C,F,H,J,K - NOT in
-// DROLLINGER) purely client-side; the guest-only path (game-engine.js's
-// makeBoard) already did this correctly (a random DROLLINGER letter,
+// LXA) purely client-side; the guest-only path (game-engine.js's
+// makeBoard) already did this correctly (a random LXA letter,
 // never the correct one for that column, never 'X'). Matches that same
-// logic here so both paths render identically and only real DROLLINGER
+// logic here so both paths render identically and only real LXA
 // letters ever appear.
 const ALT_LETTERS = [...new Set(TARGET)];
 function makeGrid(results, wilds) { const grid = results.map(hits => TARGET.map((letter, column) => { if (column < hits) return letter; const options = ALT_LETTERS.filter(candidate => candidate !== letter); return options[Math.floor(Math.random() * options.length)]; })); wilds.forEach(wild => { grid[wild.line][wild.column] = '__BONUS_WILD__'; }); return grid; }
@@ -177,7 +177,7 @@ exports.handler = async event => {
     // v138 SECURITY: wire up the previously-unused rate limiter (security.js
     // was imported but never called). Global cap first, then a per-action
     // cap for abuse-prone actions. 'login' is only rate-limited on real
-    // (non-silent) attempts - drollRestoreSession() calls action:'login'
+    // (non-silent) attempts - lxaRestoreSession() calls action:'login'
     // with silent:true on every page load, so counting those against the
     // limit would log real users out just for reloading the page.
     if (!checkGlobalRateLimit()) return json({ error: 'Server is busy. Please try again in a moment.' }, 429);
@@ -197,7 +197,7 @@ exports.handler = async event => {
         if (!account) return json({ error: 'ID not found.' }, 404);
         // v151: "silent" restore lets the browser re-open a session on page
         // load using only the cached id, with no password - used ONLY by
-        // drollRestoreSession() right after a fresh page load, never from a
+        // lxaRestoreSession() right after a fresh page load, never from a
         // user-facing login form. It used to skip authentication entirely
         // (any guessed id could silently read the full account) - now it
         // requires the per-device sessionToken issued at the last real

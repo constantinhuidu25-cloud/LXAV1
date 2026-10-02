@@ -1,16 +1,16 @@
 const target='LEONXOXANA'.split(''), symbols=[...new Set(target)], rows=5, cell=36, WILD='__BONUS_WILD__';
-const DROLL_LANG_KEY='drollyLang';
+const LXA_LANG_KEY='lxaLang';
 // V219: language selection was never persisted — `lang` always restarted at
 // the hardcoded 'de' default on every page load/reload, even after the user
 // picked ro/en, because nothing wrote it to localStorage. Restore whatever
 // was saved last (falls back to 'de' the first time / if storage is empty
 // or the stored value isn't one of the 3 supported languages).
-const drollSavedLang=(()=>{try{const v=localStorage.getItem(DROLL_LANG_KEY);return v==='ro'||v==='en'||v==='de'?v:'de'}catch{return'de'}})();
-let credits=250, bet=5, round=1, spinning=false, lang=drollSavedLang, chance=1, winStreak=0, recordHits=Array(rows).fill(0), completedLines=Array(rows).fill(false), missionFinished=false;
+const lxaSavedLang=(()=>{try{const v=localStorage.getItem(LXA_LANG_KEY);return v==='ro'||v==='en'||v==='de'?v:'de'}catch{return'de'}})();
+let credits=250, bet=5, round=1, spinning=false, lang=lxaSavedLang, chance=1, winStreak=0, recordHits=Array(rows).fill(0), completedLines=Array(rows).fill(false), missionFinished=false;
 const $=s=>document.querySelector(s);const maxBet=()=>Math.floor(credits/2);const controlsDock=document.querySelector('.controls'),winBoardDock=document.querySelector('.win-board');if(controlsDock&&winBoardDock)controlsDock.parentNode.insertBefore(controlsDock,winBoardDock);const reels=$('#reels'), money=v=>new Intl.NumberFormat(lang==='en'?'en-US':lang==='ro'?'ro-RO':'de-DE',{style:'currency',currency:'EUR',currencyDisplay:'narrowSymbol',maximumFractionDigits:0}).format(v), jackpotMoney=v=>new Intl.NumberFormat(lang==='en'?'en-US':lang==='ro'?'ro-RO':'de-DE',{style:'currency',currency:'EUR',currencyDisplay:'narrowSymbol',maximumFractionDigits:0}).format(v);
 const t={de:{brand:'VIRTUELLE WALZEN',demo:'INOFFIZIELLE DEMO',virtualOnly:'NUR VIRTUELLE CREDITS',eyebrow:'PRÄZISION IN BEWEGUNG',heroAccent:'EIN',subline:'Die LXA Buchstabenwalzen',field:'SERIE 10',round:'RUNDE',targetLabel:'ZIELKOMBINATION JE LINIE',targetHint:'• 5 Linien · von links nach rechts •',balance:'VIRTUELLES GUTHABEN',noReal:'Kein Echtgeld',stake:'EINSATZ PRO RUNDE',line:'/Linie',lastWin:'LETZTER GEWINN',ready:'—',reset:'GUTHABEN ZURÜCKSETZEN',before:'SOLD VORHER',gross:'GEWINN BRUTTO',after:'SOLD NEU',lineResult:'LINIEN-REKORDE',history:'LETZTE RUNDEN',rules:'AUSZAHLUNGSLOGIK',perLine:'€ 1 PRO LINIE',multiBonus:'2+ GEWINNLINIEN',boardReady:'ERGEBNIS DER LETZTEN RUNDE',rolling:'',noMoney:'Zu wenig virtuelles Guthaben. Bitte zurücksetzen.',noWin:'Keine Gewinnlinie · Nächste Runde?',winLine:'Gewinnlinie',system:'System bereit',noLine:'Keine Gewinnlinie'},ro:{brand:'ROLE VIRTUALE',demo:'DEMO NEOFICIALĂ',virtualOnly:'CREDITE VIRTUALE',eyebrow:'PRECIZIE ÎN MIȘCARE',heroAccent:'UN',subline:'Rolele cu litere LXA',field:'SERIA 10',round:'RUNDA',targetLabel:'COMBINAȚIA ȚINTĂ PE LINIE',targetHint:'• 5 linii · de la stânga la dreapta •',balance:'CREDIT VIRTUAL',noReal:'Fără bani reali',stake:'MIZĂ PE RUNDĂ',line:'/linie',lastWin:'ULTIMUL CÂȘTIG',ready:'—',reset:'RESETARE CREDIT',before:'SOLD ÎNAINTE',gross:'CÂȘTIG BRUT',after:'SOLD NOU',lineResult:'RECORDURI LINII',history:'ULTIMELE RUNDE',rules:'REGULA DE PLATĂ',perLine:'€1 PE LINIE',multiBonus:'2+ LINII CÂȘTIGĂTOARE',boardReady:'REZULTATUL ULTIMEI RUNDE',rolling:'',noMoney:'Credit insuficient. Resetează creditul.',noWin:'Nicio linie câștigătoare · Următoarea rundă?',winLine:'Linie câștigătoare',system:'Sistem pregătit',noLine:'Nicio linie'},en:{brand:'VIRTUAL REELS',demo:'UNOFFICIAL DEMO',virtualOnly:'VIRTUAL CREDITS ONLY',eyebrow:'PRECISION IN MOTION',heroAccent:'ONE',subline:'The LXA letter reels',field:'SERIES 10',round:'ROUND',targetLabel:'TARGET COMBINATION PER LINE',targetHint:'• 5 lines · left to right •',balance:'VIRTUAL BALANCE',noReal:'No real money',stake:'BET PER ROUND',line:'/line',lastWin:'LAST WIN',ready:'—',reset:'RESET CREDITS',before:'BALANCE BEFORE',gross:'GROSS WIN',after:'NEW BALANCE',lineResult:'LINE RECORDS',history:'RECENT ROUNDS',rules:'PAYOUT RULES',perLine:'€1 PER LINE',multiBonus:'2+ WINNING LINES',boardReady:'LATEST ROUND RESULT',rolling:'',noMoney:'Not enough credits. Reset your balance.',noWin:'No winning line · Next round?',winLine:'Winning line',system:'System ready',noLine:'No winning line'}};
 function applyLanguage(){const x=t[lang];const langLabel=document.querySelector('.lang-label');if(langLabel)langLabel.textContent='🌐';document.documentElement.lang=lang;document.querySelectorAll('[data-i]').forEach(el=>{const k=el.dataset.i;if(x[k])el.textContent=x[k]});const chanceLabel=document.querySelector('[data-i="chanceLabel"]'),chanceHint=document.querySelector('[data-i="chanceHint"]');if(chanceLabel)chanceLabel.textContent=lang==='ro'?'ȘANSĂ DE CÂȘTIG':lang==='en'?'WIN CHANCE':'GEWINNCHANCE';if(chanceHint)chanceHint.textContent=lang==='ro'?'Schimbă doar șansele demo virtuale.':lang==='en'?'Changes virtual demo odds only.':'Ändert nur die virtuellen Demo-Chancen.';$('#language').value=lang;const flagCurrent=$('#flagCurrent');if(flagCurrent)flagCurrent.textContent=lang==='ro'?'🇷🇴':lang==='en'?'🇺🇸':'🇩🇪';drawLines();refresh();refreshChance();renderMission();updateStaticCopy();}
-$('#language').onchange=e=>{lang=e.target.value;try{localStorage.setItem(DROLL_LANG_KEY,lang)}catch{}applyLanguage()};const scrollLock=$('#scrollLock');scrollLock.onclick=()=>{const locked=document.body.classList.toggle('scroll-locked');document.documentElement.classList.toggle('scroll-locked',locked);scrollLock.textContent=locked?'🔒':'🔓';scrollLock.setAttribute('aria-pressed',String(locked));scrollLock.setAttribute('aria-label',locked?'Seite entsperren':'Seite sperren')};
+$('#language').onchange=e=>{lang=e.target.value;try{localStorage.setItem(LXA_LANG_KEY,lang)}catch{}applyLanguage()};const scrollLock=$('#scrollLock');scrollLock.onclick=()=>{const locked=document.body.classList.toggle('scroll-locked');document.documentElement.classList.toggle('scroll-locked',locked);scrollLock.textContent=locked?'🔒':'🔓';scrollLock.setAttribute('aria-pressed',String(locked));scrollLock.setAttribute('aria-label',locked?'Seite entsperren':'Seite sperren')};
 const chanceCopy={de:['SÜSS 🍯','SCHARF 🌶️','BRUTAL 💀'],ro:['DULCE 🍯','PICANT 🌶️','BRUTAL 💀'],en:['SWEET 🍯','SPICY 🌶️','BRUTAL 💀']};
 // v145: the console-top status line wants the plain difficulty word only
 // (no emoji) - chanceCopy stays emoji-included for the slider label, this
@@ -24,9 +24,9 @@ const stripEmoji=s=>s.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\uFE0F]/gu,'
 const missionCopy={de:{title:'JACKPOT MISSION',goal:'5 VERSCHIEDENE LINIEN AUF 10/10',line:'LINIE',done:'LINIEN ERREICHT',first:'NÄCHSTER JACKPOT: 1/5 · +€1.000',next:'NÄCHSTER JACKPOT',complete:'JACKPOT KOMPLETT · €5.000.000',unlock:'JACKPOT-MISSIONS-BONUS'},ro:{title:'MISIUNE JACKPOT',goal:'5 LINII DIFERITE LA 10/10',line:'LINIA',done:'LINII ATINSE',first:'URMĂTORUL JACKPOT: 1/5 · +€1.000',next:'URMĂTORUL JACKPOT',complete:'JACKPOT COMPLET · 5.000.000 €',unlock:'BONUS MISIUNE JACKPOT'},en:{title:'JACKPOT MISSION',goal:'5 DIFFERENT LINES AT 10/10',line:'LINE',done:'LINES REACHED',first:'NEXT JACKPOT: 1/5 · +€1,000',next:'NEXT JACKPOT',complete:'JACKPOT COMPLETE · €5,000,000',unlock:'JACKPOT MISSION BONUS'}};
 /* V118: one dictionary for every text that the later layers used to hard-code in German. */
 const tx118={
-de:{line:'LINIE',record:'REKORD',reached:'ERREICHT',missionTitle:'JACKPOT MISSION',goal:'Vervollständige 5 verschiedene Linien auf 10/10 für den Hauptgewinn',tiers:'JACKPOT-STUFEN · JEWEILS EINE NEUE LINIE',hits:'JACKPOT-TREFFER',next:'NÄCHSTER JACKPOT',missionDone:'JACKPOT-MISSION ABGESCHLOSSEN',round:'RUNDE',noWinLine:'KEINE GEWINNLINIE',winLine:'GEWINNLINIE',winLines:'GEWINNLINIEN',noWinNext:'Keine Gewinnlinie · Nächste Runde?',gross:'GEWINN BRUTTO',net:'NETTO',netFormula:'NETTO (GEWINN − EINSATZ)',paylineFull:'LEONXOXANA KOMPLETT · 10/10',geld:'GELD',geldOnly:'GELD ist verfügbar, wenn das GUTHABEN höchstens {x} beträgt.',geldDaily:'Nur 1× GELD pro Tag als Gast. Erstelle ein kostenloses Konto, um weiterzumachen.',geldFail:'GELD konnte nicht geladen werden.',geldDone:'GUTHABEN auf {x} gesetzt.',resetDone:'NEUES SPIEL · GUTHABEN auf {x} gesetzt.',resetFail:'RESET konnte nicht ausgeführt werden.',wildLevel:'WILD-LEVEL',lvl:'LVL',chance:'Chance',balance:'GUTHABEN',amount:'BETRAG',toBank:'IN DIE BANK',systemReady:'System bereit',leaderboard:'BESTENLISTE',perLineUnit:'/Linie',rank:'PLATZ',guest:'GAST',difficulty:'SCHWIERIGKEIT'},
-ro:{line:'LINIA',record:'RECORD',reached:'ATINSĂ',missionTitle:'MISIUNE JACKPOT',goal:'Completează 5 linii diferite la 10/10 pentru marele premiu',tiers:'TREPTE JACKPOT · DE FIECARE DATĂ O LINIE NOUĂ',hits:'JACKPOTURI CÂȘTIGATE',next:'URMĂTORUL JACKPOT',missionDone:'MISIUNE JACKPOT FINALIZATĂ',round:'RUNDA',noWinLine:'NICIO LINIE CÂȘTIGĂTOARE',winLine:'LINIE CÂȘTIGĂTOARE',winLines:'LINII CÂȘTIGĂTOARE',noWinNext:'Nicio linie câștigătoare · Runda următoare?',gross:'CÂȘTIG BRUT',net:'NET',netFormula:'NET (CÂȘTIG − MIZĂ)',paylineFull:'LEONXOXANA COMPLET · 10/10',geld:'BANI',geldOnly:'BANI este disponibil când creditul este de cel mult {x}.',geldDaily:'Doar 1× BANI pe zi ca oaspete. Creează un cont gratuit ca să continui.',geldFail:'Banii nu au putut fi încărcați.',geldDone:'Credit setat la {x}.',resetDone:'JOC NOU · credit setat la {x}.',resetFail:'RESET nu a putut fi executat.',wildLevel:'NIVEL WILD',lvl:'NIV.',chance:'șansă',balance:'CREDIT',amount:'SUMĂ',toBank:'ÎN BANK',systemReady:'Sistem pregătit',leaderboard:'CLASAMENT',perLineUnit:'/linie',rank:'POZIȚIA',guest:'OASPETE',difficulty:'DIFICULTATE'},
-en:{line:'LINE',record:'RECORD',reached:'DONE',missionTitle:'JACKPOT MISSION',goal:'Complete 5 different lines at 10/10 for the grand prize',tiers:'JACKPOT TIERS · A NEW LINE EACH TIME',hits:'JACKPOT HITS',next:'NEXT JACKPOT',missionDone:'JACKPOT MISSION COMPLETE',round:'ROUND',noWinLine:'NO WINNING LINE',winLine:'WINNING LINE',winLines:'WINNING LINES',noWinNext:'No winning line · Next round?',gross:'GROSS WIN',net:'NET',netFormula:'NET (WIN − STAKE)',paylineFull:'LEONXOXANA COMPLETE · 10/10',geld:'CASH',geldOnly:'CASH is available when the balance is at most {x}.',geldDaily:'Only 1× CASH per day as a guest. Create a free account to keep going.',geldFail:'Cash could not be loaded.',geldDone:'Balance set to {x}.',resetDone:'NEW GAME · balance set to {x}.',resetFail:'RESET could not be completed.',wildLevel:'WILD LEVEL',lvl:'LVL',chance:'chance',balance:'BALANCE',amount:'AMOUNT',toBank:'TO BANK',systemReady:'System ready',leaderboard:'LEADERBOARD',perLineUnit:'/line',rank:'RANK',guest:'GUEST',difficulty:'DIFFICULTY'}};
+de:{line:'LINIE',record:'REKORD',reached:'ERREICHT',missionTitle:'JACKPOT MISSION',goal:'Vervollständige 5 verschiedene Linien auf 10/10 für den Hauptgewinn',tiers:'JACKPOT-STUFEN · JEWEILS EINE NEUE LINIE',hits:'JACKPOT-TREFFER',next:'NÄCHSTER JACKPOT',missionDone:'JACKPOT-MISSION ABGESCHLOSSEN',round:'RUNDE',noWinLine:'KEINE GEWINNLINIE',winLine:'GEWINNLINIE',winLines:'GEWINNLINIEN',noWinNext:'Keine Gewinnlinie · Nächste Runde?',gross:'GEWINN BRUTTO',net:'NETTO',netFormula:'NETTO (GEWINN − EINSATZ)',paylineFull:'KOMPLETT',geld:'GELD',geldOnly:'GELD ist verfügbar, wenn das GUTHABEN höchstens {x} beträgt.',geldDaily:'Nur 1× GELD pro Tag als Gast. Erstelle ein kostenloses Konto, um weiterzumachen.',geldFail:'GELD konnte nicht geladen werden.',geldDone:'GUTHABEN auf {x} gesetzt.',resetDone:'NEUES SPIEL · GUTHABEN auf {x} gesetzt.',resetFail:'RESET konnte nicht ausgeführt werden.',wildLevel:'WILD-LEVEL',lvl:'LVL',chance:'Chance',balance:'GUTHABEN',amount:'BETRAG',toBank:'IN DIE BANK',systemReady:'System bereit',leaderboard:'BESTENLISTE',perLineUnit:'/Linie',rank:'PLATZ',guest:'GAST',difficulty:'SCHWIERIGKEIT'},
+ro:{line:'LINIA',record:'RECORD',reached:'ATINSĂ',missionTitle:'MISIUNE JACKPOT',goal:'Completează 5 linii diferite la 10/10 pentru marele premiu',tiers:'TREPTE JACKPOT · DE FIECARE DATĂ O LINIE NOUĂ',hits:'JACKPOTURI CÂȘTIGATE',next:'URMĂTORUL JACKPOT',missionDone:'MISIUNE JACKPOT FINALIZATĂ',round:'RUNDA',noWinLine:'NICIO LINIE CÂȘTIGĂTOARE',winLine:'LINIE CÂȘTIGĂTOARE',winLines:'LINII CÂȘTIGĂTOARE',noWinNext:'Nicio linie câștigătoare · Runda următoare?',gross:'CÂȘTIG BRUT',net:'NET',netFormula:'NET (CÂȘTIG − MIZĂ)',paylineFull:'COMPLET',geld:'BANI',geldOnly:'BANI este disponibil când creditul este de cel mult {x}.',geldDaily:'Doar 1× BANI pe zi ca oaspete. Creează un cont gratuit ca să continui.',geldFail:'Banii nu au putut fi încărcați.',geldDone:'Credit setat la {x}.',resetDone:'JOC NOU · credit setat la {x}.',resetFail:'RESET nu a putut fi executat.',wildLevel:'NIVEL WILD',lvl:'NIV.',chance:'șansă',balance:'CREDIT',amount:'SUMĂ',toBank:'ÎN BANK',systemReady:'Sistem pregătit',leaderboard:'CLASAMENT',perLineUnit:'/linie',rank:'POZIȚIA',guest:'OASPETE',difficulty:'DIFICULTATE'},
+en:{line:'LINE',record:'RECORD',reached:'DONE',missionTitle:'JACKPOT MISSION',goal:'Complete 5 different lines at 10/10 for the grand prize',tiers:'JACKPOT TIERS · A NEW LINE EACH TIME',hits:'JACKPOT HITS',next:'NEXT JACKPOT',missionDone:'JACKPOT MISSION COMPLETE',round:'ROUND',noWinLine:'NO WINNING LINE',winLine:'WINNING LINE',winLines:'WINNING LINES',noWinNext:'No winning line · Next round?',gross:'GROSS WIN',net:'NET',netFormula:'NET (WIN − STAKE)',paylineFull:'COMPLETE',geld:'CASH',geldOnly:'CASH is available when the balance is at most {x}.',geldDaily:'Only 1× CASH per day as a guest. Create a free account to keep going.',geldFail:'Cash could not be loaded.',geldDone:'Balance set to {x}.',resetDone:'NEW GAME · balance set to {x}.',resetFail:'RESET could not be completed.',wildLevel:'WILD LEVEL',lvl:'LVL',chance:'chance',balance:'BALANCE',amount:'AMOUNT',toBank:'TO BANK',systemReady:'System ready',leaderboard:'LEADERBOARD',perLineUnit:'/line',rank:'RANK',guest:'GUEST',difficulty:'DIFFICULTY'}};
 const T118=(key,x)=>{const s=(tx118[lang]||tx118.de)[key]??tx118.de[key]??key;return x===undefined?s:s.replace('{x}',x)};
 const milestoneRewards=[1000000,2000000,3000000,4000000,5000000];
 // Jackpot-Stufen richten sich nach der Anzahl bereits kompletter Linien, nicht nach ihrer Nummer.
@@ -38,9 +38,9 @@ function render(grid){reels.innerHTML=target.map((_,c)=>`<div class="reel">${gri
 function drawLines(){const p=$('.paylines');p.innerHTML=Array.from({length:5},(_,i)=>`<div data-line="${i}"><b>${t[lang].winLine.toUpperCase()} ${i+1}</b></div>`).join('');}
 function refresh(){const x=t[lang];if(credits>0)bet=Math.min(bet,maxBet());$('#credits').textContent=money(credits);$('#bet').textContent=money(bet);$('#lineStake').textContent=money(bet/5)+x.line;$('#roundLabel').textContent=`${x.round} ${String(round).padStart(3,'0')}`;$('#before').textContent=$('#before').textContent||money(credits);$('#after').textContent=$('#after').textContent||money(credits);}
 function setMsg(s){$('#message').textContent=s}
-function showBoard(details,bonus,gross,missionBonus=0,seriesBonus=0){const x=t[lang],board=$('#winBoard'),jackpot=details.find(d=>d.hits===10&&!d.wild),unit=lang==='ro'?'Miză linie':lang==='en'?'Line bet':'Linieneinsatz',bonusLabel=lang==='ro'?`Bonus ${details.length} linii`:lang==='en'?`${details.length}-line bonus`:`Bonus ${details.length} Linien`;$('#boardTitle').textContent=jackpot?'LEONXOXANA COMPLET':missionBonus?'JACKPOT TARGET':`${details.length} ${x.winLine}`;const lines=details.map(d=>`<div class="${d.hits===10&&!d.wild?'jackpot-result':''}"><span>${d.hits===10&&!d.wild?'LEONXOXANA COMPLET · ':''}${x.winLine} ${d.line+1} · ${d.hits}/10 · ${unit} €1 ×${d.mult}</span><b>+${money(d.amount)}</b></div>`).join('');const extra=bonus?`<div class="board-bonus"><span>${bonusLabel}</span><b>+${money(bonus)}</b></div>`:'';const mission=missionBonus?`<div class="board-bonus mission-bonus"><span>${missionCopy[lang].unlock}</span><b>+${money(missionBonus)}</b></div>`:'';const series=seriesBonus?`<div class="board-bonus series-bonus"><span>${uiStatic[lang].series}</span><b>+${money(seriesBonus)}</b></div>`:'';$('#boardDetails').innerHTML=`${lines}${extra}${mission}${series}<div class="board-total"><span>${x.gross}</span><b>+${money(gross)}</b></div>`;board.classList.add('show')}
+function showBoard(details,bonus,gross,missionBonus=0,seriesBonus=0){const x=t[lang],board=$('#winBoard'),jackpot=details.find(d=>d.hits===10&&!d.wild),unit=lang==='ro'?'Miză linie':lang==='en'?'Line bet':'Linieneinsatz',bonusLabel=lang==='ro'?`Bonus ${details.length} linii`:lang==='en'?`${details.length}-line bonus`:`Bonus ${details.length} Linien`;$('#boardTitle').textContent=jackpot?'COMPLET':missionBonus?'JACKPOT TARGET':`${details.length} ${x.winLine}`;const lines=details.map(d=>`<div class="${d.hits===10&&!d.wild?'jackpot-result':''}"><span>${x.winLine} ${d.line+1} · ${d.hits}/10 · ${unit} €1 ×${d.mult}</span><b>+${money(d.amount)}</b></div>`).join('');const extra=bonus?`<div class="board-bonus"><span>${bonusLabel}</span><b>+${money(bonus)}</b></div>`:'';const mission=missionBonus?`<div class="board-bonus mission-bonus"><span>${missionCopy[lang].unlock}</span><b>+${money(missionBonus)}</b></div>`:'';const series=seriesBonus?`<div class="board-bonus series-bonus"><span>${uiStatic[lang].series}</span><b>+${money(seriesBonus)}</b></div>`:'';$('#boardDetails').innerHTML=`${lines}${extra}${mission}${series}<div class="board-total"><span>${x.gross}</span><b>+${money(gross)}</b></div>`;board.classList.add('show')}
 const uiStatic={de:{payout:'AUSZAHLUNGSLOGIK',perLine:'€ 1 PRO LINIE',consecutive:'KONSEKUTIVE',lines:'GEWINNLINIEN',record:'REKORD',objective:'OBJEKTIV',milestones:'JACKPOT-STUFEN · UNABHÄNGIG VON DER LINIENNUMMER',protocol:'LIVE-PROTOKOLL',system:'VIRTUAL EURO SYSTEM',series:'3+ GEWINNE',seriesValue:'+ €25',wild:'BONUS-WILD',heroWord:'WALZEN'},ro:{payout:'REGULA DE PLATĂ',perLine:'€ 1 PE LINIE',consecutive:'CONSECUTIVE',lines:'LINII CÂȘTIGĂTOARE',record:'RECORD',objective:'OBIECTIV',milestones:'NIVELURI JACKPOT · INDEPENDENT DE NUMĂRUL LINIEI',protocol:'JURNAL LIVE',system:'SISTEM EURO VIRTUAL',series:'3+ CÂȘTIGURI',seriesValue:'+ €25',wild:'BONUS WILD',heroWord:'ROLE'},en:{payout:'PAYOUT RULES',perLine:'€ 1 PER LINE',consecutive:'CONSECUTIVE',lines:'WINNING LINES',record:'RECORD',objective:'OBJECTIVE',milestones:'JACKPOT LEVELS · INDEPENDENT OF LINE NUMBER',protocol:'LIVE LOG',system:'VIRTUAL EURO SYSTEM',series:'3+ WINS',seriesValue:'+ €25',wild:'BONUS WILD',heroWord:'REELS'}};
-function updateStaticCopy(){const x=uiStatic[lang],labels=['10/10 · LEONXOXANA',`7–9 ${x.consecutive}`,`4–6 ${x.consecutive}`,`2 ${x.lines}`,`3 ${x.lines}`,`4 ${x.lines}`,`5 ${x.lines}`,x.series],head=document.querySelector('.payout-card-head');if(head)head.innerHTML=`${x.payout} <small>${x.perLine}</small>`;document.querySelectorAll('.payout-card-row b,.payout-row b').forEach((el,i)=>el.textContent=labels[i%8]);document.querySelectorAll('.series-rule strong,.series-rule span').forEach(el=>el.textContent=x.seriesValue);document.querySelectorAll('.mission-line small').forEach(el=>el.textContent=x.record);const milestoneLabel=document.querySelector('.milestone-label');if(milestoneLabel)milestoneLabel.textContent=x.milestones;const protocol=document.querySelector('.history .section-heading small');if(protocol)protocol.textContent=x.protocol}
+function updateStaticCopy(){const x=uiStatic[lang],labels=['10/10',`7–9 ${x.consecutive}`,`4–6 ${x.consecutive}`,`2 ${x.lines}`,`3 ${x.lines}`,`4 ${x.lines}`,`5 ${x.lines}`,x.series],head=document.querySelector('.payout-card-head');if(head)head.innerHTML=`${x.payout} <small>${x.perLine}</small>`;document.querySelectorAll('.payout-card-row b,.payout-row b').forEach((el,i)=>el.textContent=labels[i%8]);document.querySelectorAll('.series-rule strong,.series-rule span').forEach(el=>el.textContent=x.seriesValue);document.querySelectorAll('.mission-line small').forEach(el=>el.textContent=x.record);const milestoneLabel=document.querySelector('.milestone-label');if(milestoneLabel)milestoneLabel.textContent=x.milestones;const protocol=document.querySelector('.history .section-heading small');if(protocol)protocol.textContent=x.protocol}
 const baseApplyLanguage=applyLanguage;applyLanguage=()=>{baseApplyLanguage();const x=uiStatic[lang],title=document.querySelector('.title-line strong');if(title)title.innerHTML=`10 <span>${x.heroWord}</span>. <b>${t[lang].heroAccent}</b> MOMENT`;const flagCurrent=$('#flagCurrent');if(flagCurrent)flagCurrent.textContent=lang==='ro'?'🇷🇴':lang==='en'?'🇺🇸':'🇩🇪';const opts=[['de','🇩🇪'],['ro','🇷🇴'],['en','🇺🇸']];opts.forEach(([value,label])=>{const option=document.querySelector(`#language option[value="${value}"]`);if(option)option.textContent=label})};
 const finalApplyLanguage=applyLanguage;applyLanguage=()=>{finalApplyLanguage();const flagCurrent=$('#flagCurrent');if(flagCurrent)flagCurrent.textContent=lang==='ro'?'🇷🇴':lang==='en'?'🇺🇸':'🇩🇪';[['de','🇩🇪'],['ro','🇷🇴'],['en','🇺🇸']].forEach(([value,label])=>{const option=document.querySelector(`#language option[value="${value}"]`);if(option)option.textContent=label})};
 render(Array.from({length:5},()=>target.slice()));drawLines();applyLanguage();refreshChance();
@@ -72,14 +72,14 @@ document.addEventListener('wheel',event=>{if(document.body.classList.contains('s
 document.addEventListener('gesturestart',event=>{if(document.body.classList.contains('scroll-locked'))event.preventDefault()},{passive:false});
 
 const languageControl=$('#languageControl'),languageSelect=$('#language');let languageMenu;
-function buildLanguageMenu(){const toggle=$('#languageToggle');languageMenu=languageMenu||document.querySelector('#languageMenu');if(!toggle||!languageMenu||toggle.dataset.bound)return;toggle.dataset.bound='1';const setOpen=open=>{languageMenu.classList.toggle('open',open);toggle.setAttribute('aria-expanded',String(open))};toggle.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();setOpen(!languageMenu.classList.contains('open'))});toggle.addEventListener('keydown',event=>{if(event.key==='Escape')setOpen(false)});languageMenu.querySelectorAll('button[data-lang]').forEach(button=>button.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();lang=button.dataset.lang;try{localStorage.setItem(DROLL_LANG_KEY,lang)}catch{}languageSelect.value=lang;applyLanguage();setOpen(false)}));const closeIfOutside=event=>{if(!languageControl.contains(event.target))setOpen(false)};document.addEventListener('click',closeIfOutside);document.addEventListener('touchend',closeIfOutside,{capture:true});document.addEventListener('mousedown',closeIfOutside,{capture:true})}
+function buildLanguageMenu(){const toggle=$('#languageToggle');languageMenu=languageMenu||document.querySelector('#languageMenu');if(!toggle||!languageMenu||toggle.dataset.bound)return;toggle.dataset.bound='1';const setOpen=open=>{languageMenu.classList.toggle('open',open);toggle.setAttribute('aria-expanded',String(open))};toggle.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();setOpen(!languageMenu.classList.contains('open'))});toggle.addEventListener('keydown',event=>{if(event.key==='Escape')setOpen(false)});languageMenu.querySelectorAll('button[data-lang]').forEach(button=>button.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();lang=button.dataset.lang;try{localStorage.setItem(LXA_LANG_KEY,lang)}catch{}languageSelect.value=lang;applyLanguage();setOpen(false)}));const closeIfOutside=event=>{if(!languageControl.contains(event.target))setOpen(false)};document.addEventListener('click',closeIfOutside);document.addEventListener('touchend',closeIfOutside,{capture:true});document.addEventListener('mousedown',closeIfOutside,{capture:true})}
 function updateLanguagePicker(){const flag=$('#flagCurrent');if(flag){flag.dataset.flag=lang;flag.textContent=''}if(languageSelect)languageSelect.value=lang;setLockLabel(document.body.classList.contains('scroll-locked'))}
 const v56ApplyLanguage=applyLanguage;
 applyLanguage=()=>{v56ApplyLanguage();buildLanguageMenu();updateLanguagePicker()};
 applyLanguage();
 
 const v56ShowBoard=showBoard;
-showBoard=(details,bonus,gross,missionBonus=0)=>{v56ShowBoard(details,bonus,gross,missionBonus);const complete={de:'LEONXOXANA KOMPLETT',ro:'LEONXOXANA COMPLET',en:'LEONXOXANA COMPLETE'}[lang];const target={de:'JACKPOT-ZIEL',ro:'ȚINTĂ JACKPOT',en:'JACKPOT TARGET'}[lang];const title=$('#boardTitle');if(title){if(details.find(d=>d.hits===10&&!d.wild))title.textContent=complete;else if(missionBonus)title.textContent=target}document.querySelectorAll('#boardDetails .jackpot-result span').forEach(el=>{el.textContent=el.textContent.replace('LEONXOXANA COMPLET',complete)})};
+showBoard=(details,bonus,gross,missionBonus=0)=>{v56ShowBoard(details,bonus,gross,missionBonus);const complete={de:'KOMPLETT',ro:'COMPLET',en:'COMPLETE'}[lang];const target={de:'JACKPOT-ZIEL',ro:'ȚINTĂ JACKPOT',en:'JACKPOT TARGET'}[lang];const title=$('#boardTitle');if(title){if(details.find(d=>d.hits===10&&!d.wild))title.textContent=complete;else if(missionBonus)title.textContent=target}};
 uiStatic.de.system='VIRTUELLES EURO-SYSTEM';
 const v56TitleApply=applyLanguage;
 applyLanguage=()=>{v56TitleApply();document.title={de:'LXA | Virtuelle Walzen',ro:'LXA | Role virtuale',en:'LXA | Virtual Reels'}[lang]};
@@ -115,33 +115,33 @@ updateLockState();
 
 /* v76 account + leaderboard layer.  The reel and payout engine above remains
    the source of truth; this layer persists its resulting state server-side. */
-const DROLL_API='/api/drolly-account',DROLL_CACHE='drolly-account-cache-v1',DROLL_TOKEN_KEY='drolly-session-token-v1';
-let drollAccount=null,drollSafeWord='',drollLeaderboardLevel=chance+1,drollRtpCache=null,drollPlayersCache=null,drollEditPlayerId=null,drollToken=localStorage.getItem(DROLL_TOKEN_KEY)||'';
-// v151: drollToken is a per-device "remember me" credential (separate from
+const LXA_API='/api/lxa-account',LXA_CACHE='lxa-account-cache-v1',LXA_TOKEN_KEY='lxa-session-token-v1';
+let lxaAccount=null,lxaSafeWord='',lxaLeaderboardLevel=chance+1,lxaRtpCache=null,lxaPlayersCache=null,lxaEditPlayerId=null,lxaToken=localStorage.getItem(LXA_TOKEN_KEY)||'';
+// v151: lxaToken is a per-device "remember me" credential (separate from
 // the real password) returned by the server on create/login/password-change.
-// It is what lets drollRestoreSession() and spin skip re-typing the real
+// It is what lets lxaRestoreSession() and spin skip re-typing the real
 // password - unlike the old silent-restore (id alone, no proof needed), a
 // device without a valid cached token gets neither.
-function drollSetToken(token){if(!token)return;drollToken=token;localStorage.setItem(DROLL_TOKEN_KEY,drollToken)}
-function drollClearToken(){drollToken='';localStorage.removeItem(DROLL_TOKEN_KEY)}
+function lxaSetToken(token){if(!token)return;lxaToken=token;localStorage.setItem(LXA_TOKEN_KEY,lxaToken)}
+function lxaClearToken(){lxaToken='';localStorage.removeItem(LXA_TOKEN_KEY)}
 // v143: admin status lives on the account record (accounts/{id}/role in
 // Firebase, set manually via the Firebase Console), never on the id -
-// mirrors functions/drolly-account.js's isAdminAccount. This client-side
+// mirrors functions/lxa-account.js's isAdminAccount. This client-side
 // check only decides whether to SHOW the admin button; the real gate is
 // server-side (it re-reads the account fresh from Firebase on every admin
 // action), so this can't be spoofed by editing local state.
 const isAdminAccount=account=>Boolean(account)&&account.role==='admin';
 const accountText={de:{account:'KONTO',create:'KONTO ERSTELLEN',login:'ANMELDEN',hint:'Beliebige 2 von 3: ID, Name, Passwort.',hintForgot:'Passwort vergessen? Wende dich an den Administrator.',loginOk:'Erfolgreich angemeldet.',name:'Name',id:'LXA-ID',safe:'Passwort',newSafe:'Neues Passwort',save:'SPEICHERN',logout:'ABMELDEN',settings:'KONTO-EINSTELLUNGEN',back:'ZURÜCK',leaderboard:'LEADERBOARD',your:'DEINE POSITION',empty:'Noch keine Einträge.',offline:'Online-Konto momentan nicht erreichbar.',created:'Konto erstellt. Passwort nur jetzt sichtbar:',duplicate:'Dieser Name wird bereits verwendet.',wrong:'Name oder Passwort ist falsch.',rtpAdmin:'GEWINNCHANCEN (ADMIN)',rtpHint:'Ziel-RTP % pro Schwierigkeit (ohne WILD/Jackpot).',rtpSaved:'Chancen gespeichert.',rtpResetDone:'Auf Standard zurückgesetzt.',rtpReset:'STANDARD',simulateRtp:'🎲 ECHTE RTP',simulating:'Simuliere…',noJackpot:'ohne Jackpot',adminJackpot:'💀 JACKPOT',adminWild:'✨ WILD',adminPayouts:'💰 AUSZAHLUNGEN',difficultyLabel:'Schwierigkeit',jackpotFreqHint:'Jackpot-Häufigkeit pro Schwierigkeit.',jackpotFreqField:'Häufigkeit (×)',wildHint:'Globale WILD-Einstellungen (alle Schwierigkeiten).',wildChanceField:'WILD-Basischance (%)',wildPerLevelField:'Steigerung pro Level (%)',wildCapField:'Normal gezahlte WILDs (pro Linie)',wildCostMultField:'WILD-Upgrade-Kosten (×)',extraWildFreqField:'Häufigkeit zusätzlicher WILDs (×)',payoutHint:'Globale Gewinn-Multiplikatoren.',payoutMultField:'Auszahlungs-Multiplikator (×)',jackpotValueField:'Jackpot-Wert-Multiplikator (×)',resetLeaderboard:'🏆 LEADERBOARD ZURÜCKSETZEN',resetLeaderboardConfirm:'Wirklich das gesamte Leaderboard (alle Schwierigkeiten) löschen? Das kann nicht rückgängig gemacht werden.',resetLeaderboardDone:'Leaderboard zurückgesetzt.',adminCustom:'🎲 EIGENE CHANCEN',customOverride:'⚠️ Eigene Chancen aktiv, RTP-Ziel wird ignoriert',customHint:'Werte werden automatisch auf 100% normiert.',customSaved:'Chancen gespeichert.',wildPreviewUnit:'WILD/Spin · LVL 50',adminPlayers:'👥 SPIELER',lastActive:'Letzte Aktivität',newId:'Neue ID',deletePlayer:'🗑️ SPIELER LÖSCHEN',deletePlayerConfirm:'Diesen Spieler wirklich endgültig löschen? Das kann nicht rückgängig gemacht werden.',deletePlayerDone:'Spieler gelöscht.',saved:'Gespeichert.',reauth:'Sitzung abgelaufen. Bitte Passwort erneut eingeben.'},ro:{account:'CONT',create:'CREEAZĂ CONT',login:'CONECTARE',hint:'Oricare 2 din 3: ID, Nume, Parolă.',hintForgot:'Ai uitat parola? Contactează administratorul.',loginOk:'Conectat cu succes.',name:'Nume',id:'ID LXA',safe:'Parolă',newSafe:'Parolă nouă',save:'SALVEAZĂ',logout:'DECONECTARE',settings:'SETĂRI CONT',back:'ÎNAPOI',leaderboard:'CLASAMENT',your:'POZIȚIA TA',empty:'Încă nu există intrări.',offline:'Contul online nu este disponibil momentan.',created:'Cont creat. Parola este vizibilă doar acum:',duplicate:'Acest nume este deja folosit.',wrong:'Numele sau parola este incorectă.',rtpAdmin:'ȘANSE JOC (ADMIN)',rtpHint:'RTP țintă (%) per dificultate (fără WILD/jackpot).',rtpSaved:'Șanse salvate.',rtpResetDone:'Resetat la valorile implicite.',rtpReset:'IMPLICIT',simulateRtp:'🎲 RTP REAL',simulating:'Simulez…',noJackpot:'fără jackpot',adminJackpot:'💀 JACKPOT',adminWild:'✨ WILD',adminPayouts:'💰 PLĂȚI',difficultyLabel:'Dificultate',jackpotFreqHint:'Multiplicator frecvență jackpot per dificultate.',jackpotFreqField:'Frecvență (×)',wildHint:'Setări globale WILD (toate dificultățile).',wildChanceField:'Șansă de bază WILD (%)',wildPerLevelField:'Creștere per nivel (%)',wildCapField:'WILD-uri plătite normal (per linie)',wildCostMultField:'Cost upgrade WILD (×)',extraWildFreqField:'Frecvență WILD-uri suplimentare (×)',payoutHint:'Multiplicatoare globale de câștig.',payoutMultField:'Multiplicator plăți (×)',jackpotValueField:'Multiplicator valoare jackpot (×)',resetLeaderboard:'🏆 RESETEAZĂ CLASAMENTUL',resetLeaderboardConfirm:'Sigur ștergi tot clasamentul (toate dificultățile)? Nu se poate anula.',resetLeaderboardDone:'Clasament resetat.',adminCustom:'🎲 ȘANSE CUSTOM',customOverride:'⚠️ Șanse Custom active, RTP țintă e ignorat',customHint:'Valorile sunt normalizate automat la 100%.',customSaved:'Șanse salvate.',wildPreviewUnit:'WILD/spin · LVL 50',adminPlayers:'👥 JUCĂTORI',lastActive:'Ultima activitate',newId:'ID nou',deletePlayer:'🗑️ ȘTERGE JUCĂTORUL',deletePlayerConfirm:'Sigur ștergi definitiv acest jucător? Nu se poate anula.',deletePlayerDone:'Jucător șters.',saved:'Salvat.',reauth:'Sesiune expirată. Te rugăm să introduci din nou parola.'},en:{account:'ACCOUNT',create:'CREATE ACCOUNT',login:'LOG IN',hint:'Any 2 of 3: ID, Name, Password.',hintForgot:'Forgot your password? Contact the administrator.',loginOk:'Logged in successfully.',name:'Name',id:'LXA ID',safe:'Password',newSafe:'New Password',save:'SAVE',logout:'LOG OUT',settings:'ACCOUNT SETTINGS',back:'BACK',leaderboard:'LEADERBOARD',your:'YOUR POSITION',empty:'No entries yet.',offline:'Online account is currently unavailable.',created:'Account created. Password is shown only now:',duplicate:'This name is already in use.',wrong:'Name or password is incorrect.',rtpAdmin:'WIN CHANCES (ADMIN)',rtpHint:'Target RTP % per difficulty (excl. WILD/jackpot).',rtpSaved:'Chances saved.',rtpResetDone:'Reset to defaults.',rtpReset:'DEFAULT',simulateRtp:'🎲 REAL RTP',simulating:'Simulating…',noJackpot:'no jackpot',adminJackpot:'💀 JACKPOT',adminWild:'✨ WILD',adminPayouts:'💰 PAYOUTS',difficultyLabel:'Difficulty',jackpotFreqHint:'Jackpot frequency per difficulty.',jackpotFreqField:'Frequency (×)',wildHint:'Global WILD settings (all difficulties).',wildChanceField:'WILD base chance (%)',wildPerLevelField:'Increase per level (%)',wildCapField:'WILDs paid normally (per line)',wildCostMultField:'WILD upgrade cost (×)',extraWildFreqField:'Extra WILD frequency (×)',payoutHint:'Global win multipliers.',payoutMultField:'Payout multiplier (×)',jackpotValueField:'Jackpot value multiplier (×)',resetLeaderboard:'🏆 RESET LEADERBOARD',resetLeaderboardConfirm:'Really clear the whole leaderboard (all difficulties)? This cannot be undone.',resetLeaderboardDone:'Leaderboard reset.',adminCustom:'🎲 CUSTOM CHANCES',customOverride:'⚠️ Custom chances active, RTP target is ignored',customHint:'Values auto-normalize to 100%.',customSaved:'Chances saved.',wildPreviewUnit:'WILD/spin · LVL 50',adminPlayers:'👥 PLAYERS',lastActive:'Last active',newId:'New ID',deletePlayer:'🗑️ DELETE PLAYER',deletePlayerConfirm:'Really permanently delete this player? This cannot be undone.',deletePlayerDone:'Player deleted.',saved:'Saved.',reauth:'Session expired. Please enter your password again.'}};
-const drollCopy=()=>accountText[lang]||accountText.de;
-const drollEsc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const lxaCopy=()=>accountText[lang]||accountText.de;
+const lxaEsc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // v149: 'spin' removed from this list per user request - after a page
-// reload, drollRestoreSession() logs the account back in silently (no
-// password, V244) but never re-populates drollSafeWord, so the very next
+// reload, lxaRestoreSession() logs the account back in silently (no
+// password, V244) but never re-populates lxaSafeWord, so the very next
 // spin used to trip this protected-action check and pop the login form
 // open uninvited. Spin only touches the account's own balance (no
 // bank/wild/identity change), so it no longer needs re-auth; the account
 // menu must now ONLY ever open from the user's own click, per that request.
-const DROLL_PROTECTED_ACTIONS=['update','deposit','reset-new-game','buy-wild','set-rtp-settings','reset-rtp-settings','set-custom-distribution','reset-leaderboard','list-players','admin-update-player','admin-delete-player'];
+const LXA_PROTECTED_ACTIONS=['update','deposit','reset-new-game','buy-wild','set-rtp-settings','reset-rtp-settings','set-custom-distribution','reset-leaderboard','list-players','admin-update-player','admin-delete-player'];
 // v155 PWA FIX: fetch() had no timeout - if the PWA/tab is suspended by the
 // OS mid-request (backgrounded phone, etc.) and the connection never
 // formally errors, the awaited promise can hang forever. Since `spinning`
@@ -152,19 +152,19 @@ const DROLL_PROTECTED_ACTIONS=['update','deposit','reset-new-game','buy-wild','s
 // so every existing catch/finally path (already correct, unchanged) runs
 // as normal - this is a network-layer fix, not a gameplay/economy change;
 // the server remains the sole authority either way.
-async function drollRequest(action,data={}){if(DROLL_PROTECTED_ACTIONS.includes(action)&&data.safeWord===undefined){if(!drollSafeWord){renderAccountPanel('login');throw new Error(drollCopy().reauth)}data={...data,safeWord:drollSafeWord}}const controller=new AbortController();const timeoutId=setTimeout(()=>controller.abort(),20000);let response;try{response=await fetch(DROLL_API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action,...data}),signal:controller.signal})}catch(error){throw new Error(error.name==='AbortError'?'Request timed out. Please try again.':'Network error. Please try again.')}finally{clearTimeout(timeoutId)}const body=await response.json().catch(()=>({error:'Server temporarily unavailable.'}));if(!response.ok)throw new Error(body.error||'Request failed.');return body}
-function drollStore(){if(drollAccount)localStorage.setItem(DROLL_CACHE,JSON.stringify(drollAccount));else localStorage.removeItem(DROLL_CACHE)}
-async function drollHydrate(account,token){drollAccount=account;if(token)drollSetToken(token);credits=Number(account.balance)||250;chance=Math.min(2,Math.max(0,Number(account.difficulty||2)-1));drollLeaderboardLevel=chance+1;winStreak=Number(account.winStreak)||0;recordHits.splice(0,recordHits.length,...(account.records||[0,0,0,0,0]));completedLines.splice(0,completedLines.length,...(account.completedLines||[false,false,false,false,false]));missionFinished=Boolean(account.missionFinished);refresh();refreshChance();renderMission();drollStore();renderLeaderboard()}
-// v151: removed this drollSaveState's body - it posted action:'save-state',
+async function lxaRequest(action,data={}){if(LXA_PROTECTED_ACTIONS.includes(action)&&data.safeWord===undefined){if(!lxaSafeWord){renderAccountPanel('login');throw new Error(lxaCopy().reauth)}data={...data,safeWord:lxaSafeWord}}const controller=new AbortController();const timeoutId=setTimeout(()=>controller.abort(),20000);let response;try{response=await fetch(LXA_API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action,...data}),signal:controller.signal})}catch(error){throw new Error(error.name==='AbortError'?'Request timed out. Please try again.':'Network error. Please try again.')}finally{clearTimeout(timeoutId)}const body=await response.json().catch(()=>({error:'Server temporarily unavailable.'}));if(!response.ok)throw new Error(body.error||'Request failed.');return body}
+function lxaStore(){if(lxaAccount)localStorage.setItem(LXA_CACHE,JSON.stringify(lxaAccount));else localStorage.removeItem(LXA_CACHE)}
+async function lxaHydrate(account,token){lxaAccount=account;if(token)lxaSetToken(token);credits=Number(account.balance)||250;chance=Math.min(2,Math.max(0,Number(account.difficulty||2)-1));lxaLeaderboardLevel=chance+1;winStreak=Number(account.winStreak)||0;recordHits.splice(0,recordHits.length,...(account.records||[0,0,0,0,0]));completedLines.splice(0,completedLines.length,...(account.completedLines||[false,false,false,false,false]));missionFinished=Boolean(account.missionFinished);refresh();refreshChance();renderMission();lxaStore();renderLeaderboard()}
+// v151: removed this lxaSaveState's body - it posted action:'save-state',
 // which was never implemented server-side (every call silently 404'd into
-// its own catch block). Provably dead: drollSaveState is reassigned to a
+// its own catch block). Provably dead: lxaSaveState is reassigned to a
 // real, working implementation at its other definition further below
 // (calls the real 'set-difficulty' action) before any user interaction can
 // reach a caller, so that reassignment always wins in practice.
-function drollMoneyNumber(value){const raw=String(value||'').replace(/[^0-9,.-]/g,'');if(lang==='en')return Number(raw.replace(/,/g,''))||0;return Number(raw.replace(/\./g,'').replace(',','.'))||0}
-function drollCreatePanel(){const panel=document.createElement('section');panel.id='accountPanel';panel.className='account-panel';panel.hidden=true;document.body.appendChild(panel);return panel}
-const accountPanel=drollCreatePanel();
-function renderAccountPanel(view='home',notice=''){const x=drollCopy();const a=drollAccount;let body='';const ADMIN_VIEWS=['admin','rtp-admin','jackpot-admin','wild-admin','payout-admin','players-admin','player-edit','custom-admin'];if(view==='create')body=`<form data-account-form="create"><label>${x.name}<input name="name" required minlength="2" maxlength="30" autocomplete="nickname"></label><button>${x.create}</button></form>`;else if(view==='login')body=`<form data-account-form="login"><p class="account-hint">${x.hint}</p><label>${x.id}<input name="id" type="number" min="1"></label><label>${x.name}<input name="name"></label><label>${x.safe}<input name="safeWord" type="password" autocomplete="current-password"></label><button>${x.login}</button></form>`;else if(view==='settings'&&a)body=`<form data-account-form="settings"><label>${x.name}<input name="name" value="${drollEsc(a.name)}" required minlength="2" maxlength="30"></label><label>${x.safe}<input name="currentSafeWord" type="password" required maxlength="40" autocomplete="current-password"></label><label>${x.newSafe}<input name="newSafeWord" maxlength="40" autocomplete="new-password"></label><button>${x.save}</button></form>`;
+function lxaMoneyNumber(value){const raw=String(value||'').replace(/[^0-9,.-]/g,'');if(lang==='en')return Number(raw.replace(/,/g,''))||0;return Number(raw.replace(/\./g,'').replace(',','.'))||0}
+function lxaCreatePanel(){const panel=document.createElement('section');panel.id='accountPanel';panel.className='account-panel';panel.hidden=true;document.body.appendChild(panel);return panel}
+const accountPanel=lxaCreatePanel();
+function renderAccountPanel(view='home',notice=''){const x=lxaCopy();const a=lxaAccount;let body='';const ADMIN_VIEWS=['admin','rtp-admin','jackpot-admin','wild-admin','payout-admin','players-admin','player-edit','custom-admin'];if(view==='create')body=`<form data-account-form="create"><label>${x.name}<input name="name" required minlength="2" maxlength="30" autocomplete="nickname"></label><button>${x.create}</button></form>`;else if(view==='login')body=`<form data-account-form="login"><p class="account-hint">${x.hint}</p><label>${x.id}<input name="id" type="number" min="1"></label><label>${x.name}<input name="name"></label><label>${x.safe}<input name="safeWord" type="password" autocomplete="current-password"></label><button>${x.login}</button></form>`;else if(view==='settings'&&a)body=`<form data-account-form="settings"><label>${x.name}<input name="name" value="${lxaEsc(a.name)}" required minlength="2" maxlength="30"></label><label>${x.safe}<input name="currentSafeWord" type="password" required maxlength="40" autocomplete="current-password"></label><label>${x.newSafe}<input name="newSafeWord" maxlength="40" autocomplete="new-password"></label><button>${x.save}</button></form>`;
 else{
 // v151 BUG FIX: this whole block (admin-view gating + every other body
 // branch, including the 'home' summary/create-login buttons) used to be a
@@ -180,103 +180,103 @@ else{
 // request) - RTP / JACKPOT frequency / WILD / PAYOUTS. Reached only from
 // 'home' via the 👑 ADMIN button, itself only shown when isAdminAccount(a)
 // is true. Settings are fetched ONCE on entering the hub (open-admin-hub
-// below) and cached in drollRtpCache; every sub-view below just reads that
+// below) and cached in lxaRtpCache; every sub-view below just reads that
 // same cache, so switching between RTP/JACKPOT/WILD/PAYOUTS is instant.
 if(ADMIN_VIEWS.includes(view)&&!(a&&isAdminAccount(a)))view='admin-denied';
 if(view==='admin')body=`<div class="account-actions"><button type="button" data-view="jackpot-admin">${x.adminJackpot}</button><button type="button" data-view="rtp-admin">🎰 RTP</button><button type="button" data-view="custom-admin">${x.adminCustom}</button><button type="button" data-account-action="reset-leaderboard">${x.resetLeaderboard}</button><button type="button" data-view="wild-admin">${x.adminWild}</button><button type="button" data-view="payout-admin">${x.adminPayouts}</button><button type="button" data-account-action="open-players-admin">${x.adminPlayers}</button></div>`;
-else if(view==='players-admin'){const players=drollPlayersCache||[];const fmt=ts=>ts?new Date(ts).toLocaleDateString(lang==='en'?'en-US':'de-DE'):'—';body=players.length?`<div class="account-players-list">${players.map(p=>`<div class="player-row"><span class="player-row-info"><b>#${drollEsc(p.id)}</b> ${drollEsc(p.name)}<small>${x.lastActive}: ${fmt(p.lastActive)}</small></span><span class="player-row-actions"><button type="button" data-account-action="edit-player" data-id="${p.id}">✏️</button><button type="button" data-account-action="delete-player" data-id="${p.id}">🗑️</button></span></div>`).join('')}</div>`:`<p class="account-notice">${x.empty}</p>`}
-else if(view==='player-edit'){const p=(drollPlayersCache||[]).find(pl=>Number(pl.id)===Number(drollEditPlayerId));body=p?`<form data-account-form="player-edit"><label>${x.newId}<input name="newId" type="number" min="1" value="${p.id}"></label><label>${x.name}<input name="newName" value="${drollEsc(p.name)}" minlength="2" maxlength="30"></label><label>${x.newSafe}<input name="newSafeWord" maxlength="40" placeholder="••••••"></label><button>${x.save}</button></form><button type="button" class="account-back" data-account-action="delete-player" data-id="${p.id}">${x.deletePlayer}</button>`:`<p class="account-notice">${x.wrong}</p>`}
-else if(view==='rtp-admin'){const s=drollRtpCache?.settings||{},d=drollRtpCache?.defaults?.rtp||{},val=n=>{const v=s[n]??s[String(n)]??d[n];return v===undefined||v===''?'':Math.round(v*10)/10;},b=drollRtpCache?.bounds?.rtp||{min:50,max:300};const cdActive=[1,2,3].filter(n=>drollRtpCache?.customDistribution?.[n]),cdNames={1:'SWEET',2:'SPICY',3:'BRUTAL'};body=`<p class="account-hint">${x.rtpHint}</p>${cdActive.length?`<p class="account-notice">${x.customOverride} (${cdActive.map(n=>cdNames[n]).join(', ')})</p>`:''}<form data-account-form="rtp-admin" class="account-rtp-form"><label>SWEET 🍯<input name="1" type="number" step="0.1" min="${b.min}" max="${b.max}" value="${val(1)}" placeholder="${d[1]?d[1].toFixed(1):''}"></label><label>SPICY 🌶️<input name="2" type="number" step="0.1" min="${b.min}" max="${b.max}" value="${val(2)}" placeholder="${d[2]?d[2].toFixed(1):''}"></label><label>BRUTAL 💀<input name="3" type="number" step="0.1" min="${b.min}" max="${b.max}" value="${val(3)}" placeholder="${d[3]?d[3].toFixed(1):''}"></label><button>${x.save}</button></form><button type="button" class="account-back" data-account-action="reset-admin" data-scope="rtp">${x.rtpReset}</button><button type="button" data-account-action="simulate-rtp">${x.simulateRtp}</button><div class="account-notice" id="rtpSimResult"></div>`}
-else if(view==='custom-admin'){const cur=drollRtpCache?.currentDistribution?.[1]||{},f=(k,l)=>`<label>${l}<input name="b${k}" type="number" step="0.1" min="0" value="${cur[k]??''}"></label>`;body=`<p class="account-hint">${x.customHint}</p><form data-account-form="custom-admin" class="account-rtp-form"><label>${x.difficultyLabel}<select name="difficulty"><option value="1">SWEET 🍯</option><option value="2">SPICY 🌶️</option><option value="3">BRUTAL 💀</option></select></label>${f(0,'0/10')}${f(3,'3/10')}${f(4,'4/10')}${f(5,'5/10')}${f(6,'6/10')}${f(7,'7/10')}${f(8,'8/10')}${f(9,'9/10')}${f(10,'10/10')}<button>${x.save}</button></form><button type="button" class="account-back" data-account-action="reset-custom">${x.rtpReset}</button>`}
-else if(view==='jackpot-admin'){const freq=drollRtpCache?.settings?.jackpotFreq||{},b=drollRtpCache?.bounds?.jackpotFreq||{min:0.2,max:5},cur=Math.round((freq[1]??1)*10)/10;body=`<p class="account-hint">${x.jackpotFreqHint}</p><form data-account-form="jackpot-admin" class="account-rtp-form"><label>${x.difficultyLabel}<select name="difficulty"><option value="1">SWEET 🍯</option><option value="2">SPICY 🌶️</option><option value="3">BRUTAL 💀</option></select></label><label>${x.jackpotFreqField}<input name="multiplier" type="number" step="0.1" min="${b.min}" max="${b.max}" value="${cur}"></label><button>${x.save}</button></form><button type="button" class="account-back" data-account-action="reset-admin" data-scope="jackpotFreq">${x.rtpReset}</button>`}
-else if(view==='wild-admin'){const s=drollRtpCache?.settings||{},d=drollRtpCache?.defaults||{},b=drollRtpCache?.bounds||{};body=`<p class="account-hint">${x.wildHint}</p><form data-account-form="wild-admin" class="account-rtp-form"><label>${x.wildChanceField}<input name="wildChance" type="number" step="0.1" min="0" max="100" value="${s.wildChance??d.wildChance??''}"></label><label>${x.wildPerLevelField}<input name="wildPerLevel" type="number" step="0.01" min="0" max="5" value="${s.wildPerLevel??d.wildPerLevel??''}"></label><label>${x.extraWildFreqField}<input name="extraWildFreq" type="number" step="0.1" min="${(b.extraWildFreq||{}).min||0.2}" max="${(b.extraWildFreq||{}).max||5}" value="${s.extraWildFreq??d.extraWildFreq??1}"><small id="extraWildPreview">≈${Math.min(50,Math.round(2.47*Number(s.extraWildFreq??d.extraWildFreq??1)))} ${x.wildPreviewUnit}</small></label><label>${x.wildCapField}<input name="wildCap" type="number" step="1" min="${(b.wildCap||{}).min||1}" max="${(b.wildCap||{}).max||10}" value="${s.wildCap??d.wildCap??''}"></label><label>${x.wildCostMultField}<input name="wildCostMult" type="number" step="0.1" min="${(b.wildCostMult||{}).min||0.2}" max="${(b.wildCostMult||{}).max||5}" value="${s.wildCostMult??d.wildCostMult??1}"></label><button>${x.save}</button></form><button type="button" class="account-back" data-account-action="reset-admin" data-scope="wild">${x.rtpReset}</button>`}
-else if(view==='payout-admin'){const s=drollRtpCache?.settings||{},b=drollRtpCache?.bounds||{};body=`<p class="account-hint">${x.payoutHint}</p><form data-account-form="payout-admin" class="account-rtp-form"><label>${x.payoutMultField}<input name="payoutMult" type="number" step="0.1" min="${(b.payoutMult||{}).min||0.2}" max="${(b.payoutMult||{}).max||5}" value="${s.payoutMult??1}"></label><label>${x.jackpotValueField}<input name="jackpotValueMult" type="number" step="0.1" min="${(b.jackpotValueMult||{}).min||0.2}" max="${(b.jackpotValueMult||{}).max||10}" value="${s.jackpotValueMult??1}"></label><button>${x.save}</button></form><button type="button" class="account-back" data-account-action="reset-admin" data-scope="payout">${x.rtpReset}</button>`}
+else if(view==='players-admin'){const players=lxaPlayersCache||[];const fmt=ts=>ts?new Date(ts).toLocaleDateString(lang==='en'?'en-US':'de-DE'):'—';body=players.length?`<div class="account-players-list">${players.map(p=>`<div class="player-row"><span class="player-row-info"><b>#${lxaEsc(p.id)}</b> ${lxaEsc(p.name)}<small>${x.lastActive}: ${fmt(p.lastActive)}</small></span><span class="player-row-actions"><button type="button" data-account-action="edit-player" data-id="${p.id}">✏️</button><button type="button" data-account-action="delete-player" data-id="${p.id}">🗑️</button></span></div>`).join('')}</div>`:`<p class="account-notice">${x.empty}</p>`}
+else if(view==='player-edit'){const p=(lxaPlayersCache||[]).find(pl=>Number(pl.id)===Number(lxaEditPlayerId));body=p?`<form data-account-form="player-edit"><label>${x.newId}<input name="newId" type="number" min="1" value="${p.id}"></label><label>${x.name}<input name="newName" value="${lxaEsc(p.name)}" minlength="2" maxlength="30"></label><label>${x.newSafe}<input name="newSafeWord" maxlength="40" placeholder="••••••"></label><button>${x.save}</button></form><button type="button" class="account-back" data-account-action="delete-player" data-id="${p.id}">${x.deletePlayer}</button>`:`<p class="account-notice">${x.wrong}</p>`}
+else if(view==='rtp-admin'){const s=lxaRtpCache?.settings||{},d=lxaRtpCache?.defaults?.rtp||{},val=n=>{const v=s[n]??s[String(n)]??d[n];return v===undefined||v===''?'':Math.round(v*10)/10;},b=lxaRtpCache?.bounds?.rtp||{min:50,max:300};const cdActive=[1,2,3].filter(n=>lxaRtpCache?.customDistribution?.[n]),cdNames={1:'SWEET',2:'SPICY',3:'BRUTAL'};body=`<p class="account-hint">${x.rtpHint}</p>${cdActive.length?`<p class="account-notice">${x.customOverride} (${cdActive.map(n=>cdNames[n]).join(', ')})</p>`:''}<form data-account-form="rtp-admin" class="account-rtp-form"><label>SWEET 🍯<input name="1" type="number" step="0.1" min="${b.min}" max="${b.max}" value="${val(1)}" placeholder="${d[1]?d[1].toFixed(1):''}"></label><label>SPICY 🌶️<input name="2" type="number" step="0.1" min="${b.min}" max="${b.max}" value="${val(2)}" placeholder="${d[2]?d[2].toFixed(1):''}"></label><label>BRUTAL 💀<input name="3" type="number" step="0.1" min="${b.min}" max="${b.max}" value="${val(3)}" placeholder="${d[3]?d[3].toFixed(1):''}"></label><button>${x.save}</button></form><button type="button" class="account-back" data-account-action="reset-admin" data-scope="rtp">${x.rtpReset}</button><button type="button" data-account-action="simulate-rtp">${x.simulateRtp}</button><div class="account-notice" id="rtpSimResult"></div>`}
+else if(view==='custom-admin'){const cur=lxaRtpCache?.currentDistribution?.[1]||{},f=(k,l)=>`<label>${l}<input name="b${k}" type="number" step="0.1" min="0" value="${cur[k]??''}"></label>`;body=`<p class="account-hint">${x.customHint}</p><form data-account-form="custom-admin" class="account-rtp-form"><label>${x.difficultyLabel}<select name="difficulty"><option value="1">SWEET 🍯</option><option value="2">SPICY 🌶️</option><option value="3">BRUTAL 💀</option></select></label>${f(0,'0/10')}${f(3,'3/10')}${f(4,'4/10')}${f(5,'5/10')}${f(6,'6/10')}${f(7,'7/10')}${f(8,'8/10')}${f(9,'9/10')}${f(10,'10/10')}<button>${x.save}</button></form><button type="button" class="account-back" data-account-action="reset-custom">${x.rtpReset}</button>`}
+else if(view==='jackpot-admin'){const freq=lxaRtpCache?.settings?.jackpotFreq||{},b=lxaRtpCache?.bounds?.jackpotFreq||{min:0.2,max:5},cur=Math.round((freq[1]??1)*10)/10;body=`<p class="account-hint">${x.jackpotFreqHint}</p><form data-account-form="jackpot-admin" class="account-rtp-form"><label>${x.difficultyLabel}<select name="difficulty"><option value="1">SWEET 🍯</option><option value="2">SPICY 🌶️</option><option value="3">BRUTAL 💀</option></select></label><label>${x.jackpotFreqField}<input name="multiplier" type="number" step="0.1" min="${b.min}" max="${b.max}" value="${cur}"></label><button>${x.save}</button></form><button type="button" class="account-back" data-account-action="reset-admin" data-scope="jackpotFreq">${x.rtpReset}</button>`}
+else if(view==='wild-admin'){const s=lxaRtpCache?.settings||{},d=lxaRtpCache?.defaults||{},b=lxaRtpCache?.bounds||{};body=`<p class="account-hint">${x.wildHint}</p><form data-account-form="wild-admin" class="account-rtp-form"><label>${x.wildChanceField}<input name="wildChance" type="number" step="0.1" min="0" max="100" value="${s.wildChance??d.wildChance??''}"></label><label>${x.wildPerLevelField}<input name="wildPerLevel" type="number" step="0.01" min="0" max="5" value="${s.wildPerLevel??d.wildPerLevel??''}"></label><label>${x.extraWildFreqField}<input name="extraWildFreq" type="number" step="0.1" min="${(b.extraWildFreq||{}).min||0.2}" max="${(b.extraWildFreq||{}).max||5}" value="${s.extraWildFreq??d.extraWildFreq??1}"><small id="extraWildPreview">≈${Math.min(50,Math.round(2.47*Number(s.extraWildFreq??d.extraWildFreq??1)))} ${x.wildPreviewUnit}</small></label><label>${x.wildCapField}<input name="wildCap" type="number" step="1" min="${(b.wildCap||{}).min||1}" max="${(b.wildCap||{}).max||10}" value="${s.wildCap??d.wildCap??''}"></label><label>${x.wildCostMultField}<input name="wildCostMult" type="number" step="0.1" min="${(b.wildCostMult||{}).min||0.2}" max="${(b.wildCostMult||{}).max||5}" value="${s.wildCostMult??d.wildCostMult??1}"></label><button>${x.save}</button></form><button type="button" class="account-back" data-account-action="reset-admin" data-scope="wild">${x.rtpReset}</button>`}
+else if(view==='payout-admin'){const s=lxaRtpCache?.settings||{},b=lxaRtpCache?.bounds||{};body=`<p class="account-hint">${x.payoutHint}</p><form data-account-form="payout-admin" class="account-rtp-form"><label>${x.payoutMultField}<input name="payoutMult" type="number" step="0.1" min="${(b.payoutMult||{}).min||0.2}" max="${(b.payoutMult||{}).max||5}" value="${s.payoutMult??1}"></label><label>${x.jackpotValueField}<input name="jackpotValueMult" type="number" step="0.1" min="${(b.jackpotValueMult||{}).min||0.2}" max="${(b.jackpotValueMult||{}).max||10}" value="${s.jackpotValueMult??1}"></label><button>${x.save}</button></form><button type="button" class="account-back" data-account-action="reset-admin" data-scope="payout">${x.rtpReset}</button>`}
 else if(view==='admin-denied')body=`<p class="account-notice">${x.wrong}</p>`;
-else if(a)body=`<div class="account-summary"><div class="account-summary-row"><span>${x.id}</span><strong>#${drollEsc(a.id)}</strong></div><div class="account-summary-row"><span>${x.name}</span><strong>${drollEsc(a.name)}</strong></div><div class="account-summary-row account-safe-row"><span>${x.safe}</span><span class="account-safe-value-wrap"><strong class="account-safe-value" data-safe-hidden="0">${drollSafeWord?drollEsc(drollSafeWord):'—'}</strong>${drollSafeWord?`<button type="button" class="account-safe-toggle" data-account-action="toggle-safe" aria-label="hide/show">👁️</button>`:''}</span></div></div><div class="account-actions"><button data-view="settings">${x.settings}</button>${isAdminAccount(a)?`<button type="button" data-account-action="open-admin-hub">👑 ADMIN</button>`:''}<button data-account-action="logout">${x.logout}</button></div>`;else body=`<div class="account-actions"><button data-view="create">${x.create}</button><button data-view="login">${x.login}</button></div>`;
+else if(a)body=`<div class="account-summary"><div class="account-summary-row"><span>${x.id}</span><strong>#${lxaEsc(a.id)}</strong></div><div class="account-summary-row"><span>${x.name}</span><strong>${lxaEsc(a.name)}</strong></div><div class="account-summary-row account-safe-row"><span>${x.safe}</span><span class="account-safe-value-wrap"><strong class="account-safe-value" data-safe-hidden="0">${lxaSafeWord?lxaEsc(lxaSafeWord):'—'}</strong>${lxaSafeWord?`<button type="button" class="account-safe-toggle" data-account-action="toggle-safe" aria-label="hide/show">👁️</button>`:''}</span></div></div><div class="account-actions"><button data-view="settings">${x.settings}</button>${isAdminAccount(a)?`<button type="button" data-account-action="open-admin-hub">👑 ADMIN</button>`:''}<button data-account-action="logout">${x.logout}</button></div>`;else body=`<div class="account-actions"><button data-view="create">${x.create}</button><button data-view="login">${x.login}</button></div>`;
 }
 const heading=ADMIN_VIEWS.includes(view)?'👑 ADMIN PANEL':x.account;
 const backTarget=view==='admin'?'home':(view==='player-edit'?'players-admin':(ADMIN_VIEWS.includes(view)?'admin':'home'));
-accountPanel.innerHTML=`<div class="account-panel-card"><button class="account-close" data-account-action="close" aria-label="Close">×</button><h2>${heading}</h2>${notice?`<p class="account-notice">${drollEsc(notice)}</p>`:''}${body}${view!=='home'?`<button class="account-back" data-view="${backTarget}">${x.back}</button>`:''}</div>`;accountPanel.hidden=false;accountPanel.querySelectorAll('[data-view]').forEach(button=>button.onclick=()=>renderAccountPanel(button.dataset.view));accountPanel.querySelector('[data-account-action="close"]')?.addEventListener('click',()=>{accountPanel.hidden=true});accountPanel.querySelector('[data-account-action="logout"]')?.addEventListener('click',()=>{drollAccount=null;drollSafeWord='';drollClearToken();drollStore();accountPanel.hidden=true;renderLeaderboard()});
-accountPanel.querySelector('[data-account-action="open-admin-hub"]')?.addEventListener('click',async()=>{try{drollRtpCache=await drollRequest('get-rtp-settings',{})}catch{drollRtpCache=null}renderAccountPanel('admin')});
-accountPanel.querySelector('[data-account-action="reset-admin"]')?.addEventListener('click',async event=>{const scope=event.currentTarget.dataset.scope;try{await drollRequest('reset-rtp-settings',{id:drollAccount.id,scope});drollRtpCache=await drollRequest('get-rtp-settings',{});renderAccountPanel(view,x.rtpResetDone)}catch(error){renderAccountPanel(view,error.message)}});
+accountPanel.innerHTML=`<div class="account-panel-card"><button class="account-close" data-account-action="close" aria-label="Close">×</button><h2>${heading}</h2>${notice?`<p class="account-notice">${lxaEsc(notice)}</p>`:''}${body}${view!=='home'?`<button class="account-back" data-view="${backTarget}">${x.back}</button>`:''}</div>`;accountPanel.hidden=false;accountPanel.querySelectorAll('[data-view]').forEach(button=>button.onclick=()=>renderAccountPanel(button.dataset.view));accountPanel.querySelector('[data-account-action="close"]')?.addEventListener('click',()=>{accountPanel.hidden=true});accountPanel.querySelector('[data-account-action="logout"]')?.addEventListener('click',()=>{lxaAccount=null;lxaSafeWord='';lxaClearToken();lxaStore();accountPanel.hidden=true;renderLeaderboard()});
+accountPanel.querySelector('[data-account-action="open-admin-hub"]')?.addEventListener('click',async()=>{try{lxaRtpCache=await lxaRequest('get-rtp-settings',{})}catch{lxaRtpCache=null}renderAccountPanel('admin')});
+accountPanel.querySelector('[data-account-action="reset-admin"]')?.addEventListener('click',async event=>{const scope=event.currentTarget.dataset.scope;try{await lxaRequest('reset-rtp-settings',{id:lxaAccount.id,scope});lxaRtpCache=await lxaRequest('get-rtp-settings',{});renderAccountPanel(view,x.rtpResetDone)}catch(error){renderAccountPanel(view,error.message)}});
 // v152: on-demand Monte Carlo estimate (line+WILD, real random draws via
 // the already-loaded engine, no new deps) - the admin RTP field alone only
 // ever showed the line-only expectation (see rtpHint), this shows what a
 // player actually nets including WILD. Jackpot excluded on purpose (rare,
 // needs multi-spin progression to simulate properly) and said so, short.
-accountPanel.querySelector('[data-account-action="simulate-rtp"]')?.addEventListener('click',()=>{const g=window.DrollyGameEngine,out=accountPanel.querySelector('#rtpSimResult');if(!g||!out)return;out.textContent=x.simulating;setTimeout(()=>{const trials=3000,bet=5,pct=d=>{let paid=0;for(let i=0;i<trials;i++){const res=Array.from({length:5},()=>g.selectLineResult(d));const w=g.applyWild(res,Math.random,0);paid+=w.paytableResults.reduce((s,h)=>s+(bet/5)*(g.PAYTABLE[h]||0),0)}return Math.round(paid/(trials*bet)*1000)/10};out.textContent=`🍯${pct(1)}% · 🌶️${pct(2)}% · 💀${pct(3)}% (${x.noJackpot})`},10)});
-accountPanel.querySelector('[data-account-action="reset-leaderboard"]')?.addEventListener('click',async()=>{if(!confirm(x.resetLeaderboardConfirm))return;try{await drollRequest('reset-leaderboard',{id:drollAccount.id});renderAccountPanel('admin',x.resetLeaderboardDone)}catch(error){renderAccountPanel('admin',error.message)}});
-accountPanel.querySelector('[data-account-action="open-players-admin"]')?.addEventListener('click',async()=>{try{drollPlayersCache=(await drollRequest('list-players',{id:drollAccount.id})).players||[]}catch(error){renderAccountPanel('admin',error.message);return}renderAccountPanel('players-admin')});
-accountPanel.querySelectorAll('[data-account-action="edit-player"]').forEach(button=>button.addEventListener('click',()=>{drollEditPlayerId=Number(button.dataset.id);renderAccountPanel('player-edit')}));
-accountPanel.querySelectorAll('[data-account-action="delete-player"]').forEach(button=>button.addEventListener('click',async()=>{const id=Number(button.dataset.id);if(!confirm(x.deletePlayerConfirm))return;try{await drollRequest('admin-delete-player',{id:drollAccount.id,playerId:id});drollPlayersCache=(drollPlayersCache||[]).filter(p=>Number(p.id)!==id);renderAccountPanel('players-admin',x.deletePlayerDone)}catch(error){renderAccountPanel(view,error.message)}}));
-accountPanel.querySelector('select[name="difficulty"]')?.addEventListener('change',event=>{const freq=drollRtpCache?.settings?.jackpotFreq||{},d=event.target.value,input=accountPanel.querySelector('input[name="multiplier"]');if(input)input.value=Math.round((freq[d]??1)*10)/10;if(accountPanel.querySelector('form')?.dataset.accountForm==='custom-admin'){const cur=drollRtpCache?.currentDistribution?.[d]||{};[0,3,4,5,6,7,8,9,10].forEach(k=>{const el=accountPanel.querySelector(`input[name="b${k}"]`);if(el)el.value=cur[k]??''})}});
-accountPanel.querySelector('[data-account-action="reset-custom"]')?.addEventListener('click',async()=>{const d=accountPanel.querySelector('select[name="difficulty"]')?.value||1;try{await drollRequest('reset-rtp-settings',{id:drollAccount.id,scope:'customDistribution',scopeDifficulty:d});drollRtpCache=await drollRequest('get-rtp-settings',{});renderAccountPanel('custom-admin',x.rtpResetDone)}catch(error){renderAccountPanel('custom-admin',error.message)}});
+accountPanel.querySelector('[data-account-action="simulate-rtp"]')?.addEventListener('click',()=>{const g=window.LxaGameEngine,out=accountPanel.querySelector('#rtpSimResult');if(!g||!out)return;out.textContent=x.simulating;setTimeout(()=>{const trials=3000,bet=5,pct=d=>{let paid=0;for(let i=0;i<trials;i++){const res=Array.from({length:5},()=>g.selectLineResult(d));const w=g.applyWild(res,Math.random,0);paid+=w.paytableResults.reduce((s,h)=>s+(bet/5)*(g.PAYTABLE[h]||0),0)}return Math.round(paid/(trials*bet)*1000)/10};out.textContent=`🍯${pct(1)}% · 🌶️${pct(2)}% · 💀${pct(3)}% (${x.noJackpot})`},10)});
+accountPanel.querySelector('[data-account-action="reset-leaderboard"]')?.addEventListener('click',async()=>{if(!confirm(x.resetLeaderboardConfirm))return;try{await lxaRequest('reset-leaderboard',{id:lxaAccount.id});renderAccountPanel('admin',x.resetLeaderboardDone)}catch(error){renderAccountPanel('admin',error.message)}});
+accountPanel.querySelector('[data-account-action="open-players-admin"]')?.addEventListener('click',async()=>{try{lxaPlayersCache=(await lxaRequest('list-players',{id:lxaAccount.id})).players||[]}catch(error){renderAccountPanel('admin',error.message);return}renderAccountPanel('players-admin')});
+accountPanel.querySelectorAll('[data-account-action="edit-player"]').forEach(button=>button.addEventListener('click',()=>{lxaEditPlayerId=Number(button.dataset.id);renderAccountPanel('player-edit')}));
+accountPanel.querySelectorAll('[data-account-action="delete-player"]').forEach(button=>button.addEventListener('click',async()=>{const id=Number(button.dataset.id);if(!confirm(x.deletePlayerConfirm))return;try{await lxaRequest('admin-delete-player',{id:lxaAccount.id,playerId:id});lxaPlayersCache=(lxaPlayersCache||[]).filter(p=>Number(p.id)!==id);renderAccountPanel('players-admin',x.deletePlayerDone)}catch(error){renderAccountPanel(view,error.message)}}));
+accountPanel.querySelector('select[name="difficulty"]')?.addEventListener('change',event=>{const freq=lxaRtpCache?.settings?.jackpotFreq||{},d=event.target.value,input=accountPanel.querySelector('input[name="multiplier"]');if(input)input.value=Math.round((freq[d]??1)*10)/10;if(accountPanel.querySelector('form')?.dataset.accountForm==='custom-admin'){const cur=lxaRtpCache?.currentDistribution?.[d]||{};[0,3,4,5,6,7,8,9,10].forEach(k=>{const el=accountPanel.querySelector(`input[name="b${k}"]`);if(el)el.value=cur[k]??''})}});
+accountPanel.querySelector('[data-account-action="reset-custom"]')?.addEventListener('click',async()=>{const d=accountPanel.querySelector('select[name="difficulty"]')?.value||1;try{await lxaRequest('reset-rtp-settings',{id:lxaAccount.id,scope:'customDistribution',scopeDifficulty:d});lxaRtpCache=await lxaRequest('get-rtp-settings',{});renderAccountPanel('custom-admin',x.rtpResetDone)}catch(error){renderAccountPanel('custom-admin',error.message)}});
 accountPanel.querySelector('input[name="extraWildFreq"]')?.addEventListener('input',event=>{const preview=accountPanel.querySelector('#extraWildPreview');if(preview)preview.textContent=`≈${Math.min(50,Math.round(2.47*(Number(event.target.value)||1)))} ${x.wildPreviewUnit}`});
-accountPanel.querySelector('[data-account-action="toggle-safe"]')?.addEventListener('click',()=>{const valueEl=accountPanel.querySelector('.account-safe-value'),toggleBtn=accountPanel.querySelector('.account-safe-toggle');if(!valueEl)return;const hidden=valueEl.dataset.safeHidden==='1';valueEl.dataset.safeHidden=hidden?'0':'1';valueEl.textContent=hidden?drollSafeWord:'•'.repeat(Math.max(6,drollSafeWord.length));if(toggleBtn)toggleBtn.textContent=hidden?'👁️':'🙈'});const form=accountPanel.querySelector('form');if(form)form.onsubmit=async event=>{event.preventDefault();const data=Object.fromEntries(new FormData(form));const action=form.dataset.accountForm;try{if(action==='create'){const result=await drollRequest('create',{name:data.name});drollSafeWord=result.safeWord||'';drollHydrate(result.account,result.token);renderAccountPanel('home',`${x.created} ${drollSafeWord}`)}else if(action==='login'){
+accountPanel.querySelector('[data-account-action="toggle-safe"]')?.addEventListener('click',()=>{const valueEl=accountPanel.querySelector('.account-safe-value'),toggleBtn=accountPanel.querySelector('.account-safe-toggle');if(!valueEl)return;const hidden=valueEl.dataset.safeHidden==='1';valueEl.dataset.safeHidden=hidden?'0':'1';valueEl.textContent=hidden?lxaSafeWord:'•'.repeat(Math.max(6,lxaSafeWord.length));if(toggleBtn)toggleBtn.textContent=hidden?'👁️':'🙈'});const form=accountPanel.querySelector('form');if(form)form.onsubmit=async event=>{event.preventDefault();const data=Object.fromEntries(new FormData(form));const action=form.dataset.accountForm;try{if(action==='create'){const result=await lxaRequest('create',{name:data.name});lxaSafeWord=result.safeWord||'';lxaHydrate(result.account,result.token);renderAccountPanel('home',`${x.created} ${lxaSafeWord}`)}else if(action==='login'){
   // v151: self-service "id+name, no password" recovery was removed (see
   // server-side note on the deleted 'reset-safeword' action) - id+password
   // and name+password are now the only two ways in. A forgotten password
   // goes through the site admin (Admin Panel > PLAYERS > edit) instead.
   const id=String(data.id||'').trim(),name=String(data.name||'').trim(),safeWord=String(data.safeWord||'').trim();
-  if(id&&safeWord){const result=await drollRequest('login',{id,safeWord});drollSafeWord=safeWord;drollHydrate(result.account,result.token);renderAccountPanel('home',x.loginOk)}
-  else if(name&&safeWord){const result=await drollRequest('login',{name,safeWord});drollSafeWord=safeWord;drollHydrate(result.account,result.token);renderAccountPanel('home',x.loginOk)}
-  else if(id&&name){const result=await drollRequest('login',{id,name});drollHydrate(result.account,result.token);renderAccountPanel('home',x.loginOk)}
+  if(id&&safeWord){const result=await lxaRequest('login',{id,safeWord});lxaSafeWord=safeWord;lxaHydrate(result.account,result.token);renderAccountPanel('home',x.loginOk)}
+  else if(name&&safeWord){const result=await lxaRequest('login',{name,safeWord});lxaSafeWord=safeWord;lxaHydrate(result.account,result.token);renderAccountPanel('home',x.loginOk)}
+  else if(id&&name){const result=await lxaRequest('login',{id,name});lxaHydrate(result.account,result.token);renderAccountPanel('home',x.loginOk)}
   else{throw new Error(x.hint)}
-}else if(action==='settings'){const result=await drollRequest('update',{id:drollAccount.id,name:data.name,safeWord:data.currentSafeWord,newSafeWord:data.newSafeWord});drollSafeWord=(data.newSafeWord||data.currentSafeWord).trim();drollHydrate(result.account,result.token)}else if(action==='rtp-admin'){const payload={id:drollAccount.id};[1,2,3].forEach(n=>{const raw=String(data[n]||'').trim();if(raw!=='')payload[n]=raw});const result=await drollRequest('set-rtp-settings',payload);drollRtpCache={settings:result.settings,defaults:drollRtpCache?.defaults,bounds:drollRtpCache?.bounds};renderAccountPanel('rtp-admin',x.rtpSaved)}else if(action==='jackpot-admin'){const payload={id:drollAccount.id};payload[`jackpotFreq${data.difficulty}`]=data.multiplier;const result=await drollRequest('set-rtp-settings',payload);drollRtpCache={settings:result.settings,defaults:drollRtpCache?.defaults,bounds:drollRtpCache?.bounds};renderAccountPanel('jackpot-admin',x.rtpSaved)}else if(action==='wild-admin'){const payload={id:drollAccount.id,wildChance:data.wildChance,wildPerLevel:data.wildPerLevel,wildCap:data.wildCap,wildCostMult:data.wildCostMult,extraWildFreq:data.extraWildFreq};const result=await drollRequest('set-rtp-settings',payload);drollRtpCache={settings:result.settings,defaults:drollRtpCache?.defaults,bounds:drollRtpCache?.bounds};renderAccountPanel('wild-admin',x.rtpSaved)}else if(action==='payout-admin'){const payload={id:drollAccount.id,payoutMult:data.payoutMult,jackpotValueMult:data.jackpotValueMult};const result=await drollRequest('set-rtp-settings',payload);drollRtpCache={settings:result.settings,defaults:drollRtpCache?.defaults,bounds:drollRtpCache?.bounds};renderAccountPanel('payout-admin',x.rtpSaved)}else if(action==='custom-admin'){const buckets={};[0,3,4,5,6,7,8,9,10].forEach(k=>buckets[k]=data[`b${k}`]);const result=await drollRequest('set-custom-distribution',{id:drollAccount.id,difficulty:data.difficulty,buckets});drollRtpCache=await drollRequest('get-rtp-settings',{});renderAccountPanel('custom-admin',x.customSaved)}else if(action==='player-edit'){const payload={id:drollAccount.id,playerId:drollEditPlayerId};const newId=String(data.newId||'').trim();if(newId&&Number(newId)!==drollEditPlayerId)payload.newId=newId;const newName=String(data.newName||'').trim();if(newName)payload.newName=newName;const newSafeWord=String(data.newSafeWord||'').trim();if(newSafeWord)payload.newSafeWord=newSafeWord;const result=await drollRequest('admin-update-player',payload);drollPlayersCache=(drollPlayersCache||[]).map(p=>Number(p.id)===drollEditPlayerId?result.player:p);drollEditPlayerId=result.player.id;renderAccountPanel('player-edit',x.saved)}}catch(error){renderAccountPanel(view,error.message)}}}
-function drollSetupAccountButton(){const host=document.querySelector('#headerActions')||document.querySelector('.topbar');if(!host||document.querySelector('#accountButton'))return;const button=document.createElement('button');button.id='accountButton';button.className='account-button';button.type='button';button.textContent='🎫';button.title=accountText.de.account;button.onclick=()=>renderAccountPanel('home');host.prepend(button)}
-function drollSetupLeaderboard(){const bottomGrid=document.querySelector('.bottom-grid');if(!bottomGrid||document.querySelector('#leaderboardPanel'))return;const panel=document.createElement('section');panel.id='leaderboardPanel';panel.className='leaderboard-panel';panel.innerHTML='<div class="leaderboard-head"><span id="leaderboardTitle"></span><small id="leaderboardDifficulty"></small></div><nav id="leaderboardTabs" class="leaderboard-tabs" aria-label="Difficulty leaderboard"></nav><ol id="leaderboardRows" class="leaderboard-rows"></ol><div id="leaderboardPosition" class="leaderboard-position"></div>';bottomGrid.parentNode.insertBefore(panel,bottomGrid);document.querySelector('#chance').addEventListener('input',()=>{drollLeaderboardLevel=chance+1;renderLeaderboard()})}
-async function renderLeaderboard(){drollSetupLeaderboard();const x=drollCopy(),level=chance+1;const title=document.querySelector('#leaderboardTitle'),difficulty=document.querySelector('#leaderboardDifficulty'),tabs=document.querySelector('#leaderboardTabs'),rows=document.querySelector('#leaderboardRows'),position=document.querySelector('#leaderboardPosition');if(!title||!tabs)return;title.textContent=x.leaderboard;difficulty.textContent=`${level}/7`;tabs.innerHTML=Array.from({length:7},(_,i)=>`<button class="${i+1===level?'active':''}" data-level="${i+1}">${i+1}/7</button>`).join('');tabs.querySelectorAll('button').forEach(tab=>tab.onclick=()=>{chance=Number(tab.dataset.level)-1;refreshChance();renderLeaderboard();drollSaveState()});rows.innerHTML=`<li class="leaderboard-loading">…</li>`;try{const query=new URLSearchParams({action:'leaderboard',difficulty:String(level)});if(drollAccount)query.set('id',String(drollAccount.id));const response=await fetch(`${DROLL_API}?${query}`);const data=await response.json();if(!response.ok)throw new Error(data.error);rows.innerHTML=data.records?.length?data.records.map((record,i)=>`<li><b>${i+1}</b><span>${drollEsc(record.name)}</span><strong>${Number(record.score||0).toLocaleString(lang==='en'?'en-US':'de-DE')}</strong></li>`).join(''):`<li class="leaderboard-empty">${x.empty}</li>`;position.textContent=drollAccount&&data.yourPosition?`${x.your}: #${data.yourPosition}`:''}catch(error){rows.innerHTML=`<li class="leaderboard-empty">${x.offline}</li>`;position.textContent=''}}
+}else if(action==='settings'){const result=await lxaRequest('update',{id:lxaAccount.id,name:data.name,safeWord:data.currentSafeWord,newSafeWord:data.newSafeWord});lxaSafeWord=(data.newSafeWord||data.currentSafeWord).trim();lxaHydrate(result.account,result.token)}else if(action==='rtp-admin'){const payload={id:lxaAccount.id};[1,2,3].forEach(n=>{const raw=String(data[n]||'').trim();if(raw!=='')payload[n]=raw});const result=await lxaRequest('set-rtp-settings',payload);lxaRtpCache={settings:result.settings,defaults:lxaRtpCache?.defaults,bounds:lxaRtpCache?.bounds};renderAccountPanel('rtp-admin',x.rtpSaved)}else if(action==='jackpot-admin'){const payload={id:lxaAccount.id};payload[`jackpotFreq${data.difficulty}`]=data.multiplier;const result=await lxaRequest('set-rtp-settings',payload);lxaRtpCache={settings:result.settings,defaults:lxaRtpCache?.defaults,bounds:lxaRtpCache?.bounds};renderAccountPanel('jackpot-admin',x.rtpSaved)}else if(action==='wild-admin'){const payload={id:lxaAccount.id,wildChance:data.wildChance,wildPerLevel:data.wildPerLevel,wildCap:data.wildCap,wildCostMult:data.wildCostMult,extraWildFreq:data.extraWildFreq};const result=await lxaRequest('set-rtp-settings',payload);lxaRtpCache={settings:result.settings,defaults:lxaRtpCache?.defaults,bounds:lxaRtpCache?.bounds};renderAccountPanel('wild-admin',x.rtpSaved)}else if(action==='payout-admin'){const payload={id:lxaAccount.id,payoutMult:data.payoutMult,jackpotValueMult:data.jackpotValueMult};const result=await lxaRequest('set-rtp-settings',payload);lxaRtpCache={settings:result.settings,defaults:lxaRtpCache?.defaults,bounds:lxaRtpCache?.bounds};renderAccountPanel('payout-admin',x.rtpSaved)}else if(action==='custom-admin'){const buckets={};[0,3,4,5,6,7,8,9,10].forEach(k=>buckets[k]=data[`b${k}`]);const result=await lxaRequest('set-custom-distribution',{id:lxaAccount.id,difficulty:data.difficulty,buckets});lxaRtpCache=await lxaRequest('get-rtp-settings',{});renderAccountPanel('custom-admin',x.customSaved)}else if(action==='player-edit'){const payload={id:lxaAccount.id,playerId:lxaEditPlayerId};const newId=String(data.newId||'').trim();if(newId&&Number(newId)!==lxaEditPlayerId)payload.newId=newId;const newName=String(data.newName||'').trim();if(newName)payload.newName=newName;const newSafeWord=String(data.newSafeWord||'').trim();if(newSafeWord)payload.newSafeWord=newSafeWord;const result=await lxaRequest('admin-update-player',payload);lxaPlayersCache=(lxaPlayersCache||[]).map(p=>Number(p.id)===lxaEditPlayerId?result.player:p);lxaEditPlayerId=result.player.id;renderAccountPanel('player-edit',x.saved)}}catch(error){renderAccountPanel(view,error.message)}}}
+function lxaSetupAccountButton(){const host=document.querySelector('#headerActions')||document.querySelector('.topbar');if(!host||document.querySelector('#accountButton'))return;const button=document.createElement('button');button.id='accountButton';button.className='account-button';button.type='button';button.textContent='🎫';button.title=accountText.de.account;button.onclick=()=>renderAccountPanel('home');host.prepend(button)}
+function lxaSetupLeaderboard(){const bottomGrid=document.querySelector('.bottom-grid');if(!bottomGrid||document.querySelector('#leaderboardPanel'))return;const panel=document.createElement('section');panel.id='leaderboardPanel';panel.className='leaderboard-panel';panel.innerHTML='<div class="leaderboard-head"><span id="leaderboardTitle"></span><small id="leaderboardDifficulty"></small></div><nav id="leaderboardTabs" class="leaderboard-tabs" aria-label="Difficulty leaderboard"></nav><ol id="leaderboardRows" class="leaderboard-rows"></ol><div id="leaderboardPosition" class="leaderboard-position"></div>';bottomGrid.parentNode.insertBefore(panel,bottomGrid);document.querySelector('#chance').addEventListener('input',()=>{lxaLeaderboardLevel=chance+1;renderLeaderboard()})}
+async function renderLeaderboard(){lxaSetupLeaderboard();const x=lxaCopy(),level=chance+1;const title=document.querySelector('#leaderboardTitle'),difficulty=document.querySelector('#leaderboardDifficulty'),tabs=document.querySelector('#leaderboardTabs'),rows=document.querySelector('#leaderboardRows'),position=document.querySelector('#leaderboardPosition');if(!title||!tabs)return;title.textContent=x.leaderboard;difficulty.textContent=`${level}/7`;tabs.innerHTML=Array.from({length:7},(_,i)=>`<button class="${i+1===level?'active':''}" data-level="${i+1}">${i+1}/7</button>`).join('');tabs.querySelectorAll('button').forEach(tab=>tab.onclick=()=>{chance=Number(tab.dataset.level)-1;refreshChance();renderLeaderboard();lxaSaveState()});rows.innerHTML=`<li class="leaderboard-loading">…</li>`;try{const query=new URLSearchParams({action:'leaderboard',difficulty:String(level)});if(lxaAccount)query.set('id',String(lxaAccount.id));const response=await fetch(`${LXA_API}?${query}`);const data=await response.json();if(!response.ok)throw new Error(data.error);rows.innerHTML=data.records?.length?data.records.map((record,i)=>`<li><b>${i+1}</b><span>${lxaEsc(record.name)}</span><strong>${Number(record.score||0).toLocaleString(lang==='en'?'en-US':'de-DE')}</strong></li>`).join(''):`<li class="leaderboard-empty">${x.empty}</li>`;position.textContent=lxaAccount&&data.yourPosition?`${x.your}: #${data.yourPosition}`:''}catch(error){rows.innerHTML=`<li class="leaderboard-empty">${x.offline}</li>`;position.textContent=''}}
 // v244: called once on page load. Restores the account visually using only
 // the cached id (no password kept across browser restarts, by design) via
 // the backend's 'silent' login mode. If the network call fails (offline,
 // server hiccup) we fall back to the last cached account object so the user
-// still sees their name/balance instead of looking logged out; drollSaveState
+// still sees their name/balance instead of looking logged out; lxaSaveState
 // will reconcile with the server again on the next protected action.
-async function drollRestoreSession(){const cached=JSON.parse(localStorage.getItem(DROLL_CACHE)||'null');if(!cached?.id)return;try{const result=await drollRequest('login',{id:cached.id,silent:true,token:drollToken});drollHydrate(result.account)}catch(error){drollHydrate(cached)}}
-drollSetupAccountButton();drollSetupLeaderboard();renderAccountPanel('home');accountPanel.hidden=true;renderLeaderboard();drollRestoreSession();
+async function lxaRestoreSession(){const cached=JSON.parse(localStorage.getItem(LXA_CACHE)||'null');if(!cached?.id)return;try{const result=await lxaRequest('login',{id:cached.id,silent:true,token:lxaToken});lxaHydrate(result.account)}catch(error){lxaHydrate(cached)}}
+lxaSetupAccountButton();lxaSetupLeaderboard();renderAccountPanel('home');accountPanel.hidden=true;renderLeaderboard();lxaRestoreSession();
 // v151: removed a dead $('#spin').onclick wrapper (V76-era stat tracking +
-// a call to the also-removed drollSaveState()) - superseded by the v79
+// a call to the also-removed lxaSaveState()) - superseded by the v79
 // deterministic game layer's own onclick assignment further below, which
 // always wins since plain .onclick= overwrites rather than stacks.
 // Local demo mode is authoritative in V84. Do not restore the legacy Netlify
 // account cache here; it used to overwrite the local balance after page load.
 
 /* V76: account operations and authoritative server spin */
-function drollSyncMoney(account){
+function lxaSyncMoney(account){
   if(!account)return;
   const bankNode=$('#bank');
   if(bankNode)bankNode.textContent=money(Number(account.bank)||0);
   const buy=$('#buyWild');if(buy){const max=Number(account.wildInventory)>=50;buy.disabled=max;buy.title=max?'MAX WILD BONUS':'WILD BONUS';}
 }
-const drollHydrateV76=drollHydrate;
-drollHydrate=function(account,token){drollHydrateV76(account,token);drollSyncMoney(account);};
-const drollSetDifficultyV76=async level=>{if(!drollAccount)return;try{const result=await drollRequest('set-difficulty',{id:drollAccount.id,difficulty:level,token:drollToken});drollHydrate(result.account)}catch(error){if($('#message'))$('#message').textContent=error.message}};
-// v152: removed drollOpenDeposit/drollBuyWild + their addEventListener
+const lxaHydrateV76=lxaHydrate;
+lxaHydrate=function(account,token){lxaHydrateV76(account,token);lxaSyncMoney(account);};
+const lxaSetDifficultyV76=async level=>{if(!lxaAccount)return;try{const result=await lxaRequest('set-difficulty',{id:lxaAccount.id,difficulty:level,token:lxaToken});lxaHydrate(result.account)}catch(error){if($('#message'))$('#message').textContent=error.message}};
+// v152: removed lxaOpenDeposit/lxaBuyWild + their addEventListener
 // bindings - both fully unreachable (the v79 layer's capture-phase
 // listeners on the same buttons always run first and call
 // stopImmediatePropagation(), see openLocalMoneyPanel/buyWildDirectly
 // below). This is exactly why the real server calls they made were never
 // happening for logged-in accounts - their correct logic is now ported
 // into the handlers that actually run.
-// v151: removed drollAccountSpinV76 (V76-era server-spin handler) and its
+// v151: removed lxaAccountSpinV76 (V76-era server-spin handler) and its
 // $('#spin').onclick wiring - both were dead code. The v79 deterministic
 // game layer below reassigns $('#spin').onclick of its own (last one wins,
-// plain .onclick= always overwrites), via drollAccountResolveSpin(), which
+// plain .onclick= always overwrites), via lxaAccountResolveSpin(), which
 // is the real, currently-active authoritative spin path for logged-in
-// accounts. Confirmed unreachable: nothing else called drollAccountSpinV76
-// or drollOriginalSpin by name.
+// accounts. Confirmed unreachable: nothing else called lxaAccountSpinV76
+// or lxaOriginalSpin by name.
 // v152: removed a wrapper around renderAccountPanel that only ever
 // special-cased views 'deposit'/'buy-wild' (old modal-style BANK/BUY WILD
 // screens) - both views are now unreachable (nothing calls
 // renderAccountPanel('deposit') or ('buy-wild') anymore; openLocalMoneyPanel
 // and buyWildDirectly own those flows via their own inline panels/forms).
 // renderAccountPanel is simply the original function again.
-document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{const tab=event.target.closest('button');if(tab&&drollAccount)drollSetDifficultyV76(tab.dataset.level)});
+document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{const tab=event.target.closest('button');if(tab&&lxaAccount)lxaSetDifficultyV76(tab.dataset.level)});
 
 /* v79 deterministic game layer. It supersedes only the legacy spin maths;
    layout, animations, account drawer and V78 visual identity remain intact. */
 (() => {
-  const game = window.DrollyGameEngine;
+  const game = window.LxaGameEngine;
   if (!game) return;
   // v142: mirror any admin-set RTP into this local game instance too, so
   // guest spins (which call game.resolveSpin() directly, never touching the
@@ -285,7 +285,7 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
   // just keep game-engine.js's own defaults, same as before this existed.
   (async () => {
     try {
-      const result = await drollRequest('get-rtp-settings', {});
+      const result = await lxaRequest('get-rtp-settings', {});
       const settings = result.settings || {};
       [1, 2, 3].forEach(d => {
         const raw = settings[d] ?? settings[String(d)];
@@ -329,8 +329,8 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
   // v80 deliberately starts a clean demo state; v79 may contain runaway bets.
   // Each desktop build owns its own demo save so a previous experimental build
   // can never silently overwrite the balance or visual state of this one.
-  const STORAGE_KEY = 'drolly-v107-game-state';
-  const LEGACY_STORAGE_KEYS = ['drolly-v106-game-state', 'drolly-v105-game-state', 'drolly-v104-game-state', 'drolly-v103-game-state', 'drolly-v102-game-state', 'drolly-v101-game-state', 'drolly-v100-game-state', 'drolly-v99-game-state', 'drolly-v98-game-state', 'drolly-v97-game-state'];
+  const STORAGE_KEY = 'lxa-v107-game-state';
+  const LEGACY_STORAGE_KEYS = ['lxa-v106-game-state', 'lxa-v105-game-state', 'lxa-v104-game-state', 'lxa-v103-game-state', 'lxa-v102-game-state', 'lxa-v101-game-state', 'lxa-v100-game-state', 'lxa-v99-game-state', 'lxa-v98-game-state', 'lxa-v97-game-state'];
   const migrateV101Difficulty = difficulty => ({ 1: 2, 2: 3, 3: 3 }[Number(difficulty)] || 2);
   const safeLoad = () => {
     try {
@@ -338,7 +338,7 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
       if (current) return game.initialState(current);
       const legacyKey = LEGACY_STORAGE_KEYS.find(key => localStorage.getItem(key));
       const legacy = legacyKey ? JSON.parse(localStorage.getItem(legacyKey) || 'null') : null;
-      return game.initialState(legacy ? { ...legacy, difficulty: ['drolly-v104-game-state', 'drolly-v103-game-state', 'drolly-v102-game-state'].includes(legacyKey) ? legacy.difficulty : migrateV101Difficulty(legacy.difficulty) } : {});
+      return game.initialState(legacy ? { ...legacy, difficulty: ['lxa-v104-game-state', 'lxa-v103-game-state', 'lxa-v102-game-state'].includes(legacyKey) ? legacy.difficulty : migrateV101Difficulty(legacy.difficulty) } : {});
     }
     catch { return game.initialState(); }
   };
@@ -351,10 +351,10 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
   function paintPaytable() {
     document.querySelectorAll('[data-payout]').forEach(row => {
       const hits = Number(row.dataset.payout), multiplier = game.PAYTABLE[hits];
-      // v158 (user request): dropped the "· DROLLINGER" suffix from the
+      // v158 (user request): dropped the "· LXA" suffix from the
       // 10/10 payout row label - this JS re-paints the row on every load/
       // language change, so it would have silently overwritten the static
-      // HTML text back to "10/10 · DROLLINGER" even after editing
+      // HTML text back to "10/10 · LXA" even after editing
       // index.html alone. 10/10 now renders exactly like every other row.
       row.querySelector('b').textContent = `${hits}/10`;
       (row.querySelector('strong') || row.querySelector('span')).textContent = payoffText(multiplier);
@@ -434,7 +434,7 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
       }
     });
   }
-  // The measurement above is only right once the webfont (DrollNum) is loaded
+  // The measurement above is only right once the webfont (LxaNum) is loaded
   // and at the current width - re-fit on font load and on width changes, not
   // just when the mission card is re-rendered.
   {
@@ -542,7 +542,7 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
     const systemLabel = document.querySelector('.system-label');
     const roundLabelEl = $('#roundLabel');
     if (lbRank) {
-      if (drollAccount) {
+      if (lxaAccount) {
         // V358: added the difficulty name (same DULCE/PICANT/BRUTAL words
         // shown on the GEWINNCHANCE slider) per user request, so the logged-in
         // status line reads id/name/round/rank/difficulty in one place.
@@ -551,9 +551,9 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
         // here (chanceCopy keeps the emoji for the slider label only).
         const difficultyName = stripEmoji(chanceCopy[lang][Math.min(2, Math.max(0, gameState.difficulty - 1))]);
         lbRank.innerHTML = [
-          `${drollAccount.id}/${drollEsc(drollAccount.name || '?')}`,
+          `${lxaAccount.id}/${lxaEsc(lxaAccount.name || '?')}`,
           `${T118('round')} ${String(gameState.round).padStart(3, '0')}`,
-          `${T118('rank')} #${drollAccount.position || '—'}`,
+          `${T118('rank')} #${lxaAccount.position || '—'}`,
           difficultyName
         ].map(part => `<span class="status-part">${part}</span>`).join('');
         lbRank.style.removeProperty('display');
@@ -783,7 +783,7 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
   // logged-in player's spins never reached the backend's 'spin' action,
   // which is the only place that writes into the server leaderboard - so
   // logged-in players never appeared on the leaderboard and their entry
-  // never updated, no matter how long they played. drollAccountResolveSpin()
+  // never updated, no matter how long they played. lxaAccountResolveSpin()
   // calls the authoritative backend spin instead and returns the same
   // {state, spin} shape as game.resolveSpin(), so the rest of this handler
   // (animation, persistence, rendering) works unchanged for both paths.
@@ -792,23 +792,23 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
   // to a fresh one after a definitive, non-timeout outcome) so the server's
   // idempotency cache (functions/security.js) can recognize "this is the
   // same attempt, already committed" and return the cached result instead
-  // of spinning twice - closes the residual gap from the drollRequest()
+  // of spinning twice - closes the residual gap from the lxaRequest()
   // fetch-timeout fix: a merely-slow (not hung) request that the client
   // gave up on can no longer become a second real spin on retry.
-  async function drollAccountResolveSpin(state, level) {
+  async function lxaAccountResolveSpin(state, level) {
     const requestId = pendingSpinRequestId || (pendingSpinRequestId = (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`));
     let response;
     try {
-      response = await drollRequest('spin', { id: drollAccount.id, bet: state.bet, difficulty: level + 1, token: drollToken, requestId });
+      response = await lxaRequest('spin', { id: lxaAccount.id, bet: state.bet, difficulty: level + 1, token: lxaToken, requestId });
     } catch (error) {
       if (!/timed out/i.test(error.message || '')) pendingSpinRequestId = null;
       throw error;
     }
     pendingSpinRequestId = null;
     // v158 (user request): the server's grid now only ever contains real
-    // DROLLINGER letters (see makeGrid in functions/drolly-account.js) -
+    // LXA letters (see makeGrid in functions/lxa-account.js) -
     // the old client-side 'X'->ad-hoc-alphabet substitution (which used to
-    // show letters like B/H/etc. that aren't even in DROLLINGER) is gone.
+    // show letters like B/H/etc. that aren't even in LXA) is gone.
     const board = response.grid;
     const spin = { ...response.spin, round: state.round, board };
     const next = game.initialState({
@@ -826,8 +826,8 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
       lastSpin: spin,
       spinHistory: [spin, ...state.spinHistory].slice(0, 50)
     });
-    drollAccount = response.account;
-    drollStore();
+    lxaAccount = response.account;
+    lxaStore();
     return { state: next, spin };
   }
   $('#spin').onclick = async event => {
@@ -865,7 +865,7 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
     try {
       // Resolve once, then debit the full stake immediately while the reels
       // run. The winnings are added only after the final board is visible.
-      const result = drollAccount ? await drollAccountResolveSpin(gameState, chance) : game.resolveSpin(gameState);
+      const result = lxaAccount ? await lxaAccountResolveSpin(gameState, chance) : game.resolveSpin(gameState);
       const afterStake = before - result.spin.totalStake;
       const debitAnimation = animateCredits(before, afterStake, 180);
       const reelAnimation = animateReferenceSpin(result.spin.board);
@@ -912,10 +912,10 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
       // the server disagrees with (stale cache / different device) is re-read
       // from the server so the stake is rescaled to what is really available.
       if (autoSpinEnabled) stopAutoSpin();
-      if (drollAccount && /insufficient|invalid bet/i.test(error.message || '')) {
+      if (lxaAccount && /insufficient|invalid bet/i.test(error.message || '')) {
         try {
-          const fresh = await drollRequest('login', { id: drollAccount.id, silent: true, token: drollToken });
-          await drollHydrate(fresh.account);
+          const fresh = await lxaRequest('login', { id: lxaAccount.id, silent: true, token: lxaToken });
+          await lxaHydrate(fresh.account);
           gameState = game.initialState({ ...gameState, credits: Number(credits), bet: Number(bet), difficulty: Number(chance) + 1 });
           if (normalizeLocalBet()) { persist(); renderGameV79(); }
         } catch (syncError) { /* keep the original error message on screen */ }
@@ -1047,16 +1047,16 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
       event.preventDefault();
       const amount = Number(new FormData(event.currentTarget).get('amount'));
       if (!Number.isFinite(amount) || amount <= 0 || amount > gameState.credits) return;
-      if (drollAccount) {
+      if (lxaAccount) {
         // v157: same retry-duplication risk as spin (see pendingSpinRequestId) -
         // a deposit that the client times out on but the server already
         // completed must not become a second real transfer if the user retries.
         const requestId = pendingDepositRequestId || (pendingDepositRequestId = (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`));
         try {
-          const result = await drollRequest('deposit', { id: drollAccount.id, amount, requestId });
+          const result = await lxaRequest('deposit', { id: lxaAccount.id, amount, requestId });
           pendingDepositRequestId = null;
-          drollAccount = result.account; drollStore();
-          gameState = game.initialState({ ...gameState, credits: Number(drollAccount.balance), bank: Number(drollAccount.bank) });
+          lxaAccount = result.account; lxaStore();
+          gameState = game.initialState({ ...gameState, credits: Number(lxaAccount.balance), bank: Number(lxaAccount.bank) });
           persist(); accountPanel.hidden = true; renderGameV79();
         } catch (error) {
           if (!/timed out/i.test(error.message || '')) pendingDepositRequestId = null;
@@ -1070,28 +1070,28 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
     };
   }
   // v152 BUG FIX: for a logged-in account this used to ALWAYS do local-only
-  // math on gameState (never called the server), regardless of drollAccount
+  // math on gameState (never called the server), regardless of lxaAccount
   // - so a purchase looked like it worked (LVL went up, money went down)
   // but Firebase's real account.wildLevel was never touched. The very next
   // spin re-syncs gameState from the server's real (unchanged) account, so
   // the level visibly snapped back down - this is exactly the "level up
   // Wild, spin, Wild level resets" bug. Root cause: this capture-phase
   // listener (added later, see comment below) always ran BEFORE and fully
-  // replaced the older drollBuyWild() (still defined above, bubble-phase),
+  // replaced the older lxaBuyWild() (still defined above, bubble-phase),
   // which DID call the real server action correctly - it just never got a
   // chance to run. Fix: route logged-in purchases through the real
-  // 'buy-wild' server action (same call drollBuyWild already made), keep
+  // 'buy-wild' server action (same call lxaBuyWild already made), keep
   // the local-only path for guests (correct as-is - no server account to
   // desync from).
   async function buyWildDirectly() {
     if (spinning) return;
-    if (drollAccount) {
+    if (lxaAccount) {
       try {
-        const result = await drollRequest('buy-wild', { id: drollAccount.id });
-        drollAccount = result.account; drollStore();
-        gameState = game.initialState({ ...gameState, credits: Number(drollAccount.balance), bank: Number(drollAccount.bank), wildLevel: Number(drollAccount.wildLevel), wildInventory: Number(drollAccount.wildInventory) });
+        const result = await lxaRequest('buy-wild', { id: lxaAccount.id });
+        lxaAccount = result.account; lxaStore();
+        gameState = game.initialState({ ...gameState, credits: Number(lxaAccount.balance), bank: Number(lxaAccount.bank), wildLevel: Number(lxaAccount.wildLevel), wildInventory: Number(lxaAccount.wildInventory) });
         persist(); renderGameV79();
-        $('#message').textContent = `${T118('wildLevel')} ×${drollAccount.wildLevel} · ${euro(result.cost)}`;
+        $('#message').textContent = `${T118('wildLevel')} ×${lxaAccount.wildLevel} · ${euro(result.cost)}`;
       } catch (error) { $('#message').textContent = error.message || T118('geldFail'); }
       return;
     }
@@ -1111,8 +1111,8 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
   $('#buyWild')?.addEventListener('click', event => { event.preventDefault(); event.stopImmediatePropagation(); buyWildDirectly(); }, true);
   $('#deposit')?.addEventListener('click', event => { event.preventDefault(); event.stopImmediatePropagation(); openLocalMoneyPanel('deposit'); }, true);
   renderLeaderboard = async function () {
-    drollSetupLeaderboard();
-    const x = drollCopy(), level = Math.min(3, Math.max(1, Number(chance) + 1));
+    lxaSetupLeaderboard();
+    const x = lxaCopy(), level = Math.min(3, Math.max(1, Number(chance) + 1));
     const title = $('#leaderboardTitle'), difficulty = $('#leaderboardDifficulty'), tabs = $('#leaderboardTabs'), rows = $('#leaderboardRows'), position = $('#leaderboardPosition');
     if (!title || !tabs) return;
     title.textContent = T118('leaderboard');
@@ -1122,17 +1122,17 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
     rows.innerHTML = `<li class="leaderboard-loading">…</li>`;
     try {
       const query = new URLSearchParams({ action: 'leaderboard', difficulty: String(level) });
-      if (drollAccount) query.set('id', String(drollAccount.id));
-      const response = await fetch(`${DROLL_API}?${query}`), data = await response.json();
+      if (lxaAccount) query.set('id', String(lxaAccount.id));
+      const response = await fetch(`${LXA_API}?${query}`), data = await response.json();
       if (!response.ok) throw new Error(data.error);
-      rows.innerHTML = data.records?.length ? data.records.map((record, index) => `<li><b>${index + 1}</b><span>${drollEsc(record.name)}</span><strong>${Number(record.score || 0).toLocaleString(lang === 'en' ? 'en-US' : 'de-DE')}</strong></li>`).join('') : `<li class="leaderboard-empty">${x.empty}</li>`;
-      position.textContent = drollAccount && data.yourPosition ? `${x.your}: #${data.yourPosition}` : '';
+      rows.innerHTML = data.records?.length ? data.records.map((record, index) => `<li><b>${index + 1}</b><span>${lxaEsc(record.name)}</span><strong>${Number(record.score || 0).toLocaleString(lang === 'en' ? 'en-US' : 'de-DE')}</strong></li>`).join('') : `<li class="leaderboard-empty">${x.empty}</li>`;
+      position.textContent = lxaAccount && data.yourPosition ? `${x.your}: #${data.yourPosition}` : '';
       // V165 fix: the backend never stores a "position" field on the account
       // object itself (only this leaderboard call returns yourPosition), so
-      // #leaderboardRank (which reads drollAccount.position) always showed
-      // the "LOC #—" fallback. Mirror it onto drollAccount here and re-render
+      // #leaderboardRank (which reads lxaAccount.position) always showed
+      // the "LOC #—" fallback. Mirror it onto lxaAccount here and re-render
       // so the rank line picks up the real value.
-      if (drollAccount) { drollAccount.position = data.yourPosition || null; renderGameV79(); }
+      if (lxaAccount) { lxaAccount.position = data.yourPosition || null; renderGameV79(); }
     } catch { rows.innerHTML = `<li class="leaderboard-empty">${x.offline}</li>`; if (position) position.textContent = ''; }
   };
   // V96 keeps GELD and RESET separate. The HTML keeps its compact original
@@ -1153,7 +1153,7 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
   // GELD LIMITER (v151) — guest-only nudge toward creating an account.
   // Deliberately NOT tamper-proof (clearing site data resets it) - it's a
   // soft nudge, not enforcement, per explicit user request. Logged-in
-  // accounts stay on the server's own GELD_LIMITS (drolly-account.js),
+  // accounts stay on the server's own GELD_LIMITS (lxa-account.js),
   // which is left disabled/unlimited on purpose: unlimited GELD is the
   // reward for having an account instead of playing as a guest.
   const GELD_LIMITS = { enabled: true, cooldownHours: 24, maxUsesPerDay: 1 };
@@ -1168,7 +1168,7 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
       setMsg(T118('geldOnly', euro(25000)));
       return;
     }
-    if (GELD_LIMITS.enabled && !drollAccount) {
+    if (GELD_LIMITS.enabled && !lxaAccount) {
       const now = Date.now(), dayMs = 24 * 60 * 60 * 1000, cooldownMs = GELD_LIMITS.cooldownHours * 60 * 60 * 1000;
       const history = readGeldHistory().filter(ts => now - Number(ts) < dayMs);
       const lastUse = history[0];
@@ -1178,11 +1178,11 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
     }
     // GELD refills only GUTHABEN. BANK, Wild, jackpot progress and history
     // remain untouched; RESET is the only complete new-game action.
-    if (drollAccount) {
+    if (lxaAccount) {
       try {
-        const result = await drollRequest('reset-geld', { id: drollAccount.id });
-        drollAccount = result.account; drollStore();
-        gameState = game.initialState({ ...gameState, credits: Number(drollAccount.balance), bank: Number(drollAccount.bank), wildLevel: Number(drollAccount.wildLevel), wildInventory: Number(drollAccount.wildInventory), recordHits: drollAccount.records, completedLines: drollAccount.completedLines, jackpotFinished: drollAccount.jackpotFinished, difficulty: drollAccount.difficulty });
+        const result = await lxaRequest('reset-geld', { id: lxaAccount.id });
+        lxaAccount = result.account; lxaStore();
+        gameState = game.initialState({ ...gameState, credits: Number(lxaAccount.balance), bank: Number(lxaAccount.bank), wildLevel: Number(lxaAccount.wildLevel), wildInventory: Number(lxaAccount.wildInventory), recordHits: lxaAccount.records, completedLines: lxaAccount.completedLines, jackpotFinished: lxaAccount.jackpotFinished, difficulty: lxaAccount.difficulty });
       } catch (error) { setMsg(error.message || T118('geldFail')); return; }
     } else gameState.credits = 250000;
     gameState.bet = game.recommendedBet(gameState.credits);
@@ -1198,8 +1198,8 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
     stopAutoSpin();
     // RESET is the only new-game action: clear every game field, including
     // BANK, Wild level, jackpot, history and difficulty progress.
-    if (drollAccount) {
-      try { const result = await drollRequest('reset-new-game', { id: drollAccount.id }); drollAccount = result.account; drollStore(); } catch (error) { setMsg(error.message || T118('resetFail')); return; }
+    if (lxaAccount) {
+      try { const result = await lxaRequest('reset-new-game', { id: lxaAccount.id }); lxaAccount = result.account; lxaStore(); } catch (error) { setMsg(error.message || T118('resetFail')); return; }
     }
     localStorage.removeItem(STORAGE_KEY);
     gameState = game.initialState();
@@ -1256,8 +1256,8 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
   applyLanguage();
 })();
 // The local V84 renderer owns credits, BANK and Wild inventory.
-drollSaveState=async()=>{if(drollAccount){try{const result=await drollRequest('set-difficulty',{id:drollAccount.id,difficulty:chance+1,token:drollToken});if(result.account){drollAccount=result.account;drollStore()}}catch{}}};
-const drollRenderV76=render;render=function(grid){drollRenderV76(grid);document.querySelectorAll('.wild-symbol img').forEach(image=>{image.title=`BONUS WILD · ${window.__wildChancePct||50}%`});};
+lxaSaveState=async()=>{if(lxaAccount){try{const result=await lxaRequest('set-difficulty',{id:lxaAccount.id,difficulty:chance+1,token:lxaToken});if(result.account){lxaAccount=result.account;lxaStore()}}catch{}}};
+const lxaRenderV76=render;render=function(grid){lxaRenderV76(grid);document.querySelectorAll('.wild-symbol img').forEach(image=>{image.title=`BONUS WILD · ${window.__wildChancePct||50}%`});};
 
 /* V152: chance-control now lives statically in index.html right after
    win-board. Do NOT move it via JS anymore — a prior version of this IIFE

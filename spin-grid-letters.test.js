@@ -28,7 +28,7 @@ const ALLOWED = new Set(['L', 'E', 'O', 'N', 'X', 'A']);
 test('spin grid only ever contains LEONXOXANA letters or the Wild marker, never any other letter', async () => {
   const storage = require('./functions/firebase-storage.js');
   storage.__seed({ id: 1, name: 'Tester', safeWord: 'testpass', balance: 10000000, bank: 0, wildLevel: 50, difficulty: 2 });
-  const { handler } = require('./functions/drolly-account.js');
+  const { handler } = require('./functions/lxa-account.js');
   const call = async data => JSON.parse((await handler({ httpMethod: 'POST', headers: {}, body: JSON.stringify(data) })).body);
 
   for (let i = 0; i < 40; i++) {
