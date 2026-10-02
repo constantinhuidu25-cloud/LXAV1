@@ -1,5 +1,5 @@
 const target='LEONXOXANA'.split(''), symbols=[...new Set(target)], rows=5, cell=36, WILD='__BONUS_WILD__';
-const WILD_IMG='<picture><source media="(max-width:700px) and (orientation:portrait)" srcset="assets/wild-tall.webp"><img src="assets/wild-wide.webp" alt="BONUS WILD" decoding="sync"></picture>';
+const WILD_IMG='<picture><source media="(max-width:700px) and (orientation:portrait)" srcset="assets/wild-line.webp"><img src="assets/wild-wide.webp" alt="BONUS WILD" decoding="sync"></picture>';
 const LXA_LANG_KEY='lxaLang';
 // V219: language selection was never persisted — `lang` always restarted at
 // the hardcoded 'de' default on every page load/reload, even after the user
@@ -406,7 +406,17 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
   // starting point for ordinary amounts, this is the safety net that
   // guarantees no overflow regardless of how many digits the amount ever
   // grows to.
+  function fitMissionTitle() {
+    const el = document.querySelector('#missionTitle');
+    if (!el || !el.parentElement) return;
+    el.style.removeProperty('font-size');
+    const avail = el.parentElement.clientWidth - 4;
+    if (avail <= 0) return;
+    let size = parseFloat(getComputedStyle(el).fontSize) || 24, guard = 40;
+    while (el.scrollWidth > avail && size > 9 && guard--) { size -= 0.5; el.style.setProperty('font-size', size + 'px', 'important'); }
+  }
   function fitMilestoneAmounts() {
+    fitMissionTitle();
     document.querySelectorAll('.milestone').forEach(m => {
       const b = m.querySelector('b');
       if (!b) return;
