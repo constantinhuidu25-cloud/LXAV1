@@ -38,7 +38,7 @@ function render(grid){reels.innerHTML=target.map((_,c)=>`<div class="reel">${gri
 function drawLines(){const p=$('.paylines');p.innerHTML=Array.from({length:5},(_,i)=>`<div data-line="${i}"><b>${t[lang].winLine.toUpperCase()} ${i+1}</b></div>`).join('');}
 function refresh(){const x=t[lang];if(credits>0)bet=Math.min(bet,maxBet());$('#credits').textContent=money(credits);$('#bet').textContent=money(bet);$('#lineStake').textContent=money(bet/5)+x.line;$('#roundLabel').textContent=`${x.round} ${String(round).padStart(3,'0')}`;$('#before').textContent=$('#before').textContent||money(credits);$('#after').textContent=$('#after').textContent||money(credits);}
 function setMsg(s){$('#message').textContent=s}
-function showBoard(details,bonus,gross,missionBonus=0,seriesBonus=0){const x=t[lang],board=$('#winBoard'),jackpot=details.find(d=>d.hits===10),unit=lang==='ro'?'Miză linie':lang==='en'?'Line bet':'Linieneinsatz',bonusLabel=lang==='ro'?`Bonus ${details.length} linii`:lang==='en'?`${details.length}-line bonus`:`Bonus ${details.length} Linien`;$('#boardTitle').textContent=jackpot?'LEONXOXANA COMPLET':missionBonus?'JACKPOT TARGET':`${details.length} ${x.winLine}`;const lines=details.map(d=>`<div class="${d.hits===10?'jackpot-result':''}"><span>${d.hits===10?'LEONXOXANA COMPLET · ':''}${x.winLine} ${d.line+1} · ${d.hits}/10 · ${unit} €1 ×${d.mult}</span><b>+${money(d.amount)}</b></div>`).join('');const extra=bonus?`<div class="board-bonus"><span>${bonusLabel}</span><b>+${money(bonus)}</b></div>`:'';const mission=missionBonus?`<div class="board-bonus mission-bonus"><span>${missionCopy[lang].unlock}</span><b>+${money(missionBonus)}</b></div>`:'';const series=seriesBonus?`<div class="board-bonus series-bonus"><span>${uiStatic[lang].series}</span><b>+${money(seriesBonus)}</b></div>`:'';$('#boardDetails').innerHTML=`${lines}${extra}${mission}${series}<div class="board-total"><span>${x.gross}</span><b>+${money(gross)}</b></div>`;board.classList.add('show')}
+function showBoard(details,bonus,gross,missionBonus=0,seriesBonus=0){const x=t[lang],board=$('#winBoard'),jackpot=details.find(d=>d.hits===10&&!d.wild),unit=lang==='ro'?'Miză linie':lang==='en'?'Line bet':'Linieneinsatz',bonusLabel=lang==='ro'?`Bonus ${details.length} linii`:lang==='en'?`${details.length}-line bonus`:`Bonus ${details.length} Linien`;$('#boardTitle').textContent=jackpot?'LEONXOXANA COMPLET':missionBonus?'JACKPOT TARGET':`${details.length} ${x.winLine}`;const lines=details.map(d=>`<div class="${d.hits===10&&!d.wild?'jackpot-result':''}"><span>${d.hits===10&&!d.wild?'LEONXOXANA COMPLET · ':''}${x.winLine} ${d.line+1} · ${d.hits}/10 · ${unit} €1 ×${d.mult}</span><b>+${money(d.amount)}</b></div>`).join('');const extra=bonus?`<div class="board-bonus"><span>${bonusLabel}</span><b>+${money(bonus)}</b></div>`:'';const mission=missionBonus?`<div class="board-bonus mission-bonus"><span>${missionCopy[lang].unlock}</span><b>+${money(missionBonus)}</b></div>`:'';const series=seriesBonus?`<div class="board-bonus series-bonus"><span>${uiStatic[lang].series}</span><b>+${money(seriesBonus)}</b></div>`:'';$('#boardDetails').innerHTML=`${lines}${extra}${mission}${series}<div class="board-total"><span>${x.gross}</span><b>+${money(gross)}</b></div>`;board.classList.add('show')}
 const uiStatic={de:{payout:'AUSZAHLUNGSLOGIK',perLine:'€ 1 PRO LINIE',consecutive:'KONSEKUTIVE',lines:'GEWINNLINIEN',record:'REKORD',objective:'OBJEKTIV',milestones:'JACKPOT-STUFEN · UNABHÄNGIG VON DER LINIENNUMMER',protocol:'LIVE-PROTOKOLL',system:'VIRTUAL EURO SYSTEM',series:'3+ GEWINNE',seriesValue:'+ €25',wild:'BONUS-WILD',heroWord:'WALZEN'},ro:{payout:'REGULA DE PLATĂ',perLine:'€ 1 PE LINIE',consecutive:'CONSECUTIVE',lines:'LINII CÂȘTIGĂTOARE',record:'RECORD',objective:'OBIECTIV',milestones:'NIVELURI JACKPOT · INDEPENDENT DE NUMĂRUL LINIEI',protocol:'JURNAL LIVE',system:'SISTEM EURO VIRTUAL',series:'3+ CÂȘTIGURI',seriesValue:'+ €25',wild:'BONUS WILD',heroWord:'ROLE'},en:{payout:'PAYOUT RULES',perLine:'€ 1 PER LINE',consecutive:'CONSECUTIVE',lines:'WINNING LINES',record:'RECORD',objective:'OBJECTIVE',milestones:'JACKPOT LEVELS · INDEPENDENT OF LINE NUMBER',protocol:'LIVE LOG',system:'VIRTUAL EURO SYSTEM',series:'3+ WINS',seriesValue:'+ €25',wild:'BONUS WILD',heroWord:'REELS'}};
 function updateStaticCopy(){const x=uiStatic[lang],labels=['10/10 · LEONXOXANA',`7–9 ${x.consecutive}`,`4–6 ${x.consecutive}`,`2 ${x.lines}`,`3 ${x.lines}`,`4 ${x.lines}`,`5 ${x.lines}`,x.series],head=document.querySelector('.payout-card-head');if(head)head.innerHTML=`${x.payout} <small>${x.perLine}</small>`;document.querySelectorAll('.payout-card-row b,.payout-row b').forEach((el,i)=>el.textContent=labels[i%8]);document.querySelectorAll('.series-rule strong,.series-rule span').forEach(el=>el.textContent=x.seriesValue);document.querySelectorAll('.mission-line small').forEach(el=>el.textContent=x.record);const milestoneLabel=document.querySelector('.milestone-label');if(milestoneLabel)milestoneLabel.textContent=x.milestones;const protocol=document.querySelector('.history .section-heading small');if(protocol)protocol.textContent=x.protocol}
 const baseApplyLanguage=applyLanguage;applyLanguage=()=>{baseApplyLanguage();const x=uiStatic[lang],title=document.querySelector('.title-line strong');if(title)title.innerHTML=`10 <span>${x.heroWord}</span>. <b>${t[lang].heroAccent}</b> MOMENT`;const flagCurrent=$('#flagCurrent');if(flagCurrent)flagCurrent.textContent=lang==='ro'?'🇷🇴':lang==='en'?'🇺🇸':'🇩🇪';const opts=[['de','🇩🇪'],['ro','🇷🇴'],['en','🇺🇸']];opts.forEach(([value,label])=>{const option=document.querySelector(`#language option[value="${value}"]`);if(option)option.textContent=label})};
@@ -79,7 +79,7 @@ applyLanguage=()=>{v56ApplyLanguage();buildLanguageMenu();updateLanguagePicker()
 applyLanguage();
 
 const v56ShowBoard=showBoard;
-showBoard=(details,bonus,gross,missionBonus=0)=>{v56ShowBoard(details,bonus,gross,missionBonus);const complete={de:'LEONXOXANA KOMPLETT',ro:'LEONXOXANA COMPLET',en:'LEONXOXANA COMPLETE'}[lang];const target={de:'JACKPOT-ZIEL',ro:'ȚINTĂ JACKPOT',en:'JACKPOT TARGET'}[lang];const title=$('#boardTitle');if(title){if(details.find(d=>d.hits===10))title.textContent=complete;else if(missionBonus)title.textContent=target}document.querySelectorAll('#boardDetails .jackpot-result span').forEach(el=>{el.textContent=el.textContent.replace('LEONXOXANA COMPLET',complete)})};
+showBoard=(details,bonus,gross,missionBonus=0)=>{v56ShowBoard(details,bonus,gross,missionBonus);const complete={de:'LEONXOXANA KOMPLETT',ro:'LEONXOXANA COMPLET',en:'LEONXOXANA COMPLETE'}[lang];const target={de:'JACKPOT-ZIEL',ro:'ȚINTĂ JACKPOT',en:'JACKPOT TARGET'}[lang];const title=$('#boardTitle');if(title){if(details.find(d=>d.hits===10&&!d.wild))title.textContent=complete;else if(missionBonus)title.textContent=target}document.querySelectorAll('#boardDetails .jackpot-result span').forEach(el=>{el.textContent=el.textContent.replace('LEONXOXANA COMPLET',complete)})};
 uiStatic.de.system='VIRTUELLES EURO-SYSTEM';
 const v56TitleApply=applyLanguage;
 applyLanguage=()=>{v56TitleApply();document.title={de:'LXA | Virtuelle Walzen',ro:'LXA | Role virtuale',en:'LXA | Virtual Reels'}[lang]};
@@ -491,7 +491,8 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
     if (!list) return;
     const spins = gameState.spinHistory.slice(0, 10);
     list.innerHTML = spins.length ? spins.map(spin => {
-      const winningLines = spin.finalResults.map((hits, index) => ({ hits, index, amount: spin.linePayouts[index] })).filter(line => line.amount > 0);
+      const wildLineSet = new Set((spin.wild?.positions || []).map(position => position.line));
+    const winningLines = spin.finalResults.map((hits, index) => ({ hits, index, amount: spin.linePayouts[index], wild: wildLineSet.has(index) })).filter(line => line.amount > 0);
       const summary = winningLines.length ? winningLines.map(line => `L${line.index + 1} · ${line.hits}/10`).join(' · ') : T118('noWinLine');
       // History is the balance change, not the gross return. A round that
       // pays €8,257 from a €7,940 stake is therefore correctly shown as +€317.
@@ -598,15 +599,20 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
   function applySpinVisualsV84(spin) {
     const paylines = $('.paylines');
     const visibleThreshold = 3;
+    // A line showing a Wild icon is never framed as a record or jackpot line
+    // (it can still pay and still shows its hits).
+    const wildRows = new Set((spin.wild?.positions || []).map(position => position.line));
+    const recordCandidates = (spin.finalResults || []).filter((_, row) => !wildRows.has(row));
     paylines?.querySelectorAll('div').forEach((line, row) => {
       const hits = Number(spin.finalResults?.[row] || 0);
       const active = hits >= visibleThreshold;
+      const full = hits === game.COLUMN_COUNT && !wildRows.has(row);
       line.classList.toggle('active', active);
-      line.classList.toggle('record-top', active && hits === Math.max(...spin.finalResults));
-      line.classList.toggle('jackpot-line', hits === game.COLUMN_COUNT);
+      line.classList.toggle('record-top', active && !wildRows.has(row) && hits === Math.max(...recordCandidates));
+      line.classList.toggle('jackpot-line', full);
       line.style.width = active ? `${hits * 10}%` : '0%';
       const label = line.querySelector('b');
-      if (label) label.textContent = hits === game.COLUMN_COUNT ? T118('paylineFull') : `${T118('winLine')} ${row + 1} · ${hits}/10`;
+      if (label) label.textContent = full ? T118('paylineFull') : `${T118('winLine')} ${row + 1} · ${hits}/10`;
     });
     [...document.querySelectorAll('.reel')].forEach((reel, column) => {
       reel.querySelectorAll('span[data-row]').forEach(cell => {
@@ -614,7 +620,7 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
         const hits = Number(spin.finalResults?.[row] || 0);
         cell.classList.toggle('hit', column < hits);
         cell.classList.toggle('after-miss', column >= hits);
-        cell.classList.toggle('jackpot-letter', hits === game.COLUMN_COUNT);
+        cell.classList.toggle('jackpot-letter', hits === game.COLUMN_COUNT && !wildRows.has(row));
         cell.style.animationDelay = column < hits ? `${column * 70}ms` : '';
       });
     });
@@ -629,7 +635,8 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
     // gold color scheme, so no new CSS is needed for these.
     const jackpot = spin.jackpotPayout ? `<span class="board-total board-bonus mission-bonus"><span>JACKPOT</span><b>+${euro(spin.jackpotPayout)}</b></span>` : '';
     const reset = spin.jackpotCycleCompleted ? `<span class="board-total board-bonus mission-bonus"><span>${T118('missionDone')}</span><b>5/5</b></span>` : '';
-    const winningLines = spin.finalResults.map((hits, index) => ({ hits, index, amount: spin.linePayouts[index] })).filter(line => line.amount > 0);
+    const wildLineSet = new Set((spin.wild?.positions || []).map(position => position.line));
+    const winningLines = spin.finalResults.map((hits, index) => ({ hits, index, amount: spin.linePayouts[index], wild: wildLineSet.has(index) })).filter(line => line.amount > 0);
     $('#boardTitle').textContent = spin.jackpotPayout ? T118('missionTitle') : winningLines.length ? `${winningLines.length} ${winningLines.length === 1 ? T118('winLine') : T118('winLines')}` : T118('noWinLine');
     // V225: GEWINN BRUTTO / NETTO render in their own #boardSummary
     // container, separate from the LINIE chips in #boardDetails.
@@ -649,7 +656,7 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
       // needs ~2000px for 5 chips, which never fits a real landscape width
       // at a readable size. This short form fits 5 chips on one row without
       // shrinking the font into illegibility or needing horizontal scroll.
-      $('#boardDetails').innerHTML = winningLines.map(line => `<div class="${line.hits === 10 ? 'jackpot-result' : ''}"><span>L${line.index + 1} · ${line.hits}/10</span><b>+${euro(line.amount)}</b></div>`).join('');
+      $('#boardDetails').innerHTML = winningLines.map(line => `<div class="${line.hits === 10 && !line.wild ? 'jackpot-result' : ''}"><span>L${line.index + 1} · ${line.hits}/10</span><b>+${euro(line.amount)}</b></div>`).join('');
       // totalHtml (GEWINN BRUTTO/NETTO) must stay first: .board-total:first-child
       // carries the gold GEWINN BRUTTO color rule below, so putting jackpot/reset
       // before it would silently steal that styling on any jackpot spin.
@@ -885,7 +892,7 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
         const netText = `${T118('net')} ${signedEuroV112(roundNet)}`;
         $('#message').textContent = result.spin.jackpotCycleCompleted ? `${T118('missionDone')} · 5/5 · ${netText}` : netText;
       }
-      window.lastRoundDetails = result.spin.finalResults.map((hits, line) => ({ line, hits, amount: result.spin.linePayouts[line], mult: game.PAYTABLE[hits] || 0 }));
+      window.lastRoundDetails = result.spin.finalResults.map((hits, line) => ({ line, hits, amount: result.spin.linePayouts[line], mult: game.PAYTABLE[hits] || 0, wild: (result.spin.wild?.positions || []).some(position => position.line === line) }));
       render(result.spin.board);
       applySpinVisualsV84(result.spin);
       showSpinV79(result.spin);

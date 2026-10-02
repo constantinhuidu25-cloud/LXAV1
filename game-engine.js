@@ -462,7 +462,11 @@
     // the jackpot bonus - that stays reserved for a genuinely natural
     // (non-Wild) 10/10. See resolveSpin()/drolly-account.js jackpotLine.
     const wildAssistedTen = baseResults.map((hits, line) => hits < COLUMN_COUNT && finalResults[line] === COLUMN_COUNT);
-    return { finalResults, paytableResults, positions, chance, naturalCount, levelCount, totalCount, wildAssistedTen };
+    // A line that shows a Wild icon is excluded from the jackpot mission
+    // altogether: it may still pay normally, but it can neither complete the
+    // jackpot (5/5) nor raise that line's mission record.
+    const lineHasWild = wildsPerLine.map(count => count > 0);
+    return { finalResults, paytableResults, positions, chance, naturalCount, levelCount, totalCount, wildAssistedTen, lineHasWild };
   }
 
   function initialState(seed = {}) {
@@ -512,7 +516,7 @@
     // wildAssistedTen) also still receives its normal payout but never
     // counts toward the jackpot mission or its bonus - only a natural
     // (no-Wild) 10/10 can progress/complete the jackpot.
-    const jackpotLine = finalResults.findIndex((hits, line) => hits === COLUMN_COUNT && !state.completedLines[line] && !wild.wildAssistedTen[line]);
+    const jackpotLine = finalResults.findIndex((hits, line) => hits === COLUMN_COUNT && !state.completedLines[line] && !wild.wildAssistedTen[line] && !wild.lineHasWild[line]);
     // v135: jackpot amount is this tier's multiplier times THIS SPIN's bet.
     const jackpotAwards = jackpotLine < 0 ? [] : [{ line: jackpotLine, tierIndex: jackpotProgressBefore, amount: cents(JACKPOT_TIER_MULTIPLIERS[jackpotProgressBefore] * totalStake) }];
     const jackpotPayout = cents(jackpotAwards.reduce((sum, award) => sum + award.amount, 0));
@@ -524,7 +528,7 @@
     const persistedCompletedLines = reachedFiveOfFive ? Array(LINE_COUNT).fill(false) : completedAfterAward;
     // V118: line records belong to the current jackpot cycle. When 5/5 is
     // completed all lines are open again, so their records restart at 0/10.
-    const recordHits = reachedFiveOfFive ? Array(LINE_COUNT).fill(0) : state.recordHits.map((record, index) => Math.max(record, finalResults[index]));
+    const recordHits = reachedFiveOfFive ? Array(LINE_COUNT).fill(0) : state.recordHits.map((record, index) => wild.lineHasWild[index] ? record : Math.max(record, finalResults[index]));
     const bonusPayout = 0;
     const totalPayout = cents(normalPayout + jackpotPayout + bonusPayout);
     const netResult = cents(totalPayout - totalStake);

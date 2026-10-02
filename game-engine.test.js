@@ -171,6 +171,23 @@ describe('DrollyGameEngine', () => {
       expect(natural.wildAssistedTen[0]).toBe(false);
     });
 
+    test('a line showing a Wild icon never raises its mission record or completes the jackpot', () => {
+      const flagged = game.applyWild([9, 3, 3, 3, 3], () => 0, 1);
+      expect(flagged.lineHasWild[0]).toBe(true);
+
+      let checkedLines = 0;
+      for (let i = 0; i < 4000; i++) {
+        const { spin, state } = game.resolveSpin(game.initialState({ credits: 1e9, bet: 5, difficulty: 2, wildLevel: 25 }));
+        const wildLines = new Set(spin.wild.positions.map(position => position.line));
+        wildLines.forEach(line => {
+          checkedLines++;
+          expect(state.recordHits[line]).toBe(0);
+          expect(spin.jackpotAwards.every(award => award.line !== line)).toBe(true);
+        });
+      }
+      expect(checkedLines).toBeGreaterThan(1000);
+    });
+
     test('extra wild frequency scales levelCount and stays capped at maximumExtra', () => {
       const rng = () => 0.5; // deterministic: picks levelCount=1 out of a 0-2 band at level 2
       const base = game.applyWild([0, 0, 0, 0, 0], rng, 2);
