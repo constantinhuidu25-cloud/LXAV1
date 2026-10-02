@@ -4915,3 +4915,93 @@ html body:not(#_):not(#__):not(#___) .topbar{
   }
   html body:not(#_):not(#__):not(#___) .topbar #headerActions{z-index:6!important}
 }
+
+/* ===== Mission chips: taller progress bar, tighter vertical rhythm ===== */
+html body:not(#_):not(#__):not(#___) .mission-line:before{height:7px!important;bottom:0!important;border-radius:0 4px 0 0!important}
+html body:not(#_):not(#__):not(#___) .mission-line-grid .mission-line{padding:2px 2px 9px!important;min-height:34px!important}
+html body:not(#_):not(#__):not(#___) .target-head{margin-bottom:0!important;padding-bottom:2px!important}
+html body:not(#_):not(#__):not(#___) .mission-list{gap:2px!important}
+html body:not(#_):not(#__):not(#___) .mission-line-grid{margin-top:0!important}
+
+/* ===== Win-chance panel: roomy layout, gradient track and a magenta knob ===== */
+html body:not(#_):not(#__):not(#___) .chance-control{
+  width:min(100%,720px)!important;max-width:720px!important;margin:6px auto 0!important;padding:8px 16px 12px!important;
+  border-radius:12px!important;opacity:1!important;
+  background:linear-gradient(145deg,rgba(40,70,160,.92),rgba(70,26,130,.92))!important;
+  border:1px solid rgba(255,120,240,.5)!important;border-top:2px solid var(--lxa-magenta-400)!important;
+  box-shadow:0 0 22px rgba(232,44,255,.25),inset 0 1px rgba(255,255,255,.12)!important;
+}
+html body:not(#_):not(#__):not(#___) .chance-head{display:flex!important;align-items:baseline!important;gap:10px!important;flex-wrap:wrap!important;width:100%!important}
+html body:not(#_):not(#__):not(#___) .chance-head span{font-size:11px!important;letter-spacing:1.5px!important;color:var(--lxa-magenta-300)!important}
+html body:not(#_):not(#__):not(#___) .chance-head small{font-size:9px!important;opacity:.85;flex:1 1 140px;min-width:0}
+html body:not(#_):not(#__):not(#___) .chance-head strong{font-size:18px!important;min-width:0!important;color:#fff!important;text-shadow:0 0 12px rgba(255,77,235,.7)}
+html body:not(#_):not(#__):not(#___) .chance-control input[type=range]{
+  -webkit-appearance:none;appearance:none;width:100%!important;height:26px!important;margin:6px 0 0!important;background:transparent!important;cursor:pointer;accent-color:var(--lxa-magenta-400);
+}
+html body:not(#_):not(#__):not(#___) .chance-control input[type=range]::-webkit-slider-runnable-track{
+  height:8px;border-radius:6px;background:linear-gradient(90deg,#1769ff 0%,#8a3dff 55%,#ff4deb 100%);box-shadow:0 0 10px rgba(232,44,255,.4);
+}
+html body:not(#_):not(#__):not(#___) .chance-control input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:26px;height:26px;margin-top:-9px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#ffd6fb 0%,#ff4deb 52%,#a8159b 100%);border:2px solid #fff;
+  box-shadow:0 0 12px #ff4deb,0 0 24px rgba(232,44,255,.65);
+}
+html body:not(#_):not(#__):not(#___) .chance-control input[type=range]::-moz-range-track{height:8px;border-radius:6px;background:linear-gradient(90deg,#1769ff 0%,#8a3dff 55%,#ff4deb 100%)}
+html body:not(#_):not(#__):not(#___) .chance-control input[type=range]::-moz-range-thumb{
+  width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffd6fb 0%,#ff4deb 52%,#a8159b 100%);border:2px solid #fff;box-shadow:0 0 12px #ff4deb;
+}
+
+/* ===== ID / language slide into the lock's place when the lock floats away (animated) ===== */
+html body:not(#_):not(#__):not(#___) #accountButton,
+html body:not(#_):not(#__):not(#___) #headerActions .language{transition:transform .28s cubic-bezier(.3,.7,.2,1)}
+html body:not(#_):not(#__):not(#___).lock-kofi-floating #accountButton,
+html body:not(#_):not(#__):not(#___).lock-kofi-floating #headerActions .language{transform:translateX(calc(var(--hb) + 8px))}
+
+/* ===== Portrait phones (<700px): same full-width bar, GIF centred in the space left of the icons ===== */
+@media (max-width:699px){
+  html body:not(#_):not(#__):not(#___) .topbar .brand-cluster{grid-column:1 / -1!important;grid-row:1!important;justify-self:stretch!important;width:100%!important;z-index:1!important}
+  html body:not(#_):not(#__):not(#___) .topbar .brand-cluster .brand{
+    display:block!important;position:relative!important;width:100%!important;height:var(--lxa-logo-h)!important;
+    overflow:hidden!important;border-radius:10px!important;gap:0!important;
+    background:
+      radial-gradient(ellipse 60% 120% at 40% 50%,rgba(40,100,255,.30),transparent 70%),
+      linear-gradient(180deg,#060c2c 0%,#0a1650 60%,#14104c 100%)!important;
+  }
+  html body:not(#_):not(#__):not(#___) .topbar .brand-cluster .brand::before{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:
+      linear-gradient(90deg,transparent 0%,rgba(90,170,255,.85) 22%,rgba(180,100,255,.85) 78%,transparent 100%) 0 60%/100% 1.6px no-repeat,
+      linear-gradient(90deg,transparent 0%,rgba(70,140,255,.6) 24%,rgba(220,80,255,.6) 76%,transparent 100%) 0 74%/100% 1px no-repeat;
+    animation:lxaRailTint 6.9s ease-in-out infinite;
+  }
+  html body:not(#_):not(#__):not(#___) .topbar .brand-cluster .brand img{
+    position:absolute!important;left:calc((100% - var(--act-w) - 8px) / 2)!important;top:0!important;transform:translateX(-50%)!important;
+    width:calc(var(--lxa-logo-h) * 16)!important;max-width:none!important;height:100%!important;
+    -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 12%,#000 88%,transparent 100%);
+    mask-image:linear-gradient(90deg,transparent 0,#000 12%,#000 88%,transparent 100%);
+  }
+  html body:not(#_):not(#__):not(#___) .topbar #headerActions{z-index:6!important}
+}
+
+/* the older rules for these controls are !important - repeat the new ones with !important */
+html body:not(#_):not(#__):not(#___) #accountButton,
+html body:not(#_):not(#__):not(#___) #headerActions .language{transition:transform .28s cubic-bezier(.3,.7,.2,1)!important}
+html body:not(#_):not(#__):not(#___).lock-kofi-floating #accountButton,
+html body:not(#_):not(#__):not(#___).lock-kofi-floating #headerActions .language{transform:translateX(calc(var(--hb) + 8px))!important}
+html body:not(#_):not(#__):not(#___) .chance-control input#chance::-webkit-slider-runnable-track{
+  height:8px!important;border-radius:6px!important;background:linear-gradient(90deg,#1769ff 0%,#8a3dff 55%,#ff4deb 100%)!important;box-shadow:0 0 10px rgba(232,44,255,.4)!important;border:0!important;
+}
+html body:not(#_):not(#__):not(#___) .chance-control input#chance::-webkit-slider-thumb{
+  -webkit-appearance:none!important;appearance:none!important;width:26px!important;height:26px!important;margin-top:-9px!important;border-radius:50%!important;
+  background:radial-gradient(circle at 35% 30%,#ffd6fb 0%,#ff4deb 52%,#a8159b 100%)!important;border:2px solid #fff!important;
+  box-shadow:0 0 12px #ff4deb,0 0 24px rgba(232,44,255,.65)!important;
+}
+html body:not(#_):not(#__):not(#___) .chance-control input#chance::-moz-range-track{height:8px!important;border-radius:6px!important;background:linear-gradient(90deg,#1769ff 0%,#8a3dff 55%,#ff4deb 100%)!important}
+html body:not(#_):not(#__):not(#___) .chance-control input#chance::-moz-range-thumb{
+  width:22px!important;height:22px!important;border-radius:50%!important;background:radial-gradient(circle at 35% 30%,#ffd6fb 0%,#ff4deb 52%,#a8159b 100%)!important;border:2px solid #fff!important;box-shadow:0 0 12px #ff4deb!important;
+}
+
+html body:not(#_):not(#__):not(#___) .chance-head{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;grid-template-areas:"l v" "h v"!important;align-items:center!important;gap:0 10px!important}
+html body:not(#_):not(#__):not(#___) .chance-head span{grid-area:l!important}
+html body:not(#_):not(#__):not(#___) .chance-head small{grid-area:h!important;flex:none!important;text-align:left!important;margin:0!important}
+html body:not(#_):not(#__):not(#___) .chance-head strong{grid-area:v!important;justify-self:end!important}
