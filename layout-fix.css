@@ -4840,5 +4840,5 @@ html body:not(#_):not(#__):not(#___) #spin[data-state="idle"]{
   box-shadow:inset 0 1px rgba(255,255,255,.55),inset 0 -3px 8px rgba(0,0,0,.4),0 0 22px rgba(232,44,255,.45),0 0 18px rgba(37,150,255,.4),0 6px 16px rgba(0,0,0,.5)!important;
 }
 
-html body:not(#_):not(#__):not(#___) .target-head strong{padding-right:38px!important}
+html body:not(#_):not(#__):not(#___) .target-head strong{padding-right:0!important}
 html body:not(#_):not(#__):not(#___) .reel span.wild-symbol img{object-fit:contain!important;width:96%!important;height:96%!important;filter:drop-shadow(0 0 8px rgba(232,44,255,.8))!important}
