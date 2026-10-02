@@ -233,7 +233,7 @@ async function renderLeaderboard(){lxaSetupLeaderboard();const x=lxaCopy(),level
 // server hiccup) we fall back to the last cached account object so the user
 // still sees their name/balance instead of looking logged out; lxaSaveState
 // will reconcile with the server again on the next protected action.
-async function lxaRestoreSession(){const cached=JSON.parse(localStorage.getItem(LXA_CACHE)||'null');if(!cached?.id)return;try{const result=await lxaRequest('login',{id:cached.id,silent:true,token:lxaToken});lxaHydrate(result.account)}catch(error){lxaHydrate(cached)}}
+async function lxaRestoreSession(){const cached=JSON.parse(localStorage.getItem(LXA_CACHE)||'null');if(!cached?.id)return;try{const result=await lxaRequest('login',{id:cached.id,silent:true,token:lxaToken});lxaHydrate(result.account)}catch(error){if(/session expired|not found/i.test(error.message||'')){lxaHydrate({...cached,role:undefined});return}lxaHydrate({...cached,role:undefined});setTimeout(()=>{if(lxaAccount&&lxaToken)lxaRequest('login',{id:lxaAccount.id,silent:true,token:lxaToken}).then(res=>lxaHydrate(res.account)).catch(()=>{})},4000)}}
 lxaSetupAccountButton();lxaSetupLeaderboard();renderAccountPanel('home');accountPanel.hidden=true;renderLeaderboard();lxaRestoreSession();
 // v151: removed a dead $('#spin').onclick wrapper (V76-era stat tracking +
 // a call to the also-removed lxaSaveState()) - superseded by the v79
