@@ -5040,3 +5040,45 @@ html body:not(#_):not(#__):not(#___) .reel span.wild-symbol img{
   object-fit:cover!important;object-position:50% 50%!important;filter:none!important;border-radius:inherit!important;
 }
 html body:not(#_):not(#__):not(#___) .reel span.wild-symbol::after{display:none!important}
+
+/* ===== Header: letters ~9% taller, the bar itself grows by at most 3px (less padding around the GIF);
+   the GIF's animated light streaks are no longer faded out at the sides ===== */
+html body:not(#_):not(#__):not(#___){--lxa-logo-h:52px}
+@media (max-width:900px){html body:not(#_):not(#__):not(#___){--lxa-logo-h:44px}}
+@media (orientation:landscape) and (max-height:540px){html body:not(#_):not(#__):not(#___){--lxa-logo-h:34px}}
+html body:not(#_):not(#__):not(#___) .topbar{
+  height:calc(var(--lxa-logo-h) + 5px)!important;min-height:calc(var(--lxa-logo-h) + 5px)!important;
+  grid-template-rows:calc(var(--lxa-logo-h) + 5px)!important;
+}
+@media (display-mode:standalone){
+  html body:not(#_):not(#__):not(#___) .topbar{
+    height:calc(var(--lxa-logo-h) + 5px + env(safe-area-inset-top,0px))!important;
+    min-height:calc(var(--lxa-logo-h) + 5px + env(safe-area-inset-top,0px))!important;
+    grid-template-rows:env(safe-area-inset-top,0px) calc(var(--lxa-logo-h) + 5px)!important;
+  }
+}
+html.lxa-standalone body:not(#_):not(#__):not(#___) .topbar{
+  height:calc(var(--lxa-logo-h) + 5px + env(safe-area-inset-top,0px))!important;
+  min-height:calc(var(--lxa-logo-h) + 5px + env(safe-area-inset-top,0px))!important;
+  grid-template-rows:env(safe-area-inset-top,0px) calc(var(--lxa-logo-h) + 5px)!important;
+}
+html body:not(#_):not(#__):not(#___) .topbar .brand-cluster .brand img{
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 9%,#000 91%,transparent 100%)!important;
+  mask-image:linear-gradient(90deg,transparent 0,#000 9%,#000 91%,transparent 100%)!important;
+}
+
+/* ===== Lock + Ko-fi: one column, right edges 1px inside the containers' right edge, 1px apart.
+   The exact offsets are measured in index.html (placeLockKofi); this only removes the
+   per-breakpoint right/margins that used to fight it ===== */
+html body:not(#_):not(#__):not(#___) #headerActions #scrollLock,
+html body:not(#_):not(#__):not(#___) #headerActions .kofi-gif{margin:0!important}
+html body:not(#_):not(#__):not(#___).lock-kofi-floating #headerActions #scrollLock.scroll-lock,
+html body:not(#_):not(#__):not(#___).lock-kofi-floating #headerActions .kofi-gif{z-index:80!important;translate:none!important}
+
+/* ===== Forced scroll / rubber-band on phones: no bounce past the page, and if a browser still
+   bounces, the area behind shows the page's own colour instead of a separate dark band ===== */
+html,html body{overscroll-behavior:none!important}
+html{background:#1b1f6e!important}
+
+/* ===== Reels: a single slow roll (renderer.js) - no CSS transition fighting the Web Animation ===== */
+html body .reel-track.rolling{transition:none!important}
