@@ -4677,3 +4677,35 @@ html body:not(#_):not(#__) #spin small{overflow:visible!important;text-overflow:
 
 html body:not(#_):not(#__) #spin .spin-subtitle,
 html body:not(#_):not(#__) #spin small{display:none!important}
+
+/* Header icon cluster: ID, language and lock share one framed-button style and
+   one size, evenly spaced and vertically centred, so the row reads as a unit
+   and nothing in it moves relative to the others. */
+html body:not(#_):not(#__) #headerActions{align-items:center!important;column-gap:8px!important}
+html body:not(#_):not(#__) #accountButton,
+html body:not(#_):not(#__) #headerActions .language-toggle,
+html body:not(#_):not(#__) #scrollLock{
+  width:36px!important;min-width:36px!important;height:34px!important;min-height:34px!important;
+  padding:0!important;margin:0!important;
+  display:grid!important;place-items:center!important;
+  border:1px solid var(--lxa-border)!important;border-radius:9px!important;
+  background:var(--lxa-surface-glass)!important;box-shadow:none!important;
+}
+html body:not(#_):not(#__) #headerActions .language{width:36px!important;min-width:36px!important;height:34px!important;justify-content:center!important}
+@media (min-width:901px){
+  html body:not(#_):not(#__) #accountButton,
+  html body:not(#_):not(#__) #headerActions .language-toggle,
+  html body:not(#_):not(#__) #scrollLock{width:40px!important;min-width:40px!important;height:38px!important;min-height:38px!important}
+  html body:not(#_):not(#__) #headerActions .language{width:40px!important;min-width:40px!important;height:38px!important}
+}
+html body:not(#_):not(#__) #accountButton:active,
+html body:not(#_):not(#__) #headerActions .language-toggle:active,
+html body:not(#_):not(#__) #scrollLock:active{border-color:var(--lxa-border-strong)!important}
+
+html body:not(#_):not(#__):not(#___) #accountButton,
+html body:not(#_):not(#__):not(#___) #headerActions .language-toggle,
+html body:not(#_):not(#__):not(#___) #scrollLock{box-sizing:border-box!important}
+html body:not(#_):not(#__):not(#___) #headerActions .language{box-sizing:border-box!important;width:36px!important;min-width:36px!important;height:34px!important;min-height:34px!important}
+@media (min-width:901px){
+  html body:not(#_):not(#__):not(#___) #headerActions .language{width:40px!important;min-width:40px!important;height:38px!important;min-height:38px!important}
+}
