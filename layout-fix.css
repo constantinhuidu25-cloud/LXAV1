@@ -5334,3 +5334,36 @@ html body:not(#_):not(#__):not(#___) .machine{row-gap:1px!important}
 html body:not(#_):not(#__):not(#___) .hero{padding-bottom:0!important;margin-bottom:0!important}
 html body:not(#_):not(#__):not(#___) .footer,
 html body:not(#_):not(#__):not(#___) footer{margin-top:0!important}
+/* ===== Portrait (<700px): the animated image is exactly as wide as the band (cover + shifted so the letters sit left
+   of the icons) and fades out on all four sides - no hard cut at the band edges ===== */
+@media (max-width:699px){
+  html body:not(#_):not(#__):not(#___) .topbar .brand-cluster .brand img,
+  html.lxa-standalone body:not(#_):not(#__):not(#___) .topbar .brand-cluster .brand img{
+    left:0!important;right:0!important;transform:none!important;width:100%!important;max-width:100%!important;
+    height:var(--lxa-logo-h)!important;object-fit:cover!important;object-position:75% 50%!important;
+  }
+  html body:not(#_):not(#__):not(#___) .topbar .brand-cluster .brand{overflow:visible!important}
+}
+
+/* ===== Lock state readable at a glance: open = green glow, locked = red pulsing glow ===== */
+@keyframes lxaLockPulse{0%,100%{filter:hue-rotate(-24deg) saturate(1.9) drop-shadow(0 0 4px #ff3b6b) drop-shadow(0 0 9px rgba(255,59,107,.55))}50%{filter:hue-rotate(-24deg) saturate(2.1) drop-shadow(0 0 7px #ff3b6b) drop-shadow(0 0 16px rgba(255,59,107,.85))}}
+html body:not(#_):not(#__):not(#___) #scrollLock{filter:hue-rotate(100deg) saturate(1.25) drop-shadow(0 0 5px rgba(57,245,167,.75));transition:filter .25s ease,transform .15s ease}
+html body.scroll-locked:not(#_):not(#__):not(#___) #scrollLock{animation:lxaLockPulse 1.6s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){html body.scroll-locked:not(#_):not(#__):not(#___) #scrollLock{animation:none;filter:hue-rotate(-24deg) saturate(2) drop-shadow(0 0 8px #ff3b6b)}}
+
+/* ===== Ko-fi bar: a card in the site theme with an orange spotlight behind the button (matches its colour) ===== */
+html body:not(#_):not(#__):not(#___) .kofi-goal-bar{
+  height:46px!important;margin:0!important;padding:0 12px!important;border-radius:14px!important;
+  background:
+    radial-gradient(ellipse 24% 150% at 50% 50%,rgba(255,99,49,.95) 0%,rgba(255,99,49,.55) 38%,rgba(232,44,255,.38) 70%,transparent 100%),
+    linear-gradient(145deg,rgba(42,76,172,.93) 0%,rgba(26,40,110,.95) 55%,rgba(86,32,136,.92) 100%)!important;
+  background-size:100% 100%!important;animation:none!important;
+  border:1px solid rgba(190,140,255,.38)!important;border-top:2px solid var(--lxa-magenta-400)!important;
+  box-shadow:0 6px 20px rgba(0,0,0,.28),0 0 18px rgba(255,99,49,.18)!important;
+}
+html body:not(#_):not(#__):not(#___) .kofi-goal-cup{height:62px!important}
+html body:not(#_):not(#__):not(#___) .kofi-goal-bar{
+  background:
+    radial-gradient(ellipse 52% 170% at 50% 50%,rgba(255,99,49,.92) 0%,rgba(255,99,49,.55) 28%,rgba(232,44,255,.45) 58%,rgba(120,60,255,.18) 82%,transparent 100%),
+    linear-gradient(145deg,rgba(42,76,172,.93) 0%,rgba(26,40,110,.95) 55%,rgba(86,32,136,.92) 100%)!important;
+}
