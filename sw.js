@@ -13,6 +13,7 @@ const ASSETS_TO_CACHE = [
   '/responsive-compact.css',
   '/game-engine.js',
   '/renderer.js',
+  '/spin-button.js',
   '/manifest.webmanifest',
   '/assets/icons/icon-192.png',
   '/assets/icons/icon-512.png'

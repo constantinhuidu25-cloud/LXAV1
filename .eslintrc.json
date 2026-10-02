@@ -43,6 +43,10 @@
       }
     },
     {
+      "files": ["spin-button.js"],
+      "env": { "browser": true, "es2021": true }
+    },
+    {
       "files": ["sw.js"],
       "env": { "serviceworker": true, "browser": true, "es2021": true }
     }

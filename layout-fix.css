@@ -4562,3 +4562,113 @@ html body:not(#_):not(#__) .topbar .brand-cluster .brand img{
   max-height:none!important;
   object-fit:fill!important;
 }
+
+/* ===== SPIN button: state-driven (see spin-button.js) =====
+   idle (blue crystal) -> spinning (amber, progress ring = time left, tap
+   stops) -> result (cyan win / slate no-win) -> idle. Size and position are
+   untouched; only the surface, the ring and the three text lines change. */
+@property --spin-p{syntax:'<percentage>';inherits:false;initial-value:0%}
+@keyframes spinRingFill{from{--spin-p:0%}to{--spin-p:100%}}
+@keyframes spinShine{0%,70%{transform:translateX(-130%) skewX(-18deg)}100%{transform:translateX(330%) skewX(-18deg)}}
+@keyframes spinCoach{0%,100%{box-shadow:0 0 0 0 rgba(255,196,64,.0),0 0 14px rgba(255,196,64,.45)}50%{box-shadow:0 0 0 5px rgba(255,196,64,.28),0 0 26px rgba(255,196,64,.85)}}
+@keyframes spinResultIn{from{transform:scale(.94);opacity:.4}to{transform:scale(1);opacity:1}}
+
+html body:not(#_):not(#__) #spin{
+  position:relative!important;
+  overflow:hidden!important;
+  isolation:isolate;
+  border-radius:14px!important;
+  border:1px solid rgba(120,190,255,.55)!important;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.22) 0%,rgba(255,255,255,0) 46%),
+    linear-gradient(180deg,#2f7bff 0%,#1769ff 38%,#0a2a7a 78%,#07132d 100%)!important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.55),
+    inset 0 -3px 8px rgba(0,0,0,.45),
+    0 0 18px rgba(37,150,255,.45),
+    0 6px 16px rgba(0,0,0,.5)!important;
+  transition:transform .12s ease,box-shadow .2s ease,background .25s ease,border-color .25s ease;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+  display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
+  gap:2px!important;
+}
+html body:not(#_):not(#__) #spin:active{transform:translateY(2px) scale(.985)!important;box-shadow:inset 0 2px 8px rgba(0,0,0,.55),0 0 12px rgba(37,150,255,.4)!important}
+html body:not(#_):not(#__) #spin:focus-visible{outline:2px solid var(--lxa-cyan-400);outline-offset:3px}
+
+html body:not(#_):not(#__) #spin::after{
+  content:'';position:absolute;top:0;bottom:0;left:0;width:34%;z-index:0;pointer-events:none;
+  background:linear-gradient(100deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.28) 50%,rgba(255,255,255,0) 100%);
+  transform:translateX(-130%) skewX(-18deg);
+  animation:spinShine 4.2s ease-in-out infinite;
+}
+html body:not(#_):not(#__) #spin:not([data-state="idle"])::after{display:none}
+
+html body:not(#_):not(#__) #spin .spin-ring{
+  display:block!important;position:absolute;inset:3px;z-index:1;pointer-events:none;
+  border-radius:11px;padding:3px;
+  background:conic-gradient(from 0deg,var(--lxa-warning) var(--spin-p),rgba(255,255,255,.07) 0);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;
+  opacity:0;transition:opacity .15s ease;
+}
+html body:not(#_):not(#__) #spin[data-state="spinning"] .spin-ring{opacity:1}
+html body:not(#_):not(#__) #spin.run .spin-ring{animation:spinRingFill var(--spin-ms,2300ms) linear forwards}
+html body:not(#_):not(#__) #spin.snapped .spin-ring{animation-duration:.18s}
+
+html body:not(#_):not(#__) #spin b,
+html body:not(#_):not(#__) #spin .spin-subtitle,
+html body:not(#_):not(#__) #spin small{position:relative;z-index:2;max-width:94%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
+html body:not(#_):not(#__) #spin b{text-shadow:0 2px 0 rgba(0,0,0,.45),0 0 14px rgba(160,210,255,.55)!important;letter-spacing:1px}
+html body:not(#_):not(#__) #spin .spin-subtitle{
+  font-size:clamp(9px,2.7vw,11px)!important;width:auto!important;height:auto!important;
+  letter-spacing:.6px;color:rgba(220,236,255,.92)!important;font-weight:700;
+}
+html body:not(#_):not(#__) #spin small{
+  font-size:clamp(8px,2.3vw,10px)!important;width:auto!important;height:auto!important;
+  letter-spacing:.4px;color:rgba(170,200,240,.8)!important;min-height:1em;
+}
+
+html body:not(#_):not(#__) #spin[data-state="spinning"]{
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.16) 0%,rgba(255,255,255,0) 46%),
+    linear-gradient(180deg,#a8700f 0%,#6e4608 42%,#2a1a03 100%)!important;
+  border-color:var(--lxa-warning)!important;
+  box-shadow:inset 0 1px 0 rgba(255,230,160,.5),inset 0 -3px 8px rgba(0,0,0,.5),0 0 20px rgba(255,180,50,.4),0 6px 16px rgba(0,0,0,.5)!important;
+}
+html body:not(#_):not(#__) #spin[data-state="spinning"] b{text-shadow:0 2px 0 rgba(0,0,0,.5),0 0 14px rgba(255,210,120,.6)!important}
+html body:not(#_):not(#__) #spin[data-state="spinning"] .spin-subtitle{color:#ffe7b0!important}
+html body:not(#_):not(#__) #spin.coach{animation:spinCoach 1.3s ease-in-out infinite}
+html body:not(#_):not(#__) #spin.coach .spin-subtitle{color:#fff!important;text-shadow:0 0 8px rgba(255,200,80,.9)}
+
+html body:not(#_):not(#__) #spin[data-state="result"]{animation:spinResultIn .18s ease-out;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.18) 0%,rgba(255,255,255,0) 46%),
+    linear-gradient(180deg,#0f7e86 0%,#0a4f5c 45%,#06222c 100%)!important;
+  border-color:var(--lxa-cyan-400)!important;
+  box-shadow:inset 0 1px 0 rgba(160,255,255,.5),inset 0 -3px 8px rgba(0,0,0,.45),0 0 22px rgba(37,231,255,.55),0 6px 16px rgba(0,0,0,.5)!important}
+html body:not(#_):not(#__) #spin[data-state="result"] b{color:var(--lxa-text-strong)!important}
+
+html body:not(#_):not(#__) #spin[data-funds="low"][data-state="idle"]{
+  background:linear-gradient(180deg,#46506a 0%,#2a3148 50%,#12182a 100%)!important;
+  border-color:rgba(160,175,205,.5)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 4px 12px rgba(0,0,0,.5)!important}
+html body:not(#_):not(#__) #spin[data-funds="low"][data-state="idle"] .spin-subtitle{color:#ffd9a0!important}
+
+@media (prefers-reduced-motion:reduce){
+  html body:not(#_):not(#__) #spin::after,
+  html body:not(#_):not(#__) #spin.coach,
+  html body:not(#_):not(#__) #spin[data-state="result"]{animation:none!important}
+  html body:not(#_):not(#__) #spin.run .spin-ring{animation-duration:.01s!important}
+}
+
+html body:not(#_):not(#__) #spin b,
+html body:not(#_):not(#__) #spin .spin-subtitle,
+html body:not(#_):not(#__) #spin small{background:none!important;box-shadow:none!important;border:0!important;padding:0!important;margin:0!important;backdrop-filter:none!important}
+
+html body:not(#_):not(#__) #spin{container-type:inline-size}
+html body:not(#_):not(#__) #spin .spin-subtitle{font-size:clamp(7px,4.6cqw,11px)!important}
+html body:not(#_):not(#__) #spin small{font-size:clamp(6.5px,3.5cqw,10px)!important}
+
+html body:not(#_):not(#__) #spin b,
+html body:not(#_):not(#__) #spin .spin-subtitle,
+html body:not(#_):not(#__) #spin small{overflow:visible!important;text-overflow:clip!important}

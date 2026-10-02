@@ -421,15 +421,29 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
       // linearly with the requested size, so the geometric correction below
       // can oscillate within a a pixel or two of the exact boundary without
       // fully converging - imperceptible visually, not worth more passes.
-      const fits = () => b.scrollWidth <= m.clientWidth + 2;
+      // Text width via a Range (the real rendered glyph run) instead of
+      // scrollWidth, which is rounded and was under-reporting on iOS Safari.
+      const textW = () => { const r = document.createRange(); r.selectNodeContents(b); return r.getBoundingClientRect().width; };
+      const fits = () => textW() <= m.clientWidth - 2;
       if (fits()) return;
-      let scale = m.clientWidth / b.scrollWidth;
+      let scale = (m.clientWidth - 2) / textW();
       for (let pass = 0; pass < 10 && !fits() && scale > 0.15; pass++) {
         b.style.setProperty('font-size', `${Math.max(6, base * scale)}px`, 'important');
         if (fits()) break;
-        scale *= m.clientWidth / b.scrollWidth;
+        scale *= (m.clientWidth - 2) / textW();
       }
     });
+  }
+  // The measurement above is only right once the webfont (DrollNum) is loaded
+  // and at the current width - re-fit on font load and on width changes, not
+  // just when the mission card is re-rendered.
+  {
+    let fitQueued = false, lastW = 0;
+    const queueFit = () => { if (fitQueued) return; fitQueued = true; requestAnimationFrame(() => { fitQueued = false; fitMilestoneAmounts(); }); };
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(queueFit);
+    window.addEventListener('resize', queueFit);
+    const host = document.querySelector('.jackpot-target');
+    if (host && window.ResizeObserver) new ResizeObserver(() => { const w = host.clientWidth; if (w !== lastW) { lastW = w; queueFit(); } }).observe(host);
   }
   function signedEuroV112(value) {
     const amount = Math.round(Number(value) || 0);
@@ -819,13 +833,14 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
     // instantly (reels snap to rest, result shows right away) — it does
     // NOT start a new spin on top of it. Starting the next round always
     // needs its own separate, later click.
-    if (spinning && activeSpinHandle) { activeSpinHandle.fastForward(); return; }
+    if (spinning && activeSpinHandle) { window.LXASpinButton?.stopped(); activeSpinHandle.fastForward(); return; }
     if (spinning) return;
     const myToken = ++spinToken;
     gameState = game.initialState({ ...gameState, credits: Number(credits), bet: Number(bet), difficulty: Number(chance) + 1 });
     if (!autoSpinEnabled && normalizeLocalBet()) { persist(); renderGameV79(); }
     if (gameState.credits < gameState.bet) { setMsg(t[lang].noMoney); return; }
     spinning = true;
+    window.LXASpinButton?.start();
     $('#winBoard').classList.remove('show');
     const before = gameState.credits;
     $('#before').textContent = euro(before);
@@ -858,6 +873,7 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
       render(result.spin.board);
       applySpinVisualsV84(result.spin);
       showSpinV79(result.spin);
+      window.LXASpinButton?.finish(result.spin.totalPayout, euro(result.spin.totalPayout));
       if (result.spin.totalPayout > 0) {
         await debitAnimation;
         if (myToken !== spinToken || myToken === canceledToken) return;
@@ -868,7 +884,7 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
       if (myToken !== spinToken || myToken === canceledToken) return;
       renderGameV79();
     } catch (error) { if (myToken === spinToken) $('#message').textContent = error.message || 'Spin failed.'; }
-    finally { if (myToken === spinToken) { spinning = false; $('#spin').disabled = false; } }
+    finally { if (myToken === spinToken) { spinning = false; $('#spin').disabled = false; window.LXASpinButton?.idle(); } }
   };
   const chanceInput = $('#chance');
   chanceInput?.addEventListener('change', () => { gameState.difficulty = Number(chance) + 1; persist(); paintPaytable(); });
@@ -1255,38 +1271,3 @@ const drollRenderV76=render;render=function(grid){drollRenderV76(grid);document.
 // it wasn't firing/working reliably and only got in the way of the other
 // floating elements. Idea + original code preserved in
 // INSTALL_BUTTON_IDEA.txt if this should be revisited later.
-
-// Jackpot-mission tier amounts (.milestone b) must never overflow/overlap their
-// cell, however large the bet makes them (e.g. "15.000 €" on a phone). The CSS
-// for these is a stack of breakpoint rules, so fit them at runtime instead:
-// shrink the font until the text fits the cell, re-run on any content/size change.
-(function fitMilestoneAmounts(){
-  let queued = false;
-  function textWidth(el){ const r = document.createRange(); r.selectNodeContents(el); return r.getBoundingClientRect().width; }
-  function fit(){
-    queued = false;
-    document.querySelectorAll('.milestone b, .mission-line > span, .mission-line > b, .mission-line > small').forEach(b => {
-      const cell = b.parentElement;
-      if (!cell) return;
-      b.style.removeProperty('font-size');
-      let size = parseFloat(getComputedStyle(b).fontSize) || 12;
-      const cs = getComputedStyle(cell);
-      const avail = cell.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0) - 2;
-      let guard = 60;
-      while (avail > 0 && textWidth(b) > avail && size > 5 && guard--) {
-        size -= 0.5;
-        b.style.setProperty('font-size', size + 'px', 'important');
-      }
-    });
-  }
-  function queue(){ if (!queued) { queued = true; requestAnimationFrame(fit); } }
-  function start(){
-    const host = document.querySelector('.jackpot-target') || document.body;
-    new MutationObserver(queue).observe(host, { childList: true, characterData: true, subtree: true });
-    if (window.ResizeObserver) new ResizeObserver(queue).observe(host);
-    window.addEventListener('resize', queue);
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(queue);
-    queue();
-  }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
-})();
