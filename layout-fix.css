@@ -5305,3 +5305,27 @@ html{background-color:#0a1248!important}
 html body:not(#_):not(#__):not(#___) .jackpot-target .target-head strong,
 html body:not(#_):not(#__):not(#___) #missionGoal{white-space:nowrap!important;overflow:hidden!important;text-overflow:clip!important}
 html body:not(#_):not(#__):not(#___) .jackpot-target .target-head{flex-wrap:nowrap!important}
+
+/* ===== Header without any visible panel: no dark gradient, no line, no rounded block - the animated LXA and the
+   light rails sit directly on the page background, so nothing reads as a pasted rectangle ===== */
+html body:not(#_):not(#__):not(#___) .topbar{background:none!important;border-bottom:0!important;box-shadow:none!important}
+html body:not(#_):not(#__):not(#___) .topbar .brand-cluster .brand{
+  background:none!important;box-shadow:none!important;border-radius:0!important;border:0!important;
+}
+html.lxa-standalone body:not(#_):not(#__):not(#___) .topbar .brand-cluster .brand,
+html body:not(#_):not(#__):not(#___) .topbar .brand-cluster .brand::after{background:none}
+@media (display-mode:standalone){
+  html body:not(#_):not(#__):not(#___) .topbar .brand-cluster .brand{background:none!important}
+}
+html body:not(#_):not(#__):not(#___) .topbar .brand-cluster .brand img{-webkit-mask-image:none!important;mask-image:none!important;mix-blend-mode:normal!important}
+html body:not(#_):not(#__):not(#___) .topbar .brand-cluster .brand::before{opacity:.5!important}
+
+/* ===== Tighter vertical gaps: 2px between every main container, top to bottom ===== */
+html body:not(#_):not(#__):not(#___) .machine{row-gap:2px!important}
+html body:not(#_):not(#__):not(#___) .topbar{margin-bottom:0!important}
+/* soft fade on all four sides of the animated banner image, so its edge is never visible */
+html body:not(#_):not(#__):not(#___) .topbar .brand-cluster .brand img{
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 22%,#000 78%,transparent 100%),linear-gradient(180deg,transparent 0,#000 24%,#000 76%,transparent 100%)!important;
+  mask-image:linear-gradient(90deg,transparent 0,#000 22%,#000 78%,transparent 100%),linear-gradient(180deg,transparent 0,#000 24%,#000 76%,transparent 100%)!important;
+  -webkit-mask-composite:source-in!important;mask-composite:intersect!important;
+}
