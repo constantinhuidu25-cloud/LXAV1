@@ -4552,7 +4552,7 @@ html body:not(#_):not(#__) .reel span.after-miss::before{
    breakpoint already rendered (55/44/30px); only the width grows, by a fixed
    stretch factor over the natural 2.75:1 ratio so the artwork is stretched, not wrecked.
    Raise/lower --lxa-logo-stretch to taste. */
-html body:not(#_):not(#__){--lxa-logo-h:55px;--lxa-logo-stretch:5.5}
+html body:not(#_):not(#__){--lxa-logo-h:55px;--lxa-logo-stretch:8.5}
 @media (max-width:900px){html body:not(#_):not(#__){--lxa-logo-h:44px}}
 @media (orientation:landscape) and (max-height:540px){html body:not(#_):not(#__){--lxa-logo-h:30px}}
 html body:not(#_):not(#__) .topbar .header-tagline{display:none!important}
@@ -4562,7 +4562,7 @@ html body:not(#_):not(#__) .topbar .brand-cluster .brand img{
   width:calc(var(--lxa-logo-h) * var(--lxa-logo-stretch))!important;
   max-width:calc(100vw - 170px)!important;
   max-height:none!important;
-  object-fit:fill!important;
+  object-fit:cover!important;object-position:50% 55%!important;
 }
 
 /* ===== SPIN button: state-driven (see spin-button.js) =====
@@ -4784,3 +4784,61 @@ html body:not(#_):not(#__):not(#___) .payout-card-row{flex:1 1 auto!important;al
 @media (min-width:600px) and (max-width:1100px){
   html body:not(#_):not(#__):not(#___) .hero{grid-template-columns:minmax(190px,.42fr) minmax(0,1fr)!important}
 }
+
+/* ===== Brighter, livelier theme: lighter navy + magenta/violet accents ===== */
+html body:not(#_):not(#__):not(#___){
+  background:
+    radial-gradient(900px 520px at 88% -6%,rgba(232,44,255,.24),transparent 62%),
+    radial-gradient(900px 620px at 4% 18%,rgba(23,105,255,.30),transparent 62%),
+    radial-gradient(800px 520px at 50% 104%,rgba(113,60,255,.30),transparent 66%),
+    linear-gradient(180deg,#0b1546 0%,#080f2f 55%,#0a1040 100%)!important;
+}
+html body:not(#_):not(#__):not(#___) .payout-card,
+html body:not(#_):not(#__):not(#___) .jackpot-target{
+  background:linear-gradient(135deg,rgba(33,64,150,.94) 0%,rgba(18,30,86,.96) 55%,rgba(84,26,128,.92) 100%)!important;
+  border-color:rgba(190,120,255,.55)!important;
+  box-shadow:0 8px 26px rgba(0,0,0,.4),0 0 24px rgba(232,44,255,.16),inset 0 1px rgba(255,255,255,.12)!important;
+}
+html body:not(#_):not(#__):not(#___) .jackpot-target{border-left:4px solid var(--lxa-magenta-400)!important}
+html body:not(#_):not(#__):not(#___) .target-head span{
+  background:linear-gradient(90deg,#8fc0ff 0%,#c58bff 55%,#ff4deb 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent!important;-webkit-text-fill-color:transparent;
+  text-shadow:none!important;filter:drop-shadow(0 0 10px rgba(232,44,255,.45));
+}
+html body:not(#_):not(#__):not(#___) .payout-card .payout-card-head::before{color:var(--lxa-magenta-300)!important}
+html body:not(#_):not(#__):not(#___) .mission-line:before{background:linear-gradient(90deg,#1769ff,#e82cff)!important;box-shadow:0 0 8px rgba(232,44,255,.7)!important}
+html body:not(#_):not(#__):not(#___) .mission-line.complete{border-color:var(--lxa-magenta-400)!important;box-shadow:0 0 12px rgba(232,44,255,.45)}
+html body:not(#_):not(#__):not(#___) .milestone.unlocked{background:linear-gradient(180deg,#a23af0,#4a1c9e)!important;border-top:3px solid var(--lxa-magenta-400)!important}
+html body:not(#_):not(#__):not(#___) .console,
+html body:not(#_):not(#__):not(#___) .reels-frame{
+  border-color:rgba(190,120,255,.6)!important;
+  box-shadow:0 0 30px rgba(232,44,255,.20),0 0 64px rgba(23,105,255,.22),inset 0 0 30px rgba(113,60,255,.18)!important;
+}
+html body:not(#_):not(#__):not(#___) .reel{background:linear-gradient(180deg,#0f1f58 0%,#0a1440 100%)!important}
+html body:not(#_):not(#__):not(#___) .reel span.hit::before{
+  filter:drop-shadow(0 0 8px #ff4deb) drop-shadow(0 0 4px #5c9dff) saturate(1.25) brightness(1.12)!important;
+}
+html body:not(#_):not(#__):not(#___) .paylines>div.record-top{border-top-color:var(--lxa-magenta-400)!important;border-bottom-color:var(--lxa-magenta-400)!important;box-shadow:0 0 18px rgba(232,44,255,.65)!important}
+html body:not(#_):not(#__):not(#___) .controls>.stat,
+html body:not(#_):not(#__):not(#___) .bottom-grid>div,
+html body:not(#_):not(#__):not(#___) .chance-control{
+  background:linear-gradient(145deg,rgba(30,58,132,.92),rgba(14,26,76,.96))!important;
+  border-color:rgba(150,120,255,.45)!important;
+  border-top:2px solid var(--lxa-magenta-400)!important;
+}
+html body:not(#_):not(#__):not(#___) .bottom-grid .section-heading span,
+html body:not(#_):not(#__):not(#___) .chance-head strong{color:var(--lxa-magenta-300)!important}
+html body:not(#_):not(#__):not(#___) #autoSpin{border-color:var(--lxa-magenta-400)!important;color:#ffd6fb!important;box-shadow:0 0 12px rgba(232,44,255,.4)}
+html body:not(#_):not(#__):not(#___) #accountButton,
+html body:not(#_):not(#__):not(#___) #headerActions .language-toggle,
+html body:not(#_):not(#__):not(#___) #scrollLock{border-color:rgba(255,120,240,.45)!important;background:linear-gradient(145deg,rgba(40,70,150,.7),rgba(60,28,120,.7))!important}
+html body:not(#_):not(#__):not(#___) #spin[data-state="idle"]{
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.22) 0%,rgba(255,255,255,0) 46%),
+    linear-gradient(180deg,#3b82ff 0%,#1769ff 32%,#5a2bdc 70%,#2b0f6e 100%)!important;
+  border-color:rgba(255,150,245,.65)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.55),inset 0 -3px 8px rgba(0,0,0,.4),0 0 22px rgba(232,44,255,.45),0 0 18px rgba(37,150,255,.4),0 6px 16px rgba(0,0,0,.5)!important;
+}
+
+html body:not(#_):not(#__):not(#___) .target-head strong{padding-right:38px!important}
+html body:not(#_):not(#__):not(#___) .reel span.wild-symbol img{object-fit:contain!important;width:96%!important;height:96%!important;filter:drop-shadow(0 0 8px rgba(232,44,255,.8))!important}

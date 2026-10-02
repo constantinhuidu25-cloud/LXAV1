@@ -36,13 +36,13 @@
    two distinct tokens instead - see the .spin button and
    .milestone.unlocked backgrounds. */
 :root{
-  --lxa-bg-0:#030817;--lxa-bg-1:#07132D;--lxa-bg-2:#0B1F46;
+  --lxa-bg-0:#070F2B;--lxa-bg-1:#0D1A47;--lxa-bg-2:#16306E;
   --lxa-blue-500:#1769FF;--lxa-blue-400:#278BFF;--lxa-blue-300:#55B8FF;
   --lxa-cyan-500:#3B82FF;--lxa-cyan-400:#5C9DFF;--lxa-cyan-300:#A8CBFF;
   --lxa-violet-500:#713CFF;--lxa-violet-400:#914DFF;--lxa-violet-300:#B58CFF;
   --lxa-magenta-500:#E82CFF;--lxa-magenta-400:#FF4DEB;--lxa-magenta-300:#FF9AF5;
   --lxa-text-strong:#F4FCFF;--lxa-text:#D9EEFF;--lxa-text-muted:#8FAAC7;--lxa-text-disabled:#52647A;
-  --lxa-surface-1:rgba(7,19,45,.92);--lxa-surface-2:rgba(9,29,65,.88);--lxa-surface-glass:rgba(10,32,70,.68);
+  --lxa-surface-1:rgba(13,26,71,.93);--lxa-surface-2:rgba(22,48,110,.88);--lxa-surface-glass:rgba(30,56,126,.62);
   --lxa-border:rgba(92,157,255,.34);--lxa-border-strong:rgba(92,157,255,.68);
   --lxa-success:#39F5A7;--lxa-warning:#FFD35A;--lxa-danger:#FF557A;
   --lxa-glow-blue:0 0 12px rgba(23,105,255,.35),0 0 30px rgba(23,105,255,.18);
