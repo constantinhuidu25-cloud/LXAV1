@@ -725,7 +725,7 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
   // the CURRENT spin so a fast follow-up click can fast-forward it instead of
   // waiting for it. Lets the user click SPIN quickly in succession while each
   // individual spin's letters still visually roll at the slower speed.
-  let activeSpinHandle = null;
+  let activeSpinHandle = null, stopRequested = false;
   function animateReferenceSpin(grid) {
     const nodes = [...document.querySelectorAll('.reel')];
     const animations = [];
@@ -823,7 +823,10 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
     drollStore();
     return { state: next, spin };
   }
-  $('#spin').onclick = async () => {
+  $('#spin').onclick = async event => {
+    // The press already acted on pointerdown (spin-button.js); drop the click
+    // that the same touch generates on release, or it would instantly undo it.
+    if (event && event.type === 'click' && event.detail > 0 && window.LXASpinButton?.recentPointer()) return;
     // V231: V161's fast-forward-then-immediately-start-a-new-spin made rapid
     // repeated clicks feel like the game "never stops" — every click
     // canceled the round before it could show a result, so a continuous
@@ -833,13 +836,20 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
     // instantly (reels snap to rest, result shows right away) — it does
     // NOT start a new spin on top of it. Starting the next round always
     // needs its own separate, later click.
-    if (spinning && activeSpinHandle) { window.LXASpinButton?.stopped(); activeSpinHandle.fastForward(); return; }
-    if (spinning) return;
+    if (spinning) {
+      window.LXASpinButton?.stopped();
+      // Tapped STOPP while the server is still resolving the round: remember
+      // it and snap the reels the moment their animation exists.
+      if (activeSpinHandle) activeSpinHandle.fastForward(); else stopRequested = true;
+      return;
+    }
     const myToken = ++spinToken;
     gameState = game.initialState({ ...gameState, credits: Number(credits), bet: Number(bet), difficulty: Number(chance) + 1 });
     if (!autoSpinEnabled && normalizeLocalBet()) { persist(); renderGameV79(); }
     if (gameState.credits < gameState.bet) { setMsg(t[lang].noMoney); return; }
     spinning = true;
+    activeSpinHandle = null;
+    stopRequested = false;
     window.LXASpinButton?.start();
     $('#winBoard').classList.remove('show');
     const before = gameState.credits;
@@ -851,7 +861,9 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
       const result = drollAccount ? await drollAccountResolveSpin(gameState, chance) : game.resolveSpin(gameState);
       const afterStake = before - result.spin.totalStake;
       const debitAnimation = animateCredits(before, afterStake, 180);
-      await animateReferenceSpin(result.spin.board);
+      const reelAnimation = animateReferenceSpin(result.spin.board);
+      if (stopRequested) { stopRequested = false; activeSpinHandle?.fastForward(); }
+      await reelAnimation;
       // A newer spin already took over while this one's animation was
       // running (or being fast-forwarded) — drop this run's result entirely,
       // the newer run owns gameState/credits/UI from here on.

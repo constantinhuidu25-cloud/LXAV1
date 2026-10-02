@@ -32,7 +32,7 @@
     }
   };
 
-  let btn, main, sub, hint, state = 'idle', resultTimer = null, resultInfo = null;
+  let btn, main, sub, hint, state = 'idle', resultTimer = null, resultInfo = null, lastPointerFire = 0;
 
   const lang = () => {
     const l = (document.documentElement.lang || 'de').slice(0, 2).toLowerCase();
@@ -79,6 +79,7 @@
   function clearResultTimer() { if (resultTimer) { clearTimeout(resultTimer); resultTimer = null; } }
 
   const api = {
+    recentPointer() { return performance.now() - lastPointerFire < 900; },
     start() {
       clearResultTimer();
       resultInfo = null;
@@ -124,6 +125,19 @@
     if (!main || !sub || !hint) return;
     [main, sub, hint].forEach(el => el.removeAttribute('data-i'));
     paint();
+
+    // React on touch-down, not on release: start/stop fire the instant the
+    // finger lands. The click that follows from the same touch is dropped by
+    // renderer.js via recentPointer(); keyboard clicks (detail 0) still work.
+    btn.addEventListener('pointerdown', event => {
+      if (event.button !== undefined && event.button !== 0) return;
+      if (btn.disabled) return;
+      lastPointerFire = performance.now();
+      event.preventDefault();
+      btn.classList.add('pressed');
+      if (typeof btn.onclick === 'function') btn.onclick(event);
+    });
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(type => btn.addEventListener(type, () => btn.classList.remove('pressed')));
 
     new MutationObserver(() => { if (state === 'idle') paint(); }).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
     ['bet', 'credits'].forEach(id => {
