@@ -226,6 +226,14 @@ exports.handler = async event => {
     if (action === 'create') { const name = cleanName(input.name); if (name.length < 2) return json({ error: 'Name must contain at least 2 characters.' }, 400); const accounts = await getAccounts(); const nameExists = Object.values(accounts).some(acc => nameKey(acc.name) === nameKey(name)); if (nameExists) return json({ error: 'This name is already in use.' }, 409); const existingIds = Object.values(accounts).map(acc => Number(acc && acc.id)).filter(id => id >= 11); const highestId = Math.max(11, ...existingIds, 10); let id = typeof reserveAccountId === 'function' ? await reserveAccountId(highestId) : highestId + 1; const plainSafeWord = makeSafeWord(); const account = defaults({ id, name, safeWord: hashSafeWord(plainSafeWord), role: 'user', balance: 250, bank: 0, wildLevel: 0, difficulty: 2, difficultyProfileVersion: DIFFICULTY_PROFILE_VERSION, records: [0, 0, 0, 0, 0], jackpotProgress: 0, jackpotFinished: false, stats: {}, history: [], difficultyData: blankDifficulty(), createdAt: Date.now() }); const token = issueSession(account); await save(account); return json({ account: publicAccount(account), safeWord: plainSafeWord, token }); }
     if (action === 'login') {
       let account = null, loginToken = null;
+      // TOKEN-ONLY RESTORE: a device that kept its session token but lost the cached account id (cleared cache, renamed id) can still restore: the token (192 random bits, stored only as a hash) identifies the account on its own.
+      if (input.silent === true && input.token && (input.id === undefined || input.id === null || String(input.id).trim() === '')) {
+        const accounts = await getAccounts(), entry = Object.entries(accounts || {}).find(([, acc]) => acc && tokenMatches(acc, input.token));
+        if (!entry) return json({ error: 'Session expired.' }, 401);
+        account = rememberKey(defaults(entry[1]), entry[0]);
+        await save(account);
+        return json({ account: publicAccount(account) });
+      }
       if (input.id !== undefined && input.id !== null && String(input.id).trim() !== '') {
         account = await read(input.id);
         if (!account) return json({ error: 'ID not found.' }, 404);

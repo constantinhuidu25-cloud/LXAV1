@@ -60,3 +60,18 @@ test('a device that logged in earlier is still logged in after many other logins
   for (let i = 0; i < 12; i++) expect((await t.call('login', { id: t.id, safeWord: t.password })).status).toBe(200);
   expect((await t.call('login', { id: t.id, silent: true, token: t.token1 })).status).toBe(200);
 });
+
+test('a session token alone (no id) restores the right account', async () => {
+  const t = await setup();
+  const restored = await t.call('login', { silent: true, token: t.token1 });
+  expect(restored.status).toBe(200);
+  expect(restored.body.account.id).toBe(t.id);
+});
+
+test('a token-only restore is refused for a wrong token and after logout', async () => {
+  const t = await setup();
+  expect((await t.call('login', { silent: true, token: 'f'.repeat(48) })).status).toBe(401);
+  expect((await t.call('login', { silent: true })).status).toBe(400);   // neither id nor name nor token
+  await t.call('logout', { id: t.id, token: t.token1 });
+  expect((await t.call('login', { silent: true, token: t.token1 })).status).toBe(401);
+});

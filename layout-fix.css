@@ -5760,3 +5760,8 @@ html body:not(#_):not(#__):not(#___):not(#____) .topbar .brand-cluster .brand::b
   background:linear-gradient(160deg,#1b2a78 0%,#2a1a7a 60%,#3a1668 100%);box-shadow:0 10px 30px rgba(0,0,0,.55),0 0 18px rgba(232,44,255,.3)}
 .lxa-update button{min-height:34px;padding:0 12px;border-radius:10px;border:1px solid #ffa6f0;background:linear-gradient(180deg,#ff6bd8,#c21fb0);color:#fff;font:800 12px/1 Consolas,Menlo,monospace;letter-spacing:.5px;text-transform:uppercase;cursor:pointer}
 .lxa-update .lxa-update-x{min-width:34px;padding:0;background:rgba(255,255,255,.08);border-color:rgba(180,160,255,.45);color:#d9ccff;font-size:18px}
+
+/* Password row of the KONTO panel after a silent restore: type the password right there instead of logging out and in again. */
+html body:not(#_):not(#__):not(#___):not(#____) .account-safe-form{display:flex!important;align-items:center!important;gap:6px!important;margin:0!important;min-width:0!important;flex:1 1 auto!important;justify-content:flex-end!important}
+html body:not(#_):not(#__):not(#___):not(#____) .account-safe-form input{width:100%!important;max-width:150px!important;min-width:0!important;height:30px!important;padding:0 8px!important;font:13px Consolas,monospace!important;box-sizing:border-box!important;border-radius:6px!important}
+html body:not(#_):not(#__):not(#___):not(#____) .account-safe-form button{width:auto!important;min-width:40px!important;height:30px!important;min-height:0!important;padding:0 10px!important;margin:0!important;font-size:11px!important}
