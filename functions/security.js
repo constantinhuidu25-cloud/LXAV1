@@ -21,7 +21,7 @@ class RateLimiter {
 
   cleanup() {
     // .unref() so this timer alone never keeps the Node process alive (a
-    // warm Netlify Functions instance stays alive via its own invocation
+    // warm serverless instance stays alive via its own invocation
     // handling regardless; this only matters for short-lived processes like
     // local scripts or `jest`, which would otherwise hang after all tests
     // finish - found while adding idempotency.test.js, the first test file

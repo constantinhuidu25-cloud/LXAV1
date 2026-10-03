@@ -49,6 +49,7 @@ const blankDifficulty = () => Object.fromEntries([1, 2, 3].map(level => [String(
 // LXA_PEPPER must never change once accounts exist (changing it
 // invalidates every stored password).
 const SAFEWORD_PEPPER = process.env.LXA_PEPPER || 'drolly-v137-default-pepper';
+if (!process.env.LXA_PEPPER && process.env.VERCEL_ENV === 'production') console.warn('LXA_PEPPER is not set in this production environment: the built-in default pepper is in use.');
 const SAFEWORD_MAX_FAILS = 5, SAFEWORD_LOCK_MS = 15 * 60 * 1000;
 const hashSafeWord = (plain, salt = crypto.randomBytes(16).toString('hex')) => `sha256$${salt}$${crypto.createHash('sha256').update(`${SAFEWORD_PEPPER}:${salt}:${safeKey(plain)}`).digest('hex')}`;
 const safeWordMatches = (stored, plain) => { const given = safeKey(plain); if (!stored || !given) return false; const text = String(stored); if (!text.startsWith('sha256$')) return safeKey(text) === given; const salt = text.split('$')[1] || '', a = Buffer.from(hashSafeWord(given, salt)), b = Buffer.from(text); return a.length === b.length && crypto.timingSafeEqual(a, b); };
@@ -119,7 +120,7 @@ async function save(account, keepStamp) {
   rememberKey(account, newKey);
 }
 const LEADERBOARD_EXCLUDED_NAMES = new Set(['LXA', 'AXL', 'WOW']);
-async function leaderboard(account) { const level = String(account.difficulty), boardKey = `leaderboard:profile-${DIFFICULTY_PROFILE_VERSION}:${level}`, boards = await getLeaderboard(), board = boards[boardKey] || [], next = board.filter(row => Number(row.id) !== Number(account.id)); if (!LEADERBOARD_EXCLUDED_NAMES.has(String(account.name || '').toUpperCase())) { next.push({ id: account.id, name: account.name, score: number(account.difficultyData[level]?.score), updatedAt: account.updatedAt }); } next.sort((a, b) => number(b.score) - number(a.score) || number(a.updatedAt) - number(b.updatedAt)); boards[boardKey] = next.slice(0, 100); await saveLeaderboard(boards); }
+async function leaderboard(account) { const level = String(account.difficulty), boardKey = `leaderboard:profile-${DIFFICULTY_PROFILE_VERSION}:${level}`, boards = await getLeaderboard({ strict: true }), board = boards[boardKey] || [], next = board.filter(row => Number(row.id) !== Number(account.id)); if (!LEADERBOARD_EXCLUDED_NAMES.has(String(account.name || '').toUpperCase())) { next.push({ id: account.id, name: account.name, score: number(account.difficultyData[level]?.score), updatedAt: account.updatedAt }); } next.sort((a, b) => number(b.score) - number(a.score) || number(a.updatedAt) - number(b.updatedAt)); boards[boardKey] = next.slice(0, 100); await saveLeaderboard(boards); }
 // v148: reads ALL admin-set game settings from Firebase (falls back to
 // game-engine.js's defaults for anything not stored) and applies them to
 // game-engine.js's live state before a spin is resolved - RTP per
@@ -198,7 +199,11 @@ exports.handler = async event => {
     // with silent:true on every page load, so counting those against the
     // limit would log real users out just for reloading the page.
     if (!checkGlobalRateLimit()) return json({ error: 'Server is busy. Please try again in a moment.' }, 429);
-    const clientIp = (event.headers && (event.headers['x-nf-client-connection-ip'] || (event.headers['x-forwarded-for'] || '').split(',')[0].trim())) || 'unknown';
+    // Vercel overwrites x-forwarded-for / x-vercel-forwarded-for / x-real-ip with the real client address. The old Netlify-only
+    // x-nf-client-connection-ip header is NOT set by Vercel, so honouring it let any caller pick their own "IP" and dodge the
+    // per-IP login / account-creation limits.
+    const reqHeaders = event.headers || {};
+    const clientIp = String(reqHeaders['x-vercel-forwarded-for'] || reqHeaders['x-real-ip'] || (reqHeaders['x-forwarded-for'] || '').split(',')[0] || '').trim() || 'unknown';
     const RATE_LIMITED_ACTIONS = { create: 'CREATE_ACCOUNT', spin: 'SPIN', 'buy-wild': 'BUY_WILD' };
     if (RATE_LIMITED_ACTIONS[action]) {
       const rlType = RATE_LIMITED_ACTIONS[action], rlKey = `${rlType}:${action === 'create' ? clientIp : (input.id ?? clientIp)}`;
@@ -349,7 +354,7 @@ exports.handler = async event => {
       const d = difficulty(input.difficulty);
       const result = game.setCustomDistribution(d, input.buckets || {});
       if (result.error) return json({ error: result.error }, 400);
-      const current = (await getRtpSettings()) || {};
+      const current = (await getRtpSettings({ strict: true })) || {};
       const next = { ...current, customDistribution: { ...(current.customDistribution || {}) } };
       next.customDistribution[d] = result.normalized;
       await saveRtpSettings(next);
@@ -360,7 +365,7 @@ exports.handler = async event => {
       const account = await read(input.id); if (!account) return json({ error: 'ID not found.' }, 404);
       if (!isAdminAccount(account)) return json({ error: 'Not authorized.' }, 403);
       { const denied = await checkSafeWord(account, input.safeWord); if (denied) return denied; }
-      const current = (await getRtpSettings()) || {};
+      const current = (await getRtpSettings({ strict: true })) || {};
       const next = { ...current, jackpotFreq: { ...(current.jackpotFreq || {}) } };
       for (const d of [1, 2, 3]) {
         const raw = input[String(d)];
@@ -396,7 +401,7 @@ exports.handler = async event => {
       if (scope === 'all') {
         await saveRtpSettings({});
       } else {
-        const current = (await getRtpSettings()) || {};
+        const current = (await getRtpSettings({ strict: true })) || {};
         const next = { ...current };
         if (scope === 'rtp') { delete next[1]; delete next[2]; delete next[3]; if (next.customDistribution) delete next.customDistribution; }
         else if (scope === 'customDistribution') { const d = difficulty(input.scopeDifficulty); if (next.customDistribution) delete next.customDistribution[d]; }
@@ -406,7 +411,7 @@ exports.handler = async event => {
         await saveRtpSettings(next);
       }
       await applyRtpSettings();
-      return json({ settings: (await getRtpSettings()) || {} });
+      return json({ settings: (await getRtpSettings({ strict: true })) || {} });
     }
     // v149: admin-only, wipes every difficulty's leaderboard entirely
     // (all `leaderboard:profile-*` keys) - same admin gate + safeWord as
@@ -474,7 +479,7 @@ exports.handler = async event => {
       const updated = rememberKey({ ...target, id: newId, name, safeWord, sessionToken }, target.__key);
       await save(updated);
       if (newId !== Number(target.id)) {
-        const boards = await getLeaderboard();
+        const boards = await getLeaderboard({ strict: true });
         let changed = false;
         for (const key of Object.keys(boards)) {
           const board = boards[key]; if (!Array.isArray(board)) continue;
@@ -492,7 +497,7 @@ exports.handler = async event => {
       const target = await read(input.playerId); if (!target) return json({ error: 'Player not found.' }, 404);
       if (Number(target.id) === Number(admin.id)) return json({ error: 'Cannot delete your own account.' }, 400);
       await updateAccount(target.__key || accountKey(target.id, target.name), () => null);
-      const boards = await getLeaderboard();
+      const boards = await getLeaderboard({ strict: true });
       let changed = false;
       for (const key of Object.keys(boards)) {
         const board = boards[key]; if (!Array.isArray(board)) continue;

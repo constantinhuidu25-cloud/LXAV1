@@ -97,7 +97,22 @@ bump on EVERY edit (current: layout-fix 431, renderer 399, game-engine 376, spin
 - `#message` (live status text) is `display:none` in this layout: never rely on it to show errors. Use the SPIN subtitle (`LXASpinButton.fail(text)`) or the account panel notice.
 - Session facts: spin needs only the cached token; RESET/WILD/GELD/update/admin need the real password in memory (asked again after reopening, by design).
 
+## Configuration ownership (verified 2026-10-03)
+- Game numbers: `game-engine.js` defaults are the single source for client AND server; admin values in Firebase `rtpSettings` override them per field (RTP per difficulty, jackpot frequency, WILD chance /
+  per level / cap / cost multiplier / extra-WILD frequency, payout + jackpot-value multipliers); the server applies them before every spin (`applyRtpSettings`), guests mirror them at startup via
+  `get-rtp-settings`. Winner on conflict: Firebase admin value, else engine default. Stake cap = `maxBetForWildLevel` (engine, enforced by engine + server + UI).
+- Secrets / env (names only): FIREBASE_SERVICE_ACCOUNT (server only), FIREBASE_DATABASE_URL (pattern-validated, falls back to the LXAV1 DB URL constant), LXA_PEPPER (fallback default in source; never change
+  once accounts exist). Nothing secret reaches the client; the client never talks to Firebase directly (all through /api/lxa-account).
+- Identity: per-account `sessionToken` (24 random bytes hex, created at account creation or first real login, reused afterwards) + `safeWord` (salted+peppered SHA-256); admin = `role:"admin"` on the account
+  record; per-account password lockout is persisted, IP limits are in memory per instance.
+- Persistence: guest = localStorage `lxa-v107-game-state`; account = Firebase `accounts/"<id> : <name>"` (server authoritative), client cache `lxa-account-cache-v1`, token `lxa-session-token-v1`.
+- Failure rule (2026-10-03): reads that feed auth, id allocation or a whole-node write must FAIL CLOSED (throw), never return {} (`getAccounts`, strict `getLeaderboard`/`getRtpSettings`).
+- Client IP behind Vercel: x-vercel-forwarded-for > x-real-ip > x-forwarded-for[0]; never trust x-nf-* headers.
+- `.vercelignore` keeps tests/docs/dev tools/unreferenced art out of the deployment; files the site needs must never be added to it (check the asset list in CHANGELOG before editing).
+
 ## Testing / tooling (what works here)
+- TRAP: each headless Edge test profile grows to 300-800 MB; 27 of them filled C: to 0 bytes. After a test batch delete the `edgeprof_*` folders in the scratchpad
+  (`cmd /c rd /s /q \\?\<path>` works where Remove-Item fails on long extension paths) and check `Get-PSDrive C`.
 - Jest: 56 tests pass (game-engine, account-keys, idempotency, renderer-money-routing, spin-grid-letters). ESLint: 0 errors, 18 pre-existing warnings.
 - Headless Edge via CDP (scripts live in the session scratchpad, recreate when needed): screenshot at a viewport, `Runtime.evaluate` to click/measure.
   Local server `local-server.js` (PORT patched to 8890 in a wrapper) talks to the PRODUCTION Firebase — only use guest mode for tests.

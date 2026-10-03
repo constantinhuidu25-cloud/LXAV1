@@ -86,6 +86,31 @@ The user's PWA screenshot has NO "MAX ..." line under the stake, so that PWA ins
 step in that screenshot is the OLD background, already fixed in 116ffd8; the user must fully close and reopen the PWA. NOT reproduced: SPIN dead in phone browsers (touch tap works in emulated
 browser/PWA/PC; the browser screenshot shows RUNDE 005, so spins ran) -> asked the user for the exact symptom + browser. NOT verified on a real device.
 
+## 2026-10-03 — Master audit (Vercel readiness / security / data integrity / performance / a11y)
+Scope: user's master prompt (audit -> root cause -> minimal repair -> verify; preserve the LXA design; no deploy). Method: reused the project memory, targeted searches, 63 Jest tests,
+Edge CDP runs (browser tab, real standalone via --app + safe-area override, PC, 11 viewports x 3 languages + 4 live orientation switches).
+REPAIRED
+- DATA INTEGRITY (functions/firebase-storage.js): `getAccounts()` returned {} when the Firebase read failed. Effects: login "ID not found"; `create` computed id = max(11)+1 = 12 and ignored
+  existing names -> duplicate ids (findEntryById then picks an arbitrary node -> a token that matches one node fails on the other = "session expired"). Now it THROWS (HTTP 500 "Server temporarily
+  unavailable", client shows NO CONNECTION / retries the silent restore). `getLeaderboard`/`getRtpSettings` take `{strict:true}`; every read-modify-write caller (leaderboard writer, admin
+  update/delete player, admin RTP saves) uses it, because `saveLeaderboard`/`saveRtpSettings` replace the whole node (a failed read used to be able to wipe all boards / admin settings).
+  Display reads stay forgiving. New tests: storage-failure.test.js (handler + IP), storage-contract.test.js (storage contract, firebase-admin mocked).
+- RATE-LIMIT BYPASS (functions/lxa-account.js): the client IP came from the Netlify-only header x-nf-client-connection-ip, which Vercel does not set -> any caller could pick its own "IP" and dodge
+  the per-IP login (10/h) and account-creation (5/h) limits. Now x-vercel-forwarded-for > x-real-ip > first x-forwarded-for (Vercel overwrites these). Tested.
+- PEPPER: `LXA_PEPPER || 'drolly-v137-default-pepper'` kept (changing it would lock every account out) but a production warning is logged when the env var is missing.
+- VERCEL: `.vercelignore` added (docs-context, scripts, tests, dev tools, readme, unreferenced source art ~14 MB, old unused icons). middleware.js still blocks sensitive root files. Netlify remnants
+  were comments only (security.js, scripts/build.js text fixed; api adapter / middleware / .gitignore comments kept as history). No netlify.toml, no Netlify runtime code.
+- PERFORMANCE: reel letters 6 x ~135 KB -> ~34 KB (palette PNG, visually identical at 320 px), Ko-fi mug GIF 600 px / 533 KB shown at 26-32 px -> 120 px / 126 KB; Android icons (see below).
+- A11Y: `#chance` slider had no accessible name -> aria-labelledby (follows the language). Other controls named; smallest targets (Ko-fi 26 px, leaderboard tabs 24 px high) meet WCAG 2.5.8.
+VERIFIED OK (no change): admin = role:"admin" read from the DB (7 checks, no hardcoded id); every state-changing action needs token or password; set-difficulty token OR password; spin token+bet cap;
+idempotency cache; CSP/HSTS/X-Frame-Options in vercel.json; manifest/installability; sw network-first (no stale lock-in); XSS: names/notice escaped with lxaEsc; no secrets tracked (.env* ignored);
+Firebase anonymous access: read 401, write 401 (probe against the live DB URL; a PUT probe was sent and denied, nothing stored); npm audit --omit=dev: 2 moderate (uuid via gaxios inside firebase-admin,
+not reachable from this code); deployment-check.js: client/server in sync; layout audit 33 viewport x language combinations + 4 orientation switches: 0 findings; header gap 6 px in browser/PWA/PC.
+NOT DONE / LIMITS: `vercel build` (needs an env pull, avoided); rate limiter is per serverless instance (in memory), per-account lockout IS persisted; duplicate-id race on two truly simultaneous
+`create` calls is still possible (very unlikely, 5/h per IP; fix would need an id counter node); Firebase security rules are not in the repo (anonymous access verified closed only by probe);
+real iPhone/Android/Safari/Firefox untested; unreferenced art kept locally (not deleted).
+INCIDENT: C: ran out of disk (0.00 GB) because ~27 throwaway Edge test profiles in the session scratchpad grew to 8.6 GB. Removed (rd /s /q with \\?\ long paths); repo verified (git fsck, node --check, images decode).
+
 ## 2026-10-03 — Android home-screen icon, mission card, visible spin errors (layout-fix.css v=434, renderer.js v=402, spin-button.js v=9, sw cache lxa-v3)
 1) Icon (user screenshot, Android launcher): DROLLY fills its tile (real WebAPK, maskable) while LXA sits on a white tile (launcher-generated shortcut = WebAPK minting did not happen).
    Drollyv3 had the SAME icon set (192, 512, 512-maskable, apple 180, favicons) and the same manifest layout, so "more icon versions" was not the difference. Differences found: LXA icon bytes

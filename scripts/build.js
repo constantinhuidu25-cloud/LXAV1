@@ -105,4 +105,4 @@ if (fs.existsSync(assetsSrc)) {
 
 console.log('\n📦 Build complete!');
 console.log(`📍 Output: ${distDir}`);
-console.log('\n🚀 Ready to deploy to Netlify, GitHub Pages, or any static host.');
+console.log('\n🚀 Ready to deploy to Vercel or any static host.');

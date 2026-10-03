@@ -45,16 +45,19 @@ function initFirebase() {
   }
 }
 
+// FAIL CLOSED: a failed read must never look like an empty database. Returning {} here used to make login answer
+// "ID not found", and made `create` hand out an id that already exists (duplicate ids -> the wrong account answers a
+// token check -> "session expired"). Callers now get an error (HTTP 500 "Server temporarily unavailable").
 async function getAccounts() {
   try {
     initFirebase();
-    if (!db) return {};
+    if (!db) throw new Error('Firebase not initialized');
     const ref = db.ref('accounts');
     const snapshot = await ref.once('value');
     return snapshot.val() || {};
   } catch (error) {
     console.error('getAccounts error:', error.message);
-    return {};
+    throw error;
   }
 }
 
@@ -85,15 +88,18 @@ async function updateAccount(accountKey, mutate) {
   return result.snapshot.val();
 }
 
-async function getLeaderboard() {
+// `strict` is for read-modify-write callers: if the read fails they must stop instead of saving a board built from {}
+// (saveLeaderboard replaces the whole node). Plain display reads keep the old forgiving behaviour.
+async function getLeaderboard({ strict = false } = {}) {
   try {
     initFirebase();
-    if (!db) return {};
+    if (!db) throw new Error('Firebase not initialized');
     const ref = db.ref('leaderboard');
     const snapshot = await ref.once('value');
     return snapshot.val() || {};
   } catch (error) {
     console.error('getLeaderboard error:', error.message);
+    if (strict) throw error;
     return {};
   }
 }
@@ -110,15 +116,17 @@ async function saveLeaderboard(leaderboard) {
   }
 }
 
-async function getRtpSettings() {
+// Same `strict` rule as getLeaderboard: the admin save path merges into this value and replaces the whole node.
+async function getRtpSettings({ strict = false } = {}) {
   try {
     initFirebase();
-    if (!db) return {};
+    if (!db) throw new Error('Firebase not initialized');
     const ref = db.ref('rtpSettings');
     const snapshot = await ref.once('value');
     return snapshot.val() || {};
   } catch (error) {
     console.error('getRtpSettings error:', error.message);
+    if (strict) throw error;
     return {};
   }
 }
