@@ -1,5 +1,5 @@
 const target='LEONXOXANA'.split(''), symbols=[...new Set(target)], rows=5, cell=36, WILD='__BONUS_WILD__';
-const WILD_IMG='<picture><source media="(max-width:700px) and (orientation:portrait)" srcset="assets/wild-tall.webp"><img src="assets/wild-wide.webp" alt="BONUS WILD" decoding="sync"></picture>';
+const WILD_IMG='<picture><source media="(max-width:700px) and (orientation:portrait)" srcset="assets/wild-tall-2x.webp 2x, assets/wild-tall-3x.webp 3x"><img src="assets/wild-wide.webp" alt="BONUS WILD" decoding="sync"></picture>';
 const LXA_LANG_KEY='lxaLang';
 // V219: language selection was never persisted — `lang` always restarted at
 // the hardcoded 'de' default on every page load/reload, even after the user
@@ -756,49 +756,41 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
   // waiting for it. Lets the user click SPIN quickly in succession while each
   // individual spin's letters still visually roll at the slower speed.
   let activeSpinHandle = null, stopRequested = false;
-  // Reels start the instant SPIN is pressed: they roll a looping strip of random
-  // letters at once, and only when the server's result arrives (land) do they switch to
-  // the decelerating final run that stops on the real board. The network wait is hidden
-  // inside the rolling instead of delaying its start.
+  // One single, slow roll per spin: every column starts moving the instant SPIN is pressed
+  // and keeps the same strip running downward until it eases to a stop on the real board.
+  // The cells at the top of the strip (the last ones to come into view) are filled in with
+  // the server's result as soon as it arrives, so there is no second, separate roll.
+  const SPIN_ROLL_MS = 2600, SPIN_FILLER = 22;
   function startReelSpin() {
     const nodes = [...document.querySelectorAll('.reel')];
     const rnd = () => symbols[Math.floor(Math.random() * symbols.length)];
     const cellHtml = value => {
       const isWild = value === game.WILD;
-      return `<span class="${isWild ? 'wild-symbol' : 'letter-' + value}">${isWild ? '${WILD_IMG}' : value}</span>`;
+      return `<span class="${isWild ? 'wild-symbol' : 'letter-' + value}">${isWild ? WILD_IMG : value}</span>`;
     };
-    const t0 = performance.now();
-    const loops = [];
+    const tracks = [], animations = [];
     nodes.forEach(node => {
-      const strip = Array.from({ length: 12 }, rnd);
-      node.innerHTML = `<div class="reel-track rolling">${[...strip, ...strip].map(cellHtml).join('')}</div>`;
+      const strip = Array.from({ length: rows + SPIN_FILLER }, rnd);
+      node.innerHTML = `<div class="reel-track rolling">${strip.map(cellHtml).join('')}</div>`;
       const track = node.firstElementChild;
       const height = track.firstElementChild?.getBoundingClientRect().height || cell;
-      loops.push(track.animate([{ transform: `translateY(-${strip.length * height}px)` }, { transform: 'translateY(0)' }], { duration: strip.length * 48, iterations: Infinity, easing: 'linear' }));
+      const finish = SPIN_FILLER * height;
+      tracks.push(track);
+      animations.push(track.animate([{ transform: `translateY(-${finish}px)` }, { transform: 'translateY(0)' }], { duration: SPIN_ROLL_MS, easing: 'cubic-bezier(.25,.6,.3,1)', fill: 'forwards' }));
     });
-    let landed = false, stopWanted = false, animations = [], timer = null, resolvePromise = null;
-    const finishAll = () => {
-      animations.forEach(anim => { try { anim.finish(); } catch (error) { /* already done */ } });
-      clearTimeout(timer);
-      if (resolvePromise) resolvePromise();
-    };
+    const rolled = Promise.all(animations.map(anim => anim.finished.catch(() => {})));
+    let landed = false, stopWanted = false;
+    const finishAll = () => animations.forEach(anim => { try { anim.finish(); } catch (error) { /* already done */ } });
     const handle = {
       land(grid) {
         landed = true;
-        loops.forEach(loop => { try { loop.cancel(); } catch (error) { /* gone */ } });
-        const duration = Math.max(1000, 2300 - (performance.now() - t0));
-        nodes.forEach((node, column) => {
-          const filler = Array.from({ length: 30 }, rnd);
-          node.innerHTML = `<div class="reel-track rolling">${[...grid.map(row => row[column]), ...filler].map(cellHtml).join('')}</div>`;
-          const track = node.firstElementChild;
-          const height = track.firstElementChild?.getBoundingClientRect().height || cell;
-          const finish = filler.length * height;
-          track.style.transform = `translateY(-${finish}px)`;
-          animations.push(track.animate([{ transform: `translateY(-${finish}px)` }, { transform: 'translateY(0)' }], { duration, easing: 'cubic-bezier(.12,.71,.15,1)', fill: 'forwards' }));
+        tracks.forEach((track, column) => {
+          [...track.children].slice(0, rows).forEach((span, row) => {
+            span.outerHTML = cellHtml(grid[row][column]);
+          });
         });
-        const promise = new Promise(resolve => { resolvePromise = resolve; timer = setTimeout(resolve, duration + 200); });
         if (stopWanted) finishAll();
-        return promise;
+        return rolled;
       },
       // Snaps the reels to rest now; if the result has not arrived yet they snap the moment it does.
       fastForward() {
@@ -806,7 +798,7 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
         finishAll();
       },
       abort() {
-        loops.forEach(loop => { try { loop.cancel(); } catch (error) { /* gone */ } });
+        animations.forEach(anim => { try { anim.cancel(); } catch (error) { /* gone */ } });
         if (!landed) render(gameState.lastSpin?.board || Array.from({ length: rows }, () => target.slice()));
       }
     };
