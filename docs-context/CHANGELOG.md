@@ -3,6 +3,10 @@
 Rewritten from scratch 2026-10-03 (65 commits at that time; the hash is the authoritative detail). Newest first. Format per entry: what the user asked / cause / change / how it was verified / limits.
 "Verified" = measured in headless Edge or Jest unless it says otherwise; nothing here was verified on a real phone.
 
+## 2026-10-03 (latest) - Floating lock + Ko-fi back at the card edge (commit 6dabb86; layout-fix v=461)
+- Owner: "very good, only the gap to the right edge got bigger; before it was about 1 px". Since v25 the floating pair used the header column x (13 / 13 / 23 / 35 px); before that it sat with the lock glyph 1 px inside the right edge of the content cards (lock box 2 / 4 / 17 / 29 px).
+- Now: edge is computed live (card right edge - 1 + glyph gap of the lock emoji box); floating lock right = edge, Ko-fi centred under it (+ cup nudge), 4 px gap. Before the pin the static pair gets 	ranslate: drift (drift = (header column x - edge) * min(1, scrollY / sticky distance)), so the pin / unpin never jumps sideways. At rest the pair stays in the header column.
+- Measured on 4 viewports: floating lock 2 / 4 / 17 / 29 px from the right edge, glyph-to-card distance 0, Ko-fi centre 2.6-3.2 px right of the lock centre (nudge), gap 4 px, max sideways step 1.5-3.6 px per 2 px of scroll, exact return to rest. NOT verified on a real phone. NOT deployed.
 ## 2026-10-03 (latest) - Header slide 5 px later (commit e715a02; layout-fix v=460)
 - Owner asked for 5 more pixels (chose option A: the slide point). SLIDE_LATER = 5 in the inline script of index.html: point = lock top + 0.65 x flag height - 5; the slide-back point moves with it (SLIDE_HYST 4 unchanged).
 - Measured (3 viewports): slide in at scrollY 24-30 (was 18-24); same state for the four ways of arriving at a position; ~5 px less overlap. NOT deployed.
