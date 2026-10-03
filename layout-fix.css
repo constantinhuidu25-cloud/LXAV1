@@ -5064,10 +5064,8 @@ html body:not(#_):not(#__):not(#___) .reel span.wild-symbol::after{display:none!
   }
   html body:not(#_):not(#__):not(#___) .topbar .brand-cluster .brand img{
     top:calc(env(safe-area-inset-top,0px) + var(--lxa-top-gap,0px))!important;height:var(--lxa-logo-h)!important;
-    -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 12%,#000 88%,transparent 100%),linear-gradient(180deg,transparent 0,#000 22%);
-    -webkit-mask-composite:source-in;
-    mask-image:linear-gradient(90deg,transparent 0,#000 12%,#000 88%,transparent 100%),linear-gradient(180deg,transparent 0,#000 22%);
-    mask-composite:intersect;
+    -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 12%,#000 88%,transparent 100%);
+    mask-image:linear-gradient(90deg,transparent 0,#000 12%,#000 88%,transparent 100%);
   }
   html body:not(#_):not(#__):not(#___) .topbar .brand-cluster .brand::before{
     background:
@@ -5076,7 +5074,7 @@ html body:not(#_):not(#__):not(#___) .reel span.wild-symbol::after{display:none!
   }
   html body:not(#_):not(#__):not(#___) .topbar .brand-cluster .brand::after{
     content:"";position:absolute;left:0;right:0;top:0;height:calc(env(safe-area-inset-top,0px) + 6px);z-index:2;pointer-events:none;
-    background:linear-gradient(180deg,rgba(3,8,23,.82) 0%,rgba(3,8,23,.45) 60%,transparent 100%);
+    background:linear-gradient(180deg,rgba(3,8,23,.5) 0%,rgba(3,8,23,.22) 60%,transparent 100%);
   }
   html body:not(#_):not(#__):not(#___) .topbar #headerActions{z-index:7!important}
 }
@@ -5093,10 +5091,8 @@ html body:not(#_):not(#__):not(#___) .reel span.wild-symbol::after{display:none!
   }
   html.lxa-standalone body:not(#_):not(#__):not(#___) .topbar .brand-cluster .brand img{
     top:calc(env(safe-area-inset-top,0px) + var(--lxa-top-gap,0px))!important;height:var(--lxa-logo-h)!important;
-    -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 12%,#000 88%,transparent 100%),linear-gradient(180deg,transparent 0,#000 22%);
-    -webkit-mask-composite:source-in;
-    mask-image:linear-gradient(90deg,transparent 0,#000 12%,#000 88%,transparent 100%),linear-gradient(180deg,transparent 0,#000 22%);
-    mask-composite:intersect;
+    -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 12%,#000 88%,transparent 100%);
+    mask-image:linear-gradient(90deg,transparent 0,#000 12%,#000 88%,transparent 100%);
   }
   html.lxa-standalone body:not(#_):not(#__):not(#___) .topbar .brand-cluster .brand::before{
     background:
@@ -5105,7 +5101,7 @@ html body:not(#_):not(#__):not(#___) .reel span.wild-symbol::after{display:none!
   }
   html.lxa-standalone body:not(#_):not(#__):not(#___) .topbar .brand-cluster .brand::after{
     content:"";position:absolute;left:0;right:0;top:0;height:calc(env(safe-area-inset-top,0px) + 6px);z-index:2;pointer-events:none;
-    background:linear-gradient(180deg,rgba(3,8,23,.82) 0%,rgba(3,8,23,.45) 60%,transparent 100%);
+    background:linear-gradient(180deg,rgba(3,8,23,.5) 0%,rgba(3,8,23,.22) 60%,transparent 100%);
   }
   html.lxa-standalone body:not(#_):not(#__):not(#___) .topbar #headerActions{z-index:7!important}
 
@@ -5709,4 +5705,16 @@ html body:not(#_):not(#__):not(#___):not(#____) #headerActions .kofi-gif{margin:
 html body:not(#_):not(#__):not(#___):not(#____).lock-kofi-floating #scrollLock,html body:not(#_):not(#__):not(#___):not(#____).lock-kofi-floating #headerActions .kofi-gif{z-index:2100!important}
 @media (prefers-reduced-motion:reduce){
   html body:not(#_):not(#__):not(#___):not(#____) #accountButton,html body:not(#_):not(#__):not(#___):not(#____) #headerActions .language{transition:none!important}
+}
+
+
+/* ===== Same "smoke" behind the LXA banner on narrow portrait screens (up to 500px) as on landscape / desktop. Measured above the logo: landscape and desktop have a blue-violet glow
+   (about +35 brightness over the header's far-left edge), portrait only +7, because that glow comes from the page background and the narrow layout moves the
+   logo off the page's glow centre. This radial glow sits behind the logo (same x as the banner image) and gives portrait the same level. ===== */
+@media (max-width:500px){
+  html body:not(#_):not(#__):not(#___):not(#____) .topbar{
+    background-image:radial-gradient(ellipse 210px 26px at var(--lxa-logo-cx,58%) var(--lxa-logo-cy,30px),rgba(205,110,255,.5) 0%,rgba(165,90,255,.26) 45%,rgba(140,80,255,0) 100%),
+      radial-gradient(ellipse 110px 34px at var(--lxa-logo-cx,58%) var(--lxa-logo-cy,30px),rgba(90,120,255,.45) 0%,rgba(90,120,255,0) 100%)!important;
+    background-repeat:no-repeat!important;
+  }
 }
