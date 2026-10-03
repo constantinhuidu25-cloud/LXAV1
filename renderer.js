@@ -1,5 +1,5 @@
 const target='LEONXOXANA'.split(''), symbols=[...new Set(target)], rows=5, cell=36, WILD='__BONUS_WILD__';
-const WILD_IMG='<picture><source media="(max-width:700px) and (orientation:portrait)" srcset="assets/wild-tall.webp"><img src="assets/wild-wide.webp" alt="BONUS WILD" decoding="sync"></picture>';
+const WILD_IMG='<picture><source media="(max-width:700px) and (orientation:portrait)" srcset="assets/wild-tall-2x.webp 2x, assets/wild-tall-3x.webp 3x"><img src="assets/wild-wide.webp" alt="BONUS WILD" decoding="sync"></picture>';
 const LXA_LANG_KEY='lxaLang';
 // V219: language selection was never persisted — `lang` always restarted at
 // the hardcoded 'de' default on every page load/reload, even after the user

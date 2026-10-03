@@ -15,7 +15,8 @@ const ASSETS_TO_CACHE = [
   '/renderer.js',
   '/spin-button.js',
   '/assets/wild-wide.webp',
-  '/assets/wild-tall.webp',
+  '/assets/wild-tall-2x.webp',
+  '/assets/wild-tall-3x.webp',
   '/manifest.webmanifest',
   '/assets/icons/icon-192.png',
   '/assets/icons/icon-512.png'
