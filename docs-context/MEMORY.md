@@ -82,7 +82,7 @@ Rewritten from scratch 2026-10-03. Everything here was checked against the code/
   renderer.js, spin-button.js, sw.js, manifest, middleware.js, api/, functions/, used assets).
 - Cache-bust: bump `?v=NNN` in index.html on EVERY edit of style.css / layout-fix.css / responsive-compact.css / game-engine.js / renderer.js / spin-button.js. `sw.js` is network-first (cache `lxa-v3-cache`,
   the API is never cached), so a new deploy is picked up; an installed iOS PWA can still keep an old page alive for days (close it completely).
-- Anonymous Firebase access (probe against the live DB URL): read 401, write 401. `npm audit --omit=dev`: 2 moderate (uuid via gaxios inside firebase-admin, not reachable from this code).
+- Firebase Realtime Database rules (owner confirmed 2026-10-03, file `database.rules.json`): `.read:false`, `.write:false`: only the server (admin SDK) can touch data. Anonymous access probe: read 401, write 401. `npm audit --omit=dev`: 2 moderate (uuid via gaxios inside firebase-admin, not reachable from this code).
 
 ## 6. UI / CSS system (PERMANENT lessons)
 - `layout-fix.css` (~5200 lines) is patched by appended blocks: `html body:not(#_):not(#__):not(#___)` + `!important`; the later block wins. When "nothing changes", suspect a later equal/higher-specificity

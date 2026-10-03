@@ -3,6 +3,13 @@
 Rewritten from scratch 2026-10-03 (65 commits at that time; the hash is the authoritative detail). Newest first. Format per entry: what the user asked / cause / change / how it was verified / limits.
 "Verified" = measured in headless Edge or Jest unless it says otherwise; nothing here was verified on a real phone.
 
+## 2026-10-03 (latest) — Deployed by the owner; live verified; Firebase rules recorded
+- Owner ran `vercel --prod` (deployment lxa-jap8guh9a-lxa3, alias lxoxa.vercel.app). Read-only checks: HTTP 200 on the alias, live assets game-engine 377 / layout-fix 436 / renderer 406 / spin-button 9 / style 376,
+  Permissions-Policy + Cross-Origin-Opener-Policy present, `get-rtp-settings` answers with the new `computed` figures, `/functions/..`, `/docs-context/..`, tests -> 404, manifest + new icons + sw -> 200.
+- Production RTP settings are now 130 / 110 / 95 in line mode (switch off): totals 142.0 / 120.8 / 102.3 at WILD 0.
+- Firebase Realtime Database rules pasted by the owner: `.read:false`, `.write:false` (matches the earlier anonymous-access probe: 401). Stored as `database.rules.json` (documentation + for the Firebase CLI; not uploaded: `.vercelignore`).
+- NOT verified live: login, restore, AUTO and the admin switch against the real Firebase (needs the owner's credentials - never entered by me).
+
 ## 2026-10-03 (latest) — Connected RTP switch + exact total-RTP model (game-engine v=377, renderer v=406, layout-fix v=436)
 - Owner request: an admin switch "RTP connected with the rest" vs "disconnected", covering the casino spin (WILD, jackpot) and the 3 difficulties.
 - ENGINE: `expectedTotalRtp(difficulty, wildLevel)` = exact long-run return of lines + WILD + jackpot from the real rules (WILD count law with bands and extra-WILD frequency, hypergeometric WILD placement, paytable + WILD cap,

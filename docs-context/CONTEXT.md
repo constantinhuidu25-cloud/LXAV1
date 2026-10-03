@@ -5,12 +5,9 @@ CHANGELOG.md (what changed and why). The same four files are mirrored in the rep
 
 ## 1. Snapshot
 - Project: LXAV1 = LEONXOXANA virtual-credit slot demo (no real money). Folder `C:\Users\leon4\Desktop\LXAV1`, repo github.com/leoxoxana/LXAV1 (remotes `origin` and `leo`, same URL), branch `main`.
-- Code state = commit `c82da19` (65+ commits); newer local commits (`a02275e` and later) are docs-only. Working tree clean. GitHub `origin/main` = `c82da19`: the user pushed everything up to there;
-  only docs-only commits after it can still be unpushed (check `git rev-list --count origin/main..HEAD`).
-  GitHub also has two cloud-made branches: `main-hsvmm0` (1 commit, WILD tag removal; merged locally in `239c766`, safe to delete) and `claude/project-thread-n4n2yo` (2 OLD commits, 31 behind main:
-  old header GIF / lock changes — STALE, do NOT merge, safe to delete).
-- Deploy: the USER deploys (`vercel --prod` from the LXAV1 folder). Last confirmed live build = `116ffd8` (assets layout-fix 431 / renderer 399 / spin-button 7). Everything after it is committed
-  locally but NOT confirmed deployed.
+- Code: local `main` is ahead of GitHub by the commits listed by `git rev-list --count origin/main..HEAD` (the owner pushes with `git push origin main`; check before a cloud hand-off). GitHub also has two OLD cloud-made branches:
+  `main-hsvmm0` (merged locally, safe to delete) and `claude/project-thread-n4n2yo` (stale, do NOT merge, safe to delete).
+- Deploy: the USER deploys (`vercel --prod` from the LXAV1 folder). LIVE (verified by me with read-only requests right after the owner's deploy on 2026-10-03; deployment lxa-jap8guh9a-lxa3, alias https://lxoxa.vercel.app, HTTP 200): game-engine v=377, layout-fix v=436, renderer v=406, spin-button v=9, style v=376 = the code through the connected-RTP commit (login/logout, AUTO bet settle, a11y, RTP switch, atomic ids, new headers). The CLI's 'Deployment Protection' note applies to the unique deployment URL only; the public alias is open. Production `rtpSettings` now holds 130 / 110 / 95 saved by the owner in LINE mode (switch off): totals at WILD 0 = 142.0 / 120.8 / 102.3 (the owner may turn the switch on to make them TOTAL targets). Firebase rules (owner pasted them): `.read:false, .write:false` (kept in `database.rules.json`).
 - Vercel: project lxa3/lxa; domains lxoxa.vercel.app (primary), lxav1.vercel.app, lxa-lxa3.vercel.app. Database: Firebase Realtime DB `lxav1-a5cfd` (europe-west1).
 - Asset versions now in index.html: style.css 376, layout-fix.css 434, responsive-compact.css 374, game-engine.js 376, spin-button.js 9, renderer.js 403. Service worker cache `lxa-v3-cache`.
 - Checks at this commit: Jest 63/63 (7 suites), ESLint 0 errors / 18 warnings (old unused vars), deployment-check.js "client and server in sync", installability errors [].

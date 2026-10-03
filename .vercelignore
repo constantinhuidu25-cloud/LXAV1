@@ -8,6 +8,7 @@ deployment-check.js
 local-server.js
 readme.md
 .eslintrc.json
+database.rules.json
 
 # Unreferenced source art (not linked from HTML/CSS/JS/manifest)
 assets/litere-leonxoxana-transparent.png
