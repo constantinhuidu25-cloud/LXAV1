@@ -34,6 +34,18 @@ Rewritten from scratch 2026-10-03. Everything here was checked against the code/
 - AUTO: repeats rounds (260 ms gap) until STOP, until the balance cannot cover the stake, or until a round fails. Stake buttons stay active during AUTO; the new stake is queued (`queuedBet`) and applied
   to the next round with the same caps. Manual (non-AUTO) spins keep the stake locked while a round runs.
 
+- RTP (measured and exact, 2026-10-03): the admin RTP value is the LINE return (`expectedLineMultiplier`); WILD substitution and the jackpot pay on top. Exact long-run TOTAL return for a player at WILD level L:
+  `game.expectedTotalRtp(difficulty, L)` (closed-form model of the real rules, validated against seeded 300k-spin simulations with CHAINED state - jackpot progress carried between spins - within 1 standard error:
+  difficulty 1/2/3 at WILD 0 = 163.2% / 136.7% / 107.6% with the shipped 150/125/100 targets; at WILD 25 difficulty 2 = 151.3%). Earlier figures quoted in chat (162/135/107) came from fresh-state simulations that
+  under-count the jackpot cycle by ~1-1.6 points. Production `rtpSettings` was EMPTY on 2026-10-03 (defaults 150/125/100 are what runs).
+  CONNECTED RTP (new admin switch, default OFF = today's behaviour): `rtpLinked: true` makes the admin value the TOTAL return (lines + WILD + jackpot) at `rtpRefLevel` (default WILD 0); `setDifficultyTotalRtp` solves
+  the line target by bisection (admin 130/110/95 total -> line targets 118.6 / 99.8 / 87.9; totals 129.9 / 110.0 / 95.1; solving 3 difficulties = ~17 ms). Higher WILD levels still pay more (the same targets give
+  144.0% / 121.1% / 105.8% at WILD 50) - WILD upgrades stay valuable. A custom win-chance table keeps precedence (that difficulty is skipped). An unreachable total is clamped and reported (`clamped`).
+  `game.applyAdminSettings(settings)` is the ONE function that turns stored admin settings into engine state (fixed order, deterministic, payout multiplier reset first, connected solve last): the server runs it before
+  every spin / settings read, the browser runs it for the guest mirror (this also fixed guests silently ignoring the jackpot-frequency and payout/jackpot multipliers). The admin panel shows line / total / WILD 0 / WILD 50 figures.
+  KNOWN LIMIT (not changed): `resolveSpin` rounds every line payout to whole units (`cents()`), so at small stakes the real RTP is HIGHER than the model: stake 5 = 181.6% / 156.5% / 129.5%, stake 50 = 164.0 / 137.6 / 108.8,
+  stake >= 1000 = the model (163.2 / 136.7 / 107.7). The connected target is exact for stakes of about 50 and above.
+
 ## 4. Accounts, server, configuration ownership
 - Files: `api/lxa-account.js` (Vercel adapter) -> `functions/lxa-account.js` (all actions) + `functions/firebase-storage.js` (firebase-admin Realtime DB) + `functions/security.js` (limits, idempotency).
   `middleware.js` (Edge) 404s sensitive root files. The client never talks to Firebase directly.
@@ -58,7 +70,7 @@ Rewritten from scratch 2026-10-03. Everything here was checked against the code/
   whole-node save could wipe boards/settings. Display reads stay forgiving.
 - Client IP behind Vercel: x-vercel-forwarded-for > x-real-ip > x-forwarded-for[0]. NEVER trust x-nf-* (Netlify-only; spoofable on Vercel).
 - Game numbers: `game-engine.js` defaults; admin values in Firebase `rtpSettings` override them per field (RTP per difficulty, jackpot frequency, WILD chance / per level / cap / cost multiplier / extra-WILD
-  frequency, payout + jackpot-value multipliers); the server applies them before every spin (`applyRtpSettings`); guests mirror them at startup via `get-rtp-settings`. Conflict winner = Firebase value, else default.
+  frequency, payout + jackpot-value multipliers); `game.applyAdminSettings` applies them (server before every spin / settings read; browser guest mirror at startup via `get-rtp-settings`). Conflict winner = Firebase value, else default.
 - Persistence: guest = localStorage `lxa-v107-game-state`; account = Firebase (server authoritative), cache `lxa-account-cache-v1`, token `lxa-session-token-v1`, the typed password only in memory.
   `lxaRestoreSession` shows the cached account when the server is unreachable; an invalid token used to look "logged in" while spins failed (now the spin error says so and opens the login panel).
 - Production Firebase holds test accounts (zzprobe*, lxatest*, lxaspd*, ids 14-19): the user deletes them. Old `rtpSettings`/accounts were not migrated from the previous project (`settings:{}` = code defaults).

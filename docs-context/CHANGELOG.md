@@ -3,6 +3,22 @@
 Rewritten from scratch 2026-10-03 (65 commits at that time; the hash is the authoritative detail). Newest first. Format per entry: what the user asked / cause / change / how it was verified / limits.
 "Verified" = measured in headless Edge or Jest unless it says otherwise; nothing here was verified on a real phone.
 
+## 2026-10-03 (latest) — Connected RTP switch + exact total-RTP model (game-engine v=377, renderer v=406, layout-fix v=436)
+- Owner request: an admin switch "RTP connected with the rest" vs "disconnected", covering the casino spin (WILD, jackpot) and the 3 difficulties.
+- ENGINE: `expectedTotalRtp(difficulty, wildLevel)` = exact long-run return of lines + WILD + jackpot from the real rules (WILD count law with bands and extra-WILD frequency, hypergeometric WILD placement, paytable + WILD cap,
+  jackpot cycle by inclusion-exclusion over WILD-free open lines and the 5-tier cycle). Validated against seeded 300k-spin CHAINED simulations: diff 0.13 / 0.10 / 0.04 / 0.01 points (<= 0.8 SE). `setDifficultyTotalRtp`
+  (bisection, 48 steps, ~17 ms for three difficulties), `computeDistribution` (pure helper extracted from `recomputeDistribution`), `applyAdminSettings` (single deterministic application order; fixes the old order dependence
+  where a warm server instance calibrated line targets against a previous request's payout multiplier).
+- SERVER: `applyRtpSettings` now just reads the settings and calls `game.applyAdminSettings`; `set-rtp-settings` accepts `rtpLinked` + `rtpRefLevel` (0-50, validated); `get-rtp-settings` / save responses carry `computed`
+  (line, total at the reference level, total at WILD 0 and 50); the RTP reset scope clears the switch.
+- CLIENT: admin RTP panel gets the switch, the reference WILD level field and the computed lines (de/ro/en: rtpHintLinked, rtpLinkLabel, rtpRefLabel, rtpLines, rtpTotal); the guest mirror calls `applyAdminSettings` (guests now also
+  get jackpot frequency and the payout / jackpot multipliers, which were silently ignored before).
+- TESTS: Jest 89/89 (rtp-linked.test.js: model vs simulation incl. a stress mix, solver, clamp, custom precedence, determinism; rtp-linked-server.test.js). End-to-end (real Edge -> real handler): 9/9 (panel opens, switch/ref/values,
+  computed lines equal the targets, de/ro/en labels, switch OFF saves and changes the meaning, no script errors after the mirror).
+- CORRECTION of my earlier chat numbers: fresh-state simulations under-counted the jackpot cycle; true totals at the shipped targets are 163.2 / 136.7 / 107.6 (not 162 / 135 / 107).
+- FINDING (game math, NOT changed): integer rounding of line payouts makes the stake-5 RTP 181.6 / 156.5 / 129.5% (see MEMORY).
+- NOT VERIFIED: the live deployment, real Firebase persistence of the new fields, real-phone rendering of the new panel rows.
+
 ## 2026-10-03 (latest) — DEEP audit round 3 (remaining checks, EMULATED, usage window had reset) + accessibility fixes (layout-fix v=435, renderer v=405)
 - First load (cache off, CPU x4 slower): 1738 KB in 26 requests (stylesheet 440, images 1033, script 184, fonts 22); LCP 484 ms, CLS 0.000, total blocking time 348 ms. Top: layout-fix.css 386 KB (uncompressed here; the host
   compresses), lxa-header.webp 326 KB, kofi-support-me-2.gif 313 KB, renderer.js 136 KB, kofi-rainbow-mug.gif 123 KB. Under the 2 MB budget.
