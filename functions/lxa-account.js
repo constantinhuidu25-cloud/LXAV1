@@ -70,7 +70,7 @@ async function checkSafeWord(account, plain) {
   if (!String(account.safeWord).startsWith('sha256$')) account.safeWord = hashSafeWord(plain);
   return null;
 }
-const publicAccount = account => { if (!account) return null; const { safeWord, sessionToken, ...safe } = account; return safe; };
+const publicAccount = account => { if (!account) return null; const { safeWord, sessionToken, sessions, ...safe } = account; return safe; };
 // v151: per-device "remember me" credential, separate from the real
 // password. Issued at account creation and on every real (password-based)
 // login/password change; the client caches it locally and sends it back to
@@ -78,7 +78,18 @@ const publicAccount = account => { if (!account) return null; const { safeWord, 
 // device that never proved the real password never gets one, so guessing an
 // id alone no longer grants read or spin access to someone else's account.
 const makeSessionToken = () => crypto.randomBytes(24).toString('hex');
-const tokenMatches = (account, given) => { const stored = String(account?.sessionToken || ''), token = String(given || ''); if (!stored || !token) return false; const a = Buffer.from(stored), b = Buffer.from(token); return a.length === b.length && crypto.timingSafeEqual(a, b); };
+const hashToken = token => crypto.createHash('sha256').update(String(token)).digest('hex');
+const sameText = (x, y) => { const a = Buffer.from(String(x)), b = Buffer.from(String(y)); return a.length === b.length && crypto.timingSafeEqual(a, b); };
+const MAX_SESSIONS = 8;
+// SESSIONS: one entry per device ({h: sha256(token), at}); the plain token only exists on that device, so one logout (or a password
+// change) can revoke exactly what it should. The legacy single `sessionToken` field is still honoured until a logout / password change.
+const tokenMatches = (account, given) => { const token = String(given || ''); if (!token) return false; const h = hashToken(token); if ((account && Array.isArray(account.sessions) ? account.sessions : []).some(x => x && x.h && sameText(x.h, h))) return true; const legacy = String((account && account.sessionToken) || ''); return Boolean(legacy) && sameText(legacy, token); };
+const issueSession = account => { const token = makeSessionToken(); account.sessions = [{ h: hashToken(token), at: Date.now() }, ...(Array.isArray(account.sessions) ? account.sessions : [])].slice(0, MAX_SESSIONS); return token; };
+const revokeSession = (account, given) => { const h = hashToken(given || ''); account.sessions = (Array.isArray(account.sessions) ? account.sessions : []).filter(x => !(x && x.h && sameText(x.h, h))); if (account.sessionToken && sameText(account.sessionToken, String(given || ''))) delete account.sessionToken; };
+const revokeAllSessions = account => { account.sessions = []; delete account.sessionToken; };
+// A valid session token (issued only after a REAL password login) is enough for normal play actions, so closing the browser is not a logout.
+// Changing the password and the admin tools still demand the password itself.
+const authorize = async (account, input) => (tokenMatches(account, input.token) ? null : checkSafeWord(account, input.safeWord));
 const defaults = account => {
   const needsOriginalScaleMigration = number(account.difficultyProfileVersion, 1) < 2;
   account.balance = money(account.balance ?? 250); account.bank = money(account.bank ?? 0); account.wildLevel = Math.max(0, Math.min(MAX_WILD_LEVEL, Math.floor(number(account.wildLevel ?? account.wildInventory)))); account.wildInventory = account.wildLevel; account.difficulty = needsOriginalScaleMigration ? ({ 1: 2, 2: 3, 3: 3 }[difficulty(account.difficulty ?? 2)] || 2) : difficulty(account.difficulty ?? 2); account.difficultyProfileVersion = DIFFICULTY_PROFILE_VERSION;
@@ -211,9 +222,9 @@ exports.handler = async event => {
     } else if (action === 'login' && input.silent !== true) {
       if (!checkRateLimit('LOGIN_ATTEMPT', `LOGIN_ATTEMPT:${clientIp}`)) return json({ error: 'Too many login attempts. Please try again later.' }, 429);
     }
-    if (action === 'create') { const name = cleanName(input.name); if (name.length < 2) return json({ error: 'Name must contain at least 2 characters.' }, 400); const accounts = await getAccounts(); const nameExists = Object.values(accounts).some(acc => nameKey(acc.name) === nameKey(name)); if (nameExists) return json({ error: 'This name is already in use.' }, 409); const existingIds = Object.values(accounts).map(acc => Number(acc && acc.id)).filter(id => id >= 11); const highestId = Math.max(11, ...existingIds, 10); let id = typeof reserveAccountId === 'function' ? await reserveAccountId(highestId) : highestId + 1; const plainSafeWord = makeSafeWord(), token = makeSessionToken(); const account = defaults({ id, name, safeWord: hashSafeWord(plainSafeWord), sessionToken: token, role: 'user', balance: 250, bank: 0, wildLevel: 0, difficulty: 2, difficultyProfileVersion: DIFFICULTY_PROFILE_VERSION, records: [0, 0, 0, 0, 0], jackpotProgress: 0, jackpotFinished: false, stats: {}, history: [], difficultyData: blankDifficulty(), createdAt: Date.now() }); await save(account); return json({ account: publicAccount(account), safeWord: plainSafeWord, token }); }
+    if (action === 'create') { const name = cleanName(input.name); if (name.length < 2) return json({ error: 'Name must contain at least 2 characters.' }, 400); const accounts = await getAccounts(); const nameExists = Object.values(accounts).some(acc => nameKey(acc.name) === nameKey(name)); if (nameExists) return json({ error: 'This name is already in use.' }, 409); const existingIds = Object.values(accounts).map(acc => Number(acc && acc.id)).filter(id => id >= 11); const highestId = Math.max(11, ...existingIds, 10); let id = typeof reserveAccountId === 'function' ? await reserveAccountId(highestId) : highestId + 1; const plainSafeWord = makeSafeWord(); const account = defaults({ id, name, safeWord: hashSafeWord(plainSafeWord), role: 'user', balance: 250, bank: 0, wildLevel: 0, difficulty: 2, difficultyProfileVersion: DIFFICULTY_PROFILE_VERSION, records: [0, 0, 0, 0, 0], jackpotProgress: 0, jackpotFinished: false, stats: {}, history: [], difficultyData: blankDifficulty(), createdAt: Date.now() }); const token = issueSession(account); await save(account); return json({ account: publicAccount(account), safeWord: plainSafeWord, token }); }
     if (action === 'login') {
-      let account = null;
+      let account = null, loginToken = null;
       if (input.id !== undefined && input.id !== null && String(input.id).trim() !== '') {
         account = await read(input.id);
         if (!account) return json({ error: 'ID not found.' }, 404);
@@ -231,21 +242,11 @@ exports.handler = async event => {
           await save(account);
           return json({ account: publicAccount(account) });
         }
-        // v158 (user request): ID+Name (no password) is now a third valid
-        // login combination - any 2 of {id, name, password} works. Accepted
-        // residual risk: ids are small sequential integers (never displayed
-        // anywhere, but guessable within a narrow range) and names ARE
-        // shown on the leaderboard, so this is weaker than a real password -
-        // but the existing LOGIN_ATTEMPT rate limit (10/hour per IP, see
-        // above) already bounds how many ids an attacker can try per hour,
-        // and this demo has no real money at stake. Falls through to the
-        // normal password check if the provided name doesn't match this
-        // id's account (or no name was provided at all).
-        const idNameMatch = input.name !== undefined && String(input.name).trim() !== '' && nameKey(account.name) === nameKey(input.name);
-        if (!idNameMatch) {
-          const denied = await checkSafeWord(account, input.safeWord); if (denied) return denied;
-        }
-        if (!account.sessionToken) account.sessionToken = makeSessionToken();
+        // ID and name are identifiers, never proof of identity: a real login always needs the password. (The old "any 2 of 3: ID + name"
+        // path gave a full session token to anyone who knew a public leaderboard name and a small id.) Forgotten password: admin edit in
+        // PLAYERS, or a plain-text safeWord set by the owner in the database console (it is hashed at the next login).
+        { const denied = await checkSafeWord(account, input.safeWord); if (denied) return denied; }
+        loginToken = issueSession(account);
         await save(account);
       } else if (input.name !== undefined && String(input.name).trim() !== '') {
         const accounts = await getAccounts();
@@ -254,12 +255,12 @@ exports.handler = async event => {
         account = defaults(account);
         const denied = await checkSafeWord(account, input.safeWord);
         if (denied) return denied.statusCode === 429 ? denied : json({ error: 'Name or password is incorrect.' }, 401);
-        if (!account.sessionToken) account.sessionToken = makeSessionToken();
+        loginToken = issueSession(account);
         await save(account);
       } else {
         return json({ error: 'ID or name required.' }, 400);
       }
-      return json({ account: publicAccount(account), token: account.sessionToken });
+      return json({ account: publicAccount(account), token: loginToken });
     }
     // v151: self-service "recover with id+name, no password" was removed.
     // It was exactly as strong as a full login (it handed back a brand-new
@@ -271,17 +272,19 @@ exports.handler = async event => {
     // beyond what id+name alone already gave away. A genuinely forgotten
     // password now has to go through the site admin (Admin Panel > PLAYERS
     // > edit), who resets it manually after confirming identity out of band.
-    if (action === 'update') { const account = await read(input.id); if (!account) return json({ error: 'ID not found.' }, 404); { const denied = await checkSafeWord(account, input.safeWord); if (denied) return denied; } const next = input.name === undefined ? account.name : cleanName(input.name); if (next.length < 2) return json({ error: 'Name must contain at least 2 characters.' }, 400); if (nameKey(next) !== nameKey(account.name)) { const accounts = await getAccounts(); const nameExists = Object.values(accounts).some(acc => acc.id !== account.id && nameKey(acc.name) === nameKey(next)); if (nameExists) return json({ error: 'This name is already in use.' }, 409); } account.name = next; if (input.newSafeWord !== undefined && String(input.newSafeWord).trim()) { account.safeWord = hashSafeWord(String(input.newSafeWord).trim().slice(0, 40)); account.sessionToken = makeSessionToken(); } await save(account); return json({ account: publicAccount(account), token: account.sessionToken }); }
+    if (action === 'update') { const account = await read(input.id); if (!account) return json({ error: 'ID not found.' }, 404); { const denied = await checkSafeWord(account, input.safeWord); if (denied) return denied; } const next = input.name === undefined ? account.name : cleanName(input.name); if (next.length < 2) return json({ error: 'Name must contain at least 2 characters.' }, 400); if (nameKey(next) !== nameKey(account.name)) { const accounts = await getAccounts(); const nameExists = Object.values(accounts).some(acc => acc.id !== account.id && nameKey(acc.name) === nameKey(next)); if (nameExists) return json({ error: 'This name is already in use.' }, 409); } account.name = next; let updateToken = input.token; if (input.newSafeWord !== undefined && String(input.newSafeWord).trim()) { account.safeWord = hashSafeWord(String(input.newSafeWord).trim().slice(0, 40)); revokeAllSessions(account); updateToken = issueSession(account); } await save(account); return json({ account: publicAccount(account), token: updateToken }); }
     // v159 SECURITY FIX: this was the only mutating action with no auth check
     // at all - anyone who knew (or guessed, ids are small sequential ints)
     // an account's id could change ITS difficulty with no token and no
     // password. Gated the same way 'spin' already is: the device's session
     // token first (so the normal in-game difficulty picker keeps working
     // silently), falling back to the real password for callers without one.
+    if (action === 'logout') { const account = await read(input.id); if (account && tokenMatches(account, input.token)) { revokeSession(account, input.token); await save(account, true); } return json({ ok: true }); }
     if (action === 'set-difficulty') { const account = await read(input.id); if (!account) return json({ error: 'ID not found.' }, 404); if (!tokenMatches(account, input.token)) { const denied = await checkSafeWord(account, input.safeWord); if (denied) return denied; } account.difficulty = difficulty(input.difficulty); await save(account); return json({ account: publicAccount(account) }); }
-    if (action === 'deposit') { const account = await read(input.id); if (!account) return json({ error: 'ID not found.' }, 404); { const denied = await checkSafeWord(account, input.safeWord); if (denied) return denied; } const idemKey = input.requestId ? `deposit:${account.id}:${input.requestId}` : null; if (idemKey) { const cached = idempotencyCache.get(idemKey); if (cached) return json(cached); } const amount = money(input.amount); if (!Number.isFinite(amount) || amount <= 0 || amount > account.balance) return json({ error: 'Invalid amount or insufficient GUTHABEN.' }, 400); account.balance = money(account.balance - amount); account.bank = money(account.bank + amount); await save(account); const depositResponseBody = { account: publicAccount(account) }; if (idemKey) idempotencyCache.set(idemKey, depositResponseBody); return json(depositResponseBody); }
+    if (action === 'deposit') { const account = await read(input.id); if (!account) return json({ error: 'ID not found.' }, 404); { const denied = await authorize(account, input); if (denied) return denied; } const idemKey = input.requestId ? `deposit:${account.id}:${input.requestId}` : null; if (idemKey) { const cached = idempotencyCache.get(idemKey); if (cached) return json(cached); } const amount = money(input.amount); if (!Number.isFinite(amount) || amount <= 0 || amount > account.balance) return json({ error: 'Invalid amount or insufficient GUTHABEN.' }, 400); account.balance = money(account.balance - amount); account.bank = money(account.bank + amount); await save(account); const depositResponseBody = { account: publicAccount(account) }; if (idemKey) idempotencyCache.set(idemKey, depositResponseBody); return json(depositResponseBody); }
     if (action === 'reset-geld') {
       const account = await read(input.id); if (!account) return json({ error: 'ID not found.' }, 404);
+      { const denied = await authorize(account, input); if (denied) return denied; }
       if (account.balance > RESET_LIMIT) return json({ error: 'GELD ist verfügbar, wenn GUTHABEN höchstens 25.000 € beträgt.' }, 400);
       if (GELD_LIMITS.enabled) {
         const now = Date.now(), dayMs = 24 * 60 * 60 * 1000, cooldownMs = GELD_LIMITS.cooldownHours * 60 * 60 * 1000;
@@ -293,8 +296,8 @@ exports.handler = async event => {
       }
       account.balance = RESET_AMOUNT; await save(account); return json({ account: publicAccount(account) });
     }
-    if (action === 'reset-new-game') { const account = await read(input.id); if (!account) return json({ error: 'ID not found.' }, 404); { const denied = await checkSafeWord(account, input.safeWord); if (denied) return denied; } account.balance = 250; account.bank = 0; account.wildLevel = 0; account.wildInventory = 0; account.difficulty = 2; account.records = [0, 0, 0, 0, 0]; account.jackpotProgress = 0; account.completedLines = [false, false, false, false, false]; account.jackpotFinished = false; account.lastWin = 0; account.stats = { spins: 0, wins: 0, totalWon: 0 }; account.history = []; account.difficultyData = blankDifficulty(); await save(account); return json({ account: publicAccount(account) }); }
-    if (action === 'buy-wild') { const account = await read(input.id); if (!account) return json({ error: 'ID not found.' }, 404); { const denied = await checkSafeWord(account, input.safeWord); if (denied) return denied; } const idemKey = input.requestId ? `buy-wild:${account.id}:${input.requestId}` : null; if (idemKey) { const cached = idempotencyCache.get(idemKey); if (cached) return json(cached); } if (account.wildLevel >= MAX_WILD_LEVEL) return json({ error: 'MAX WILD LEVEL' }, 409); const cost = game.wildUpgradeCost(account.wildLevel), fromBank = Math.min(number(account.bank), cost), fromBalance = cost - fromBank; if (number(account.balance) < fromBalance) return json({ error: 'BANK + GUTHABEN contains insufficient funds.' }, 400); account.bank = money(number(account.bank) - fromBank); account.balance = money(number(account.balance) - fromBalance); account.wildLevel++; account.wildInventory = account.wildLevel; await save(account); const wildResponseBody = { account: publicAccount(account), cost }; if (idemKey) idempotencyCache.set(idemKey, wildResponseBody); return json(wildResponseBody); }
+    if (action === 'reset-new-game') { const account = await read(input.id); if (!account) return json({ error: 'ID not found.' }, 404); { const denied = await authorize(account, input); if (denied) return denied; } account.balance = 250; account.bank = 0; account.wildLevel = 0; account.wildInventory = 0; account.difficulty = 2; account.records = [0, 0, 0, 0, 0]; account.jackpotProgress = 0; account.completedLines = [false, false, false, false, false]; account.jackpotFinished = false; account.lastWin = 0; account.stats = { spins: 0, wins: 0, totalWon: 0 }; account.history = []; account.difficultyData = blankDifficulty(); await save(account); return json({ account: publicAccount(account) }); }
+    if (action === 'buy-wild') { const account = await read(input.id); if (!account) return json({ error: 'ID not found.' }, 404); { const denied = await authorize(account, input); if (denied) return denied; } const idemKey = input.requestId ? `buy-wild:${account.id}:${input.requestId}` : null; if (idemKey) { const cached = idempotencyCache.get(idemKey); if (cached) return json(cached); } if (account.wildLevel >= MAX_WILD_LEVEL) return json({ error: 'MAX WILD LEVEL' }, 409); const cost = game.wildUpgradeCost(account.wildLevel), fromBank = Math.min(number(account.bank), cost), fromBalance = cost - fromBank; if (number(account.balance) < fromBalance) return json({ error: 'BANK + GUTHABEN contains insufficient funds.' }, 400); account.bank = money(number(account.bank) - fromBank); account.balance = money(number(account.balance) - fromBalance); account.wildLevel++; account.wildInventory = account.wildLevel; await save(account); const wildResponseBody = { account: publicAccount(account), cost }; if (idemKey) idempotencyCache.set(idemKey, wildResponseBody); return json(wildResponseBody); }
     if (action === 'spin') { const account = await read(input.id); if (!account) return json({ error: 'ID not found.' }, 404); if (!tokenMatches(account, input.token)) { const denied = await checkSafeWord(account, input.safeWord); if (denied) return denied; } const idemKey = input.requestId ? `spin:${account.id}:${input.requestId}` : null; if (idemKey) { const cached = idempotencyCache.get(idemKey); if (cached) return json(cached); } const bet = money(input.bet); if (!validateBet(bet, account.balance)) return json({ error: 'Invalid bet or insufficient GUTHABEN.' }, 400); const level = difficulty(input.difficulty || account.difficulty); account.difficulty = level; await applyRtpSettings(); if (bet > game.maxBetForWildLevel(account.wildLevel)) return json({ error: 'Bet exceeds the maximum for your WILD level.' }, 400); const baseResults = Array.from({ length: 5 }, () => game.selectLineResult(level)), wild = applyWild(baseResults, account.wildLevel), results = wild.results, lineStake = money(bet / 5), linePayouts = wild.paytableResults.map(hits => money(lineStake * (game.PAYTABLE[hits] || 0))), normalPayout = money(linePayouts.reduce((sum, value) => sum + value, 0)), beforeProgress = account.jackpotProgress, completedBefore = Array.from({ length: 5 }, (_, index) => Boolean(account.completedLines[index])), jackpotLine = results.findIndex((hits, line) => hits === 10 && !completedBefore[line] && !wild.wildAssistedTen[line] && !wild.lineHasWild[line]), jackpotAwards = jackpotLine < 0 ? [] : [{ line: jackpotLine, tierIndex: beforeProgress, amount: money(game.JACKPOT_TIER_MULTIPLIERS[beforeProgress] * bet) }], jackpotPayout = money(jackpotAwards.reduce((sum, award) => sum + award.amount, 0)), completedAfter = completedBefore.slice(), cycleComplete = jackpotLine >= 0 && (completedAfter[jackpotLine] = true, completedAfter.every(Boolean)), progressAfter = completedAfter.filter(Boolean).length, persistedCompletedLines = cycleComplete ? [false, false, false, false, false] : completedAfter, gross = money(normalPayout + jackpotPayout); account.balance = money(account.balance - bet + gross); account.jackpotProgress = cycleComplete ? 0 : progressAfter; account.completedLines = persistedCompletedLines; account.jackpotFinished = false; account.records = cycleComplete ? [0, 0, 0, 0, 0] : account.records.map((record, index) => wild.lineHasWild[index] ? record : Math.max(record, results[index])); account.lastWin = gross; account.stats.spins++; account.stats.wins += gross > 0 ? 1 : 0; account.stats.totalWon = money(account.stats.totalWon + gross); const levelKey = String(level), stats = account.difficultyData[levelKey] || { score: 0, spins: 0, wins: 0 }; account.difficultyData[levelKey] = { score: money(number(stats.score) + gross - bet), spins: number(stats.spins) + 1, wins: number(stats.wins) + (gross > 0 ? 1 : 0), lastPlayed: Date.now() }; const spin = { id: `account-${account.id}-${Date.now()}`, timestamp: new Date().toISOString(), difficulty: level, totalStake: bet, lineStake, baseResults, finalResults: results, linePayouts, normalPayout, wild: { appeared: wild.wilds.length > 0, positions: wild.wilds, naturalCount: wild.naturalCount, levelCount: wild.levelCount, totalCount: wild.totalCount }, wildLevel: account.wildLevel, wildChance: wild.chance, jackpotProgressBefore: beforeProgress, jackpotProgressAfter: account.jackpotProgress, jackpotAwards, jackpotPayout, jackpotCycleCompleted: cycleComplete, totalPayout: gross, netResult: money(gross - bet) }; account.history = [spin, ...account.history].slice(0, 20); await save(account); await leaderboard(account); const spinResponseBody = { account: publicAccount(account), grid: makeGrid(results, wild.wilds), results, wilds: wild.wilds, details: results.map((hits, line) => ({ line, hits, mult: game.PAYTABLE[hits] || 0, amount: linePayouts[line] })), bonus: 0, missionBonus: jackpotPayout, seriesBonus: 0, gross, bet, spin }; if (idemKey) idempotencyCache.set(idemKey, spinResponseBody); return json(spinResponseBody); }
     // v143/v148: admin-only game-settings panel (RTP per difficulty, jackpot
     // frequency per difficulty, wild chance/per-level/cap, payout and
@@ -464,19 +467,19 @@ exports.handler = async event => {
         if (Object.values(accounts).some(acc => Number(acc.id) !== Number(target.id) && nameKey(acc.name) === nameKey(nextName))) return json({ error: 'This name is already in use.' }, 409);
         name = nextName;
       }
-      let safeWord = target.safeWord, sessionToken = target.sessionToken;
+      let safeWord = target.safeWord, sessionToken = target.sessionToken, sessions = target.sessions;
       // Rotating the token together with an admin-set password invalidates
       // any device that silently restored/span using the OLD password's
       // token - the same "kill old sessions on password change" behavior as
       // a player resetting their own password via account settings.
-      if (input.newSafeWord !== undefined && String(input.newSafeWord).trim()) { safeWord = hashSafeWord(String(input.newSafeWord).trim().slice(0, 40)); sessionToken = makeSessionToken(); }
+      if (input.newSafeWord !== undefined && String(input.newSafeWord).trim()) { safeWord = hashSafeWord(String(input.newSafeWord).trim().slice(0, 40)); sessionToken = undefined; sessions = []; }
       let newId = Number(target.id);
       if (input.newId !== undefined && String(input.newId).trim() !== '' && Number(input.newId) !== Number(target.id)) {
         newId = Math.floor(Number(input.newId));
         if (!Number.isFinite(newId) || newId <= 0) return json({ error: 'Invalid new ID.' }, 400);
         if (findEntryById(accounts, newId)) return json({ error: 'This ID is already in use.' }, 409);
       }
-      const updated = rememberKey({ ...target, id: newId, name, safeWord, sessionToken }, target.__key);
+      const updated = rememberKey({ ...target, id: newId, name, safeWord, sessionToken, sessions }, target.__key);
       await save(updated);
       if (newId !== Number(target.id)) {
         const boards = await getLeaderboard({ strict: true });
