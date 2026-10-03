@@ -44,8 +44,7 @@ CHANGELOG.md (what changed and why). The same four files are mirrored in the rep
 - Never verified on real hardware: iPhone, Android, Safari, Firefox, installed PWA on a phone, `@property` ring on iOS < 16.4.
 
 ## 4. Next steps (only when the user asks)
-0. After the usage window resets: run the rest of the DEEP audit (UNIVERSAL_PROMPT.md, TASK=AUDIT, MODE=DEEP, SCOPE=all): browser matrix re-run, offline + service-worker update test, LCP/CLS and first-load bytes,
-   keyboard + contrast scan, `data-i` key check, name-uniqueness race, then the DECISION LIST (RTP intent, CSP `unsafe-inline`, tiny 7-8 px labels).
+0. DEEP audit rounds 2 and 3 are done (CHANGELOG). Waiting for the owner's answers to the DECISION LIST: (1) is RTP of about 164/137/107% intended? (2) CSP `unsafe-inline` (move the inline scripts to files) (3) tiny 7-10 px labels and the pink loss colour are below WCAG AA contrast (3.7-3.8:1) - design decision (4) name-uniqueness race on simultaneous `create` (needs a name-claim node) (5) delete ~14 MB of unreferenced art + old icons (kept locally, excluded from deploys) (6) keep Firebase rules in the repo.
 1. User pushes (`git push origin main`) and deploys (`vercel --prod`), closes + reopens the PWA, re-adds the Android shortcut.
 2. Check SPIN in the phone browser; read the visible error / debug log if it still fails.
 3. Optional cleanup with approval: delete unreferenced art, old `icon-*.png`, dead `html.lxa-standalone` CSS (class is never set), unused `responsive-compact.css` rules.

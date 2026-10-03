@@ -3,6 +3,17 @@
 Rewritten from scratch 2026-10-03 (65 commits at that time; the hash is the authoritative detail). Newest first. Format per entry: what the user asked / cause / change / how it was verified / limits.
 "Verified" = measured in headless Edge or Jest unless it says otherwise; nothing here was verified on a real phone.
 
+## 2026-10-03 (latest) — DEEP audit round 3 (remaining checks, EMULATED, usage window had reset) + accessibility fixes (layout-fix v=435, renderer v=405)
+- First load (cache off, CPU x4 slower): 1738 KB in 26 requests (stylesheet 440, images 1033, script 184, fonts 22); LCP 484 ms, CLS 0.000, total blocking time 348 ms. Top: layout-fix.css 386 KB (uncompressed here; the host
+  compresses), lxa-header.webp 326 KB, kofi-support-me-2.gif 313 KB, renderer.js 136 KB, kofi-rainbow-mug.gif 123 KB. Under the 2 MB budget.
+- Service worker: second visit 20 of 25 requests answered by the SW, cache `lxa-v3-cache`, offline reload shows the full app and a guest round still plays.
+- Layout matrix after all of today's changes: 33 viewport x language combinations + 4 live orientation switches, 0 findings.
+- Keyboard: Tab reaches 17 controls in a sensible order; Enter on SPIN starts a round; Space/Enter on + and - change the stake. FOUND: the lock and the win-chance slider showed no focus ring -> one `:focus-visible` rule
+  (invisible to mouse/touch). FOUND: three landmark names were German-only (`aria-label` on the slot machine, rules, win-chance section) -> follow the language now (slot: Spielautomat / Aparat de joc / Slot machine; rules:
+  Spielregeln / Regulile jocului / Game rules; win-chance section labelled by its visible title). Verified in de/ro/en; focus ring on all 17 stops.
+- Contrast (68 visible text elements vs the pixels behind): 3 below AA - the loss amount under SPIN (3.69:1 at 17 px), `#lineStake` (3.84:1 at 7 px), `#boardTitle` (3.84:1 at 10 px). Design decision, not changed.
+- Language keys: every `data-i` key resolves in tx118 or the older table; the section texts switch correctly in de/ro/en.
+
 ## 2026-10-03 (latest) — Persistent login, logout, AUTO/bet synchronisation (user's master prompt; renderer v=404)
 - The prompt assumed Netlify + Firebase Authentication; the real stack is Vercel + a custom per-device token (no Firebase Auth, no SDK on the client). Same goals, applied to the real architecture.
 - ROOT CAUSES: (1) "password asked again" = RESET / WILD / BANK required the password held only in memory (gone after a restart) while spin used the token; (2) `login` with id + NAME (no password) issued a full token
