@@ -3,6 +3,11 @@
 Rewritten from scratch 2026-10-03 (65 commits at that time; the hash is the authoritative detail). Newest first. Format per entry: what the user asked / cause / change / how it was verified / limits.
 "Verified" = measured in headless Edge or Jest unless it says otherwise; nothing here was verified on a real phone.
 
+## 2026-10-03 (latest) - Header slide: position-only trigger (commit afbb303; layout-fix v=459)
+- Owner: "mostly very good but sometimes it does not respect these values, sometimes it differs".
+- Cause (measured on v28): the slide state depended on the scroll direction; between ~24 and ~60 px of scroll the same position gave different results depending on how you arrived (down: slid from 24; up / jump from below: slid only at 66), and scrolling up inside that band snapped the flag back instantly (lxa-snap).
+- Now: SLIDE_AT = 0.65 (slide in when the flag's bottom < lock top + 0.65 x flag height), SLIDE_HYST = 4 px (slide back above that point + 4); no goingDown / lastY / snap. Same 0.45 s in / 0.18 s back.
+- Measured (3 viewports, 4 ways of arriving at each position): identical state everywhere except inside the 4 px hysteresis; sliding animates (max ~14 px / 30 ms). Trade-off accepted: the flag passes behind the lock for ~20 px of scroll in both directions (lock drawn above, tappable); an overlap-free slide needs direction memory = the inconsistency removed here. Fallbacks: v28, v26. NOT verified on a real phone / Safari / Firefox. NOT deployed.
 ## 2026-10-03 (latest) - Header slide: geometry-based trigger (commit ee7a503; layout-fix v=458)
 - Owner liked the 20 px test on some screens only; accepted the adaptive version (same moment everywhere).
 - Constants in the inline script of index.html: SLIDE_DOWN_OVERLAP = 0.65 (slide in when flag bottom < lock top + 0.65 * flag height), SLIDE_BACK_MARGIN = 20 (slide back when scrolling up while flag bottom > lock top - 20). CSS: .45 s in, .18 s back (.lxa-back), .lxa-snap = no transition for flicks.
