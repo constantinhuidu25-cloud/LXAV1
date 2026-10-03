@@ -3,6 +3,12 @@
 Rewritten from scratch 2026-10-03 (65 commits at that time; the hash is the authoritative detail). Newest first. Format per entry: what the user asked / cause / change / how it was verified / limits.
 "Verified" = measured in headless Edge or Jest unless it says otherwise; nothing here was verified on a real phone.
 
+## 2026-10-03 (latest) - SPIN button v3 (commit 7af0380; spin-button.js v=11, layout-fix v=439)
+- Owner: v2 effects were poor, vanished too fast, profit vs loss unclear; wanted a play icon and a double play for AUTO.
+- Causes: the light-blue loss pulse was invisible on the blue button; the burst peaked at 16% of ~1 s; and renderer.js calls LXASpinButton.idle() right after finish() when the round animations end, which removed the effect class (idle() no longer touches it).
+- Now: profit = ~2.2 s gold burst (glow, pop via the scale property, two light sweeps, sparkles); paid but net <= 0 = ~1.1 s coral burst; nothing paid = nothing. After it, a gold (breathing) or coral ring stays on the button until the next round starts (data-result, reuses .spin-ring). No tiers by win size (owner: too complicated).
+- Icons: play triangle idle; double play when #autoSpin has aria-pressed=true (idle between AUTO rounds); white square while running. AUTO rounds restart ~0.3 s after a round, so on AUTO the effect is cut short by the next round (by design, not changed).
+- Verified in headless Edge: frames at 0.15/0.45/0.9/2 s + ring at 3.5 s, coral, none, AUTO, portrait + landscape; real guest rounds fire both. Jest 91/91, ESLint 0 errors. NOT verified on a real phone. NOT deployed.
 ## 2026-10-03 (latest) - SPIN button v2 (commit 1f747fb; spin-button.js v=10, renderer v=408, layout-fix v=438)
 - Owner: SPIN and STOP words sat at different heights (the last-win line under SPIN pushed the word up) -> amount removed from the button (the "last win" card shows it); word bigger (clamp 16px..42px) and identical in both states, centred to within 0.7 px in 4 viewports.
 - Icon hangs left of the word (arrow idle, white square running); error text (rejected round) sits at the bottom edge, 2 lines max. Idle: breathing glow. Round end: gold flash if net > 0, short cool pulse if paid but net <= 0, nothing if nothing paid (called from finish(payout, net) only, so a language switch or reload never replays it). Not enough credit: muted button.
