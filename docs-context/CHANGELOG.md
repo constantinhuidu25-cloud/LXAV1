@@ -3,6 +3,11 @@
 Rewritten from scratch 2026-10-03 (65 commits at that time; the hash is the authoritative detail). Newest first. Format per entry: what the user asked / cause / change / how it was verified / limits.
 "Verified" = measured in headless Edge or Jest unless it says otherwise; nothing here was verified on a real phone.
 
+## 2026-10-03 (latest) - Same smoke behind the LXA banner on narrow portrait screens (commit 6d8f012; layout-fix v=470)
+- Owner chose option A: portrait gets the same look as landscape. Earlier hypotheses were wrong: .brand has a transparent background at every size, the standalone scrim / top fade have no visible effect (checked in a real --app standalone window), and lxa-header.webp (1280x80, 42 frames, transparent sides, centroid x 0.504) has a constant blue smoke (frame variation 1.16x).
+- Measured (screenshots): brightness above the logo minus the header's far-left edge = +32..37 on landscape / desktop / tablet, +3..7 on 360 / 390 / 412 px portrait, +27 on 568 px. The glow is the page background; narrow layouts move the logo off its centre.
+- Now: for max-width 500px, .topbar gets two radial gradients (pink-violet streak 210x26 px + blue core 110x34 px) centred on the logo; the centre comes from CSS variables --lxa-logo-cx / --lxa-logo-cy (logo image box centre, y at 55.6 %), set by updateLockKofiFloat() (load, fonts.ready, delayed passes, resize, ResizeObserver). Result +19..23 on portrait (not identical to landscape's +34, intentionally softer; can be raised).
+- Standalone: top 22 % mask removed, scrim .82/.45 -> .5/.22 (no visible change in the standalone window). NOT verified on a real iPhone. NOT deployed.
 ## 2026-10-03 (latest) - Installed app: banner 10 px lower, floating lock below the status bar (commit 54116ea; layout-fix v=464)
 - Owner (iPhone screenshots, standalone): the LXA banner is too close to the top edge and the floating lock sits at the top (on the clock row); the distance to the right edge is fine.
 - Cause 1: in standalone the top bar has a spacer row of env(safe-area-inset-top) and the banner image starts exactly at that line (top: env(...)), with no extra space. Cause 2: safeTop() in index.html cached its first measurement; iOS can report 0 at load, so the floating lock pinned at 14 px instead of 14 px + inset.
