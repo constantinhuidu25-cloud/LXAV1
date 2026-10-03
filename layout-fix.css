@@ -5656,7 +5656,7 @@ html body:not(#_):not(#__):not(#___):not(#____) #spin b::after{
   box-shadow:-3.4em -.7em 0 .03em #ffd24a,-2.2em .8em 0 0 #fff3b0,-1.1em -1em 0 .02em #ffe27a,1.2em -.9em 0 .03em #fff3b0,2.3em .7em 0 0 #ffd24a,3.5em -.5em 0 .02em #ffe27a,0 .95em 0 0 #fff3b0,4.4em .2em 0 0 #ffd24a,-4.4em .3em 0 0 #ffe27a;
 }
 html body:not(#_):not(#__):not(#___):not(#____) #spin.flash-profit{animation:spinGlowGold 2.2s ease-out 1,spinPop 2.2s ease-out 1!important}
-html body:not(#_):not(#__):not(#___):not(#____) #spin.flash-profit::before{background:radial-gradient(ellipse 62% 120% at 50% 50%,rgba(255,214,90,.32) 0%,rgba(255,190,50,.8) 70%,rgba(226,136,0,.95) 100%);animation:spinGoldBurst 2.2s ease-out 1}
+html body:not(#_):not(#__):not(#___):not(#____) #spin.flash-profit::before{background:radial-gradient(120% 140% at 50% 50%,rgba(255,240,160,1),rgba(255,184,46,1) 60%,rgba(222,134,0,1) 100%);animation:spinGoldBurst 2.2s ease-out 1}
 html body:not(#_):not(#__):not(#___):not(#____) #spin.flash-profit::after{background:linear-gradient(100deg,rgba(255,255,255,0) 0%,rgba(255,248,210,.9) 50%,rgba(255,255,255,0) 100%);animation:spinGoldSweep .9s ease-out 2}
 html body:not(#_):not(#__):not(#___):not(#____) #spin.flash-profit b::after{animation:spinSparkle 1.5s ease-out 1}
 html body:not(#_):not(#__):not(#___):not(#____) #spin.flash-part{animation:spinGlowCoral 1.1s ease-out 1!important}
@@ -5689,7 +5689,7 @@ html body:not(#_):not(#__):not(#___):not(#____) #headerActions .kofi-gif{margin:
 
 /* ===== Result colour on the WORD (replaces the result ring): gold word + icon after a profit, soft pink-red after a payout below the stake,
    until the next round starts (data-result). During the burst itself the word stays white (it would vanish on the gold / coral flash). ===== */
-html body:not(#_):not(#__):not(#___):not(#____) #spin[data-result="profit"] b{color:#ffd24a!important;text-shadow:1px 0 0 #4a2600,-1px 0 0 #4a2600,0 1px 0 #4a2600,0 -1px 0 #4a2600,0 3px 0 rgba(80,45,0,.7),0 0 16px rgba(255,200,60,.85)!important}
+html body:not(#_):not(#__):not(#___):not(#____) #spin[data-result="profit"] b{color:#3dffa8!important;text-shadow:1px 0 0 #03321f,-1px 0 0 #03321f,0 1px 0 #03321f,0 -1px 0 #03321f,0 3px 0 rgba(2,50,30,.75),0 0 16px rgba(57,245,167,.85)!important}
 html body:not(#_):not(#__):not(#___):not(#____) #spin[data-result="part"] b{
   color:#ff7a90!important;
   text-shadow:1px 0 0 #2a0014,-1px 0 0 #2a0014,0 1px 0 #2a0014,0 -1px 0 #2a0014,0 3px 0 rgba(60,0,25,.65),0 0 10px rgba(255,90,120,.55)!important;
