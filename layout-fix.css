@@ -5611,7 +5611,7 @@ html body:not(#_):not(#__):not(#___):not(#____) #spin[data-state="spinning"]::af
   transform:translateX(-140%) skewX(-18deg);animation:spinStopSheen 1.5s linear infinite;
 }
 html body:not(#_):not(#__):not(#___):not(#____) #spin[data-state="spinning"] b{color:#fff!important;text-shadow:0 2px 0 rgba(70,0,40,.6),0 0 16px rgba(255,205,238,.9)!important}
-html body:not(#_):not(#__):not(#___):not(#____) #spin[data-state="spinning"] b::before{background:#fff;border-radius:.09em;width:.4em;height:.4em;margin:-.2em .34em 0 0;box-shadow:0 0 10px rgba(255,255,255,.95);filter:none;opacity:1}
+html body:not(#_):not(#__):not(#___):not(#____) #spin[data-state="spinning"] b::before{-webkit-mask:none;mask:none;background:#fff;border-radius:.09em;width:.4em;height:.4em;margin:-.2em .34em 0 0;box-shadow:0 0 10px rgba(255,255,255,.95);filter:none;opacity:1}
 html body:not(#_):not(#__):not(#___):not(#____) #spin[data-state="spinning"] .spin-ring{background:conic-gradient(from 0deg,#fff var(--spin-p),rgba(255,255,255,.16) 0)!important}
 @media (prefers-reduced-motion:reduce){
   html body:not(#_):not(#__):not(#___):not(#____) #spin[data-state="spinning"]{animation:none!important}
@@ -5634,7 +5634,7 @@ html body:not(#_):not(#__):not(#___):not(#____) #spin b{
 }
 html body:not(#_):not(#__):not(#___):not(#____) #spin b::before{
   content:'';position:absolute;right:100%;top:50%;width:.52em;height:.52em;margin:-.26em .32em 0 0;pointer-events:none;
-  background:center/contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M8 4.5v15l12-7.5z' fill='white' stroke='white' stroke-width='2.6' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M8 4.5v15l12-7.5z' fill='white' stroke='white' stroke-width='2.6' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M8 4.5v15l12-7.5z' fill='white' stroke='white' stroke-width='2.6' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;
   filter:drop-shadow(0 0 5px rgba(190,225,255,.9));opacity:.95;
 }
 /* a refused round / error text sits in the bottom edge of the button, so the word stays centred */
@@ -5649,7 +5649,6 @@ html body:not(#_):not(#__):not(#___):not(#____) #spin[data-state="idle"][data-fu
 @keyframes spinSparkle{0%{opacity:0;transform:translateY(8px) scale(.3)}20%{opacity:1}100%{opacity:0;transform:translateY(-16px) scale(1.25)}}
 @keyframes spinCoralBurst{0%{opacity:0}14%{opacity:1}100%{opacity:0}}
 @keyframes spinGlowCoral{0%{filter:drop-shadow(0 0 0 rgba(255,100,90,0))}20%{filter:drop-shadow(0 0 16px rgba(255,105,95,.95))}100%{filter:drop-shadow(0 0 0 rgba(255,100,90,0))}}
-@keyframes spinRingBreath{from{opacity:.6}to{opacity:1}}
 @keyframes spinAutoNudge{0%,100%{transform:translateX(0)}50%{transform:translateX(3px)}}
 html body:not(#_):not(#__):not(#___):not(#____) #spin::before{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;opacity:0;border-radius:inherit}
 html body:not(#_):not(#__):not(#___):not(#____) #spin b::after{
@@ -5662,12 +5661,10 @@ html body:not(#_):not(#__):not(#___):not(#____) #spin.flash-profit::after{backgr
 html body:not(#_):not(#__):not(#___):not(#____) #spin.flash-profit b::after{animation:spinSparkle 1.5s ease-out 1}
 html body:not(#_):not(#__):not(#___):not(#____) #spin.flash-part{animation:spinGlowCoral 1.1s ease-out 1!important}
 html body:not(#_):not(#__):not(#___):not(#____) #spin.flash-part::before{background:radial-gradient(120% 140% at 50% 50%,rgba(255,150,130,.95),rgba(240,80,95,.88) 62%,rgba(190,40,70,.8) 100%);animation:spinCoralBurst 1.1s ease-out 1}
-html body:not(#_):not(#__):not(#___):not(#____) #spin[data-result="profit"] .spin-ring{opacity:1;background:#ffd24a;animation:spinRingBreath 1.6s ease-in-out infinite alternate}
-html body:not(#_):not(#__):not(#___):not(#____) #spin[data-result="part"] .spin-ring{opacity:1;background:#ff6f61;animation:none}
 /* AUTO on (waiting between rounds): double play */
 html body:not(#_):not(#__):not(#___):not(#____) #spin[data-auto="on"][data-state="idle"] b::before{
   width:.82em;animation:spinAutoNudge 1s ease-in-out infinite;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 24'%3E%3Cpath d='M4 4.5v15l11-7.5zM19 4.5v15l11-7.5z' fill='white' stroke='white' stroke-width='2.6' stroke-linejoin='round'/%3E%3C/svg%3E");
+  -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 24'%3E%3Cpath d='M4 4.5v15l11-7.5zM19 4.5v15l11-7.5z' fill='white' stroke='white' stroke-width='2.6' stroke-linejoin='round'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 24'%3E%3Cpath d='M4 4.5v15l11-7.5zM19 4.5v15l11-7.5z' fill='white' stroke='white' stroke-width='2.6' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
 /* not enough credit for the stake: muted, no glow, no sheen */
 html body:not(#_):not(#__):not(#___):not(#____) #spin[data-funds="low"][data-state="idle"]{filter:saturate(.45) brightness(.82)}
@@ -5678,7 +5675,7 @@ html body:not(#_):not(#__):not(#___):not(#____) #spin[data-funds="low"][data-sta
   html body:not(#_):not(#__):not(#___):not(#____) #spin[data-state="idle"][data-funds="ok"],html body:not(#_):not(#__):not(#___):not(#____) #spin.flash-profit,html body:not(#_):not(#__):not(#___):not(#____) #spin.flash-part{animation:none!important}
   html body:not(#_):not(#__):not(#___):not(#____) #spin.flash-profit::before,html body:not(#_):not(#__):not(#___):not(#____) #spin.flash-part::before{animation:none!important;opacity:.55}
   html body:not(#_):not(#__):not(#___):not(#____) #spin.flash-profit::after,html body:not(#_):not(#__):not(#___):not(#____) #spin.flash-profit b::after{animation:none!important;display:none!important}
-  html body:not(#_):not(#__):not(#___):not(#____) #spin[data-result] .spin-ring,html body:not(#_):not(#__):not(#___):not(#____) #spin[data-auto="on"] b::before{animation:none!important}
+  html body:not(#_):not(#__):not(#___):not(#____) #spin[data-auto="on"] b::before{animation:none!important}
 }
 
 
@@ -5688,3 +5685,13 @@ html body:not(#_):not(#__):not(#___):not(#____) #spin[data-funds="low"][data-sta
    by the transform above because its visible mass sits left of the image centre. ===== */
 html body:not(#_):not(#__):not(#___):not(#____) #headerActions{row-gap:4px!important}
 html body:not(#_):not(#__):not(#___):not(#____) #headerActions .kofi-gif{margin:0!important;align-self:start!important}
+
+
+/* ===== Result colour on the WORD (replaces the result ring): gold word + icon after a profit, soft pink-red after a payout below the stake,
+   until the next round starts (data-result). During the burst itself the word stays white (it would vanish on the gold / coral flash). ===== */
+html body:not(#_):not(#__):not(#___):not(#____) #spin[data-result="profit"] b{color:#ffd24a!important;text-shadow:0 2px 0 rgba(80,45,0,.7),0 0 16px rgba(255,200,60,.85)!important}
+html body:not(#_):not(#__):not(#___):not(#____) #spin[data-result="part"] b{
+  color:#ff7a90!important;
+  text-shadow:1px 0 0 #2a0014,-1px 0 0 #2a0014,0 1px 0 #2a0014,0 -1px 0 #2a0014,0 3px 0 rgba(60,0,25,.65),0 0 10px rgba(255,90,120,.55)!important;
+}
+html body:not(#_):not(#__):not(#___):not(#____) #spin.flash-profit b,html body:not(#_):not(#__):not(#___):not(#____) #spin.flash-part b{color:#fff!important;text-shadow:0 2px 0 rgba(60,20,0,.6),0 0 14px rgba(255,255,255,.7)!important}
