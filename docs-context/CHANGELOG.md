@@ -3,6 +3,11 @@
 Rewritten from scratch 2026-10-03 (65 commits at that time; the hash is the authoritative detail). Newest first. Format per entry: what the user asked / cause / change / how it was verified / limits.
 "Verified" = measured in headless Edge or Jest unless it says otherwise; nothing here was verified on a real phone.
 
+## 2026-10-03 (latest) - Header: back to the original behaviour + lock above the flag (commit 30d493f; layout-fix v=452)
+- Owner chose "D: go back, as it was, but improved so it is seen". My castling / dock reveal / scroll-linked dock (v19, v21, v22) and the single-column rules (v16) were over-engineered and made the lock disappear: all removed.
+- index.html floating script = the one from fdc391d again (git show fdc391d:index.html). Measured identical to the old behaviour: floating lock 2 / 4 / 17 / 29 px and Ko-fi 9 / 9 / 24 / 36 px from the right edge, lock top 14px, Ko-fi 8px under it. ID + flag slide one column right (0.28 s).
+- Only addition: .lock-kofi-floating lock + Ko-fi get z-index 2100 (the flag has z-index 2000), so the lock is drawn above the sliding flag and stays fully visible and tappable (checked with elementFromPoint). The flag still passes behind the lock between ~8 and ~47 px of scroll.
+- Kept from earlier requests: flag 2.5px lower, Ko-fi cup nudge (translateX 10%). Lesson: when the owner says "go back", restore first and add the smallest possible improvement. NOT verified on a real phone. NOT deployed.
 ## 2026-10-03 (latest) - Header dock driven by scrollY (commit 401af75; layout-fix v=450, inline script in index.html)
 - Owner: the timer-based dock reveal "disappears or jumps too fast"; chose option 1 (same look, scroll-linked).
 - Now updateLockKofiFloat() computes everything from the scroll position: stage 1 (scrollY 8..20) lock + Ko-fi fade out in the grid; stage 2 (26..50) ID + flag slide one column right (inline transform, !important beats the old class rules); stage 3 (flag bottom 14..38 px above the pinned spot) the pair is position:fixed in the header column (top 14px + safe area, Ko-fi 4px under the lock) and rises 10px / scales .9->1 while fading in. Same motion in both directions; short transitions (.08-.2 s, fade-out faster than fade-in) only smooth flicks.
