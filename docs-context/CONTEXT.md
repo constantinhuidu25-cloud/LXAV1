@@ -8,7 +8,8 @@
   (`git push origin main`), then opens a cloud session (LXAV1 menu -> Open in -> Continue in -> Cloud, or New -> Cloud) and says
   "git pull origin main, then read docs-context/CONTEXT.md and MEMORY.md". Only ONE session works on the code at a time (avoid conflicts).
   Keep this file and CHANGELOG.md updated after each real change, so a fresh cloud session can resume from them.
-- Newest (uncommitted until the commit below): header gap parity browser/PWA/PC (layout-fix.css v=432). Open: user's report "SPIN does nothing in phone browsers" (not reproduced; need exact symptom + browser);
+- Newest: opt-in ?debug=1 overlay (spin-button.js v=8, renderer.js v=401) to find why SPIN does nothing in the user's phone browser (user: "nothing happens at all").
+  Next step = user deploys, opens the site with ?debug=1 on the phone, taps SPIN once, sends a screenshot; read the last log lines. Before that: header gap parity browser/PWA/PC (layout-fix.css v=432). Open: user's report "SPIN does nothing in phone browsers" (not reproduced; need exact symptom + browser);
   the user's PWA is stale (no MAX line) and must be closed and reopened; see CHANGELOG "Header parity".
 - Previous change: stake can be changed during AUTO (queued, applied to the next round, same caps). See CHANGELOG 2026-10-03 "AUTO stake".
 - Earlier last round (2026-10-03), all committed, measured in headless Edge:
