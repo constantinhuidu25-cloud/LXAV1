@@ -40,16 +40,19 @@
     clearTimeout(flashTimer);
     if (btn) btn.classList.remove('flash-profit', 'flash-part');
   }
+  // The burst lasts ~2.2 s (profit) / ~1.1 s (paid but at a loss); data-result keeps a gold / coral ring on the button until the next round starts.
   function flash(kind) {
     clearFlash();
     if (!kind || !btn) return;
     void btn.offsetWidth;
     btn.classList.add('flash-' + kind);
-    flashTimer = setTimeout(clearFlash, 1300);
+    flashTimer = setTimeout(clearFlash, kind === 'profit' ? 2400 : 1200);
   }
+  const autoOn = () => { const a = document.getElementById('autoSpin'); return !!a && a.getAttribute('aria-pressed') === 'true'; };
 
   function paint() {
     btn.dataset.state = state;
+    btn.dataset.auto = autoOn() ? 'on' : 'off';
     btn.classList.toggle('coach', state === 'spinning' && learned() < COACH_SPINS);
     main.textContent = state === 'spinning' ? LABEL.stop : LABEL.spin;
     sub.textContent = state === 'idle' && lastResult ? lastResult.text : '';
@@ -70,6 +73,7 @@
     },
     start() {
       clearFlash();
+      delete btn.dataset.result;
       state = 'spinning';
       snapped = false;
       delete btn.dataset.ring;
@@ -106,10 +110,12 @@
       paint();
       const paid = Number(payout) || 0;
       if (paid > 0) buzz([12, 40, 12]);
-      if (Number.isFinite(Number(net))) flash(Number(net) > 0 ? 'profit' : paid > 0 ? 'part' : '');
+      const kind = !Number.isFinite(Number(net)) ? '' : Number(net) > 0 ? 'profit' : paid > 0 ? 'part' : '';
+      if (kind) btn.dataset.result = kind; else delete btn.dataset.result;
+      flash(kind);
     },
+    // (idle() runs right after finish() when the round's animations end, so it must not cut the flash or the result ring)
     idle() {
-      clearFlash();
       resetRing();
       state = 'idle';
       paint();
@@ -162,6 +168,9 @@
       if (typeof btn.onclick === 'function') btn.onclick(event);
     });
     ['pointerup', 'pointercancel', 'pointerleave'].forEach(type => btn.addEventListener(type, () => btn.classList.remove('pressed')));
+
+    const autoBtn = document.getElementById('autoSpin');
+    if (autoBtn) new MutationObserver(paint).observe(autoBtn, { attributes: true, attributeFilter: ['aria-pressed'] });
 
     ['bet', 'credits'].forEach(id => {
       const el = document.getElementById(id);
