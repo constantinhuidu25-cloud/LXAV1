@@ -3,6 +3,11 @@
 Rewritten from scratch 2026-10-03 (65 commits at that time; the hash is the authoritative detail). Newest first. Format per entry: what the user asked / cause / change / how it was verified / limits.
 "Verified" = measured in headless Edge or Jest unless it says otherwise; nothing here was verified on a real phone.
 
+## 2026-10-03 (latest) - Header castling: lock/flag swap without overlap (commit 9573c34; layout-fix v=443, inline script in index.html)
+- Owner: kept the slide animation (flag takes the lock's place) but wanted it overlap-free and more professional.
+- Why the old slide collided: since the floating lock sits in the header column, the flag slid onto it. A swap needs the lock to be elsewhere while the flag arrives.
+- Now (state machine in updateLockKofiFloat(), body classes lock-kofi-floating / lxa-swapped / lxa-dock-corner / lxa-returning / lxa-swapping): scroll > 8px -> the lock + Ko-fi slide one column left (hop over the flag, flag dips) while the flag slides into the lock's old column; ID stays. When the flag has scrolled up above the pinned lock (measured live, with hysteresis) the pair glides back to the header column. Scrolling back reverses it; at the top the pair glides to its exact resting spot (top transition) before the grid takes over, so nothing jumps. 0.46 s, cubic-bezier(.3,.7,.2,1); reduced-motion = instant; without CSS 	ranslate support the header simply stays still.
+- Measured (headless Edge, 3 viewports, scroll 12..400 px, jumps back to 40, return to 0): no overlap at any settled position, final state identical to the initial one; only the intended ~200 ms crossing during the swap. NOT verified on a real phone / iPhone notch. NOT deployed.
 ## 2026-10-03 (latest) - SPIN result colour instantly + AUTO pause after profit (commit 93af522; renderer v=409, layout-fix v=442)
 - Owner: the coloured word appeared late (white SPIN first) and in AUTO no change was visible.
 - Cause 1: I forced the word white during the burst (1.2-2.4 s). Cause 2: in AUTO the next round starts ~0.3 s after finish() and start() clears the result.
