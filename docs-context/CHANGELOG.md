@@ -3,6 +3,12 @@
 Rewritten from scratch 2026-10-03 (65 commits at that time; the hash is the authoritative detail). Newest first. Format per entry: what the user asked / cause / change / how it was verified / limits.
 "Verified" = measured in headless Edge or Jest unless it says otherwise; nothing here was verified on a real phone.
 
+## 2026-10-03 (latest) - UI round: admin popup scroll, stake centred, SPIN STOP, flag/Ko-fi (commit 40b7cc0; renderer v=407, layout-fix v=437)
+- Owner: admin popup could not be scrolled (portrait and landscape); stake lower/centred between +/-; Ko-fi under the lock; flag lower; nicer SPIN while running, no extra text.
+- Cause (popup): height limit existed only below 641 px wide, and the global page-lock touchmove/wheel handlers in renderer.js blocked scrolling inside the popup. Fix: card limited to the viewport at every width with its own scroll, handlers exempt .account-panel, page behind locked while open.
+- Stake: #bet on grid row 2 with align-self:center -> centre equals the +/- button centre (0.0 px in 5 viewports). SPIN [data-state=spinning]: neon magenta, glow pulse, light sheen, white stop square, white ring; reduced-motion respected.
+- Flag +2.5 px lower. Ko-fi moved RIGHT (translateX 10%), not left: the cup's visible centre sat ~3 px left of the lock centre; owner can ask to flip.
+- Verified in headless Edge: wheel + real touch-drag scrolling (lock on/off). Jest 91/91, ESLint 0 errors. NOT verified: real iPhone/Android (emoji glyph metrics differ per platform). NOT deployed.
 ## 2026-10-03 (latest) — No rounding: same return at every stake (game-engine v=378)
 - Owner: RTP must be the same for everyone, no rounding. Measured first: the REAL SERVER path (logged-in players) is already exact - difficulty 1 = 163.0 / 162.7 / 163.5 / 163.6% at stakes 5 / 10 / 50 / 1000 (model 163.2%);
   my earlier "stake 5 pays +18 points more" finding was about the GUEST engine only (whole-euro `cents()`), not a general problem - I stated it too broadly.
