@@ -3,6 +3,12 @@
 Rewritten from scratch 2026-10-03 (65 commits at that time; the hash is the authoritative detail). Newest first. Format per entry: what the user asked / cause / change / how it was verified / limits.
 "Verified" = measured in headless Edge or Jest unless it says otherwise; nothing here was verified on a real phone.
 
+## 2026-10-03 (latest) - Installed app: banner 10 px lower, floating lock below the status bar (commit 54116ea; layout-fix v=464)
+- Owner (iPhone screenshots, standalone): the LXA banner is too close to the top edge and the floating lock sits at the top (on the clock row); the distance to the right edge is fine.
+- Cause 1: in standalone the top bar has a spacer row of env(safe-area-inset-top) and the banner image starts exactly at that line (top: env(...)), with no extra space. Cause 2: safeTop() in index.html cached its first measurement; iOS can report 0 at load, so the floating lock pinned at 14 px instead of 14 px + inset.
+- Now: --lxa-top-gap: 10px (@media (display-mode:standalone) and html.lxa-standalone) added to every safe-area term of the top bar height / rows, banner height and image offset (10 rules in layout-fix.css); safeTop() measured on every call.
+- Measured with emulated insets (59, 20, 0) + the lxa-standalone class: logo and content 10 px lower, floating lock top = 14 + inset (73 / 34 / 14), unchanged on a normal browser tab and on desktop. NOT verified on a real iPhone. NOT deployed.
+- Background observation (no change made): lxa-header.webp is a 1280x80 transparent animated WebP (42 frames) whose outer 15 % on each side is fully transparent, so the pink / violet "smoke" seen around the logo comes from the page background and from the portrait banner's own dark navy fill (<700 px), not from the image.
 ## 2026-10-03 (latest) - Whole icon row aligned with the cards (commit 7219599; layout-fix v=463)
 - Owner: "and the whole row, why is it not at the same distance?" (accepted: align everything with the card edge, same at rest and floating).
 - Measured before: the header row stopped 6-11 px short of the cards' right edge (lock glyph 11 / 9 / 6 / 6 px inside at 390 / 844 / 1000 / 1280 wide); only the floating pair reached the edge (drift code).
