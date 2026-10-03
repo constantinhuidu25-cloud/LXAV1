@@ -1,6 +1,6 @@
 # LXAV1 — CONTEXT (current state)
 
-## Current state (as of 2026-10-03, after the AUTO-stake commit; previous HEAD 7d2e724)
+## Current state (as of 2026-10-03, after the master audit + merge of the cloud branch; GitHub origin/main is still 7d2e724 until the user pushes)
 - LEONXOXANA reskin: complete. Core game/server rules: stable, 56/56 Jest tests, ESLint 0 errors.
 - DEPLOY STATE: the user deploys by hand (`vercel --prod`). The USER pushed GitHub `origin/main` to 7d2e724 (docs-context + the 20 earlier commits).
   Commits after 7d2e724 are local until the user pushes again. Nothing below is live until the user deploys.
@@ -33,7 +33,7 @@ readme.md (Maximum stake section), game-engine.test.js + account-keys.test.js (c
 None known in code. Open questions / unverifiable here:
 - Android: "Install app" does nothing on the user's phone (site passes Chromium installability on live + local). Need phone model + browser.
 - iPhone real-device behaviour of the new page-edge background / header / ring is unverified.
-- Wording of "WILD x1 · 50%" in the round summary confuses the user (looks like a multiplier). Options offered: drop the chance, or drop both. Waiting for a choice.
+- "WILD x1 - 50%" tag in the round summary: DECIDED (done by the cloud session on branch main-hsvmm0, merged locally): removed completely (renderer.js showSpinV79, `const wild = ''`).
 
 ## Next recommended task
 Wait for the user. If they ask: (1) deploy checklist (they run `vercel --prod`; re-test login/stake rule/header on a real phone), (2) resolve the
