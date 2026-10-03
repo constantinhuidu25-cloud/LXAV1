@@ -36,12 +36,14 @@ CHANGELOG.md (what changed and why). The same four files are mirrored in the rep
   Need: phone model + browser. After deploying, the user must delete the old home-screen shortcut and add it again. Do NOT add an install button unless asked.
 - The user's installed iOS PWA can be a stale page (no "MAX ..." line under the stake = build older than 5800313): close it completely and reopen before judging a "fix did not work".
 - Firebase still holds test accounts (zzprobe*, lxatest*, lxaspd*, ids 14-19): the user deletes them.
-- Not done on purpose: `vercel build` (would pull secret env values to disk); deleting unreferenced art (kept locally, excluded from deploys by `.vercelignore`); duplicate-id race on two truly simultaneous
-  `create` calls (needs an id counter node); rate limiter is per serverless instance (in memory); Firebase security rules are not in the repo (anonymous read/write verified denied by a probe only).
+- Not done on purpose: `vercel build` (would pull secret env values to disk); deleting unreferenced art (kept locally, excluded from deploys by `.vercelignore`); duplicate-NAME race on two simultaneous
+  `create` calls with the same name (the duplicate-ID race is fixed by the `meta/lastAccountId` counter; needs the deploy, a new DB node appears on the first create); rate limiter is per serverless instance (in memory); Firebase security rules are not in the repo (anonymous read/write verified denied by a probe only).
 - GAME MATH TO CONFIRM WITH THE USER (found 2026-10-03 by running `node audit-simulations.js`, 100k spins per difficulty): measured RTP about 164% / 137% / 107% for difficulty 1/2/3 and `game.debugReport` line multipliers 1.50 / 1.25 / 1.00. `renderer.js` `reportBalance()` still compares against the old Drolly targets [.993, .8635, .774], so a stale 'LXA EV deviation' console warning fires at every load. Probably intended (progression game, balances reach hundreds of millions) but NOT confirmed: never change the math on my own; ask one question. Harmless clean-up once confirmed: drop or update the stale check.
 - Never verified on real hardware: iPhone, Android, Safari, Firefox, installed PWA on a phone, `@property` ring on iOS < 16.4.
 
 ## 4. Next steps (only when the user asks)
+0. After the usage window resets: run the rest of the DEEP audit (UNIVERSAL_PROMPT.md, TASK=AUDIT, MODE=DEEP, SCOPE=all): browser matrix re-run, offline + service-worker update test, LCP/CLS and first-load bytes,
+   keyboard + contrast scan, `data-i` key check, name-uniqueness race, then the DECISION LIST (RTP intent, CSP `unsafe-inline`, tiny 7-8 px labels).
 1. User pushes (`git push origin main`) and deploys (`vercel --prod`), closes + reopens the PWA, re-adds the Android shortcut.
 2. Check SPIN in the phone browser; read the visible error / debug log if it still fails.
 3. Optional cleanup with approval: delete unreferenced art, old `icon-*.png`, dead `html.lxa-standalone` CSS (class is never set), unused `responsive-compact.css` rules.

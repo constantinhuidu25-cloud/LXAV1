@@ -3,6 +3,18 @@
 Rewritten from scratch 2026-10-03 (65 commits at that time; the hash is the authoritative detail). Newest first. Format per entry: what the user asked / cause / change / how it was verified / limits.
 "Verified" = measured in headless Edge or Jest unless it says otherwise; nothing here was verified on a real phone.
 
+## 2026-10-03 (late) — DEEP audit round 2 (started at 98% of the 5-hour usage window, so only the cheap, high-value part ran)
+- Read-only live checks: `/functions/..`, `/package.json`, `/readme.md`, docs, tests, dev tools, `/.env.local`, `/.vercel/..`, `/scripts/build.js` all return 404; HSTS/CSP/XFO/nosniff/Referrer present;
+  Permissions-Policy and Cross-Origin-Opener-Policy were MISSING -> added to vercel.json (invisible hardening; needs the deploy).
+- Server invariants against the REAL handler with in-memory storage (audit_deep_a.js recipe): 300 spins -> 0 conservation violations, no non-cent values; cap at WILD 50 / 900M: 25,500,000 accepted, 25,500,005 -> 400;
+  20 parallel spins on one account -> no lost update; password lockout after 5 wrong attempts (token restore still works); no-credential spin/deposit/list-players rejected.
+- FOUND AND FIXED: 5 parallel `create` calls all received id 12 (id = max(existing)+1 from a read) -> duplicate ids (a probable cause of "session expired"). Now `reserveAccountId` (Firebase transaction on
+  `meta/lastAccountId`, floor = highest existing id) in functions/firebase-storage.js, used by `create` (falls back to the old rule only when the storage module has no counter, i.e. in older test mocks).
+  New regression test account-id-counter.test.js. Tests 64/64, ESLint 0 errors. Name uniqueness has the same race (two simultaneous creates with the same name) — NOT fixed.
+- Static sweeps: no real innerHTML sink with unescaped server/user text (4 flagged lines are escaped or numeric); git history has no secrets (pickaxe: BEGIN PRIVATE KEY, private_key, AIzaSy, ghp_); no tracked
+  secret-looking files; language tables tx118 and the second table have identical key sets (parser artefact only on the label).
+- Not run in this round (usage): browser matrix re-run, offline/service-worker test, first-load LCP/CLS numbers, keyboard + contrast scan, `data-i` key check against the right table.
+
 ## 2026-10-03 (late) — Prompts and one finding
 - Prompts written in `ClauBack\LXAV1\PROMPTS\` (mirrored in `docs-context/prompts/`): UNIVERSAL_PROMPT (any chat/model/session, capability ladder, CHANGE_POLICY, DECISION LIST, baseline pixel diff, BUDGET), MASTER_AUDIT_v2, MASTER_AUDIT_LITE.
 - Running `audit-simulations.js` (a tool the prompt now prescribes) showed RTP about 164/137/107% for difficulty 1/2/3 and a stale RTP check in `renderer.js` (`reportBalance`, old Drolly targets). Game math untouched; waiting for the user to confirm it is intended (see CONTEXT.md open items).
