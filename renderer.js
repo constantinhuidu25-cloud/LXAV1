@@ -1077,7 +1077,7 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
   const betHalfButton = $('#betHalf');
   const fiftyPercentBet = balance => {
     const amount = Math.max(0, Number(balance) || 0);
-    return amount <= 4000000 ? amount * 0.5 : Math.sqrt(amount * 1000000);
+    return amount * 0.5;
   };
   if (betHalfButton) betHalfButton.addEventListener('click', event => {
     event.preventDefault();
