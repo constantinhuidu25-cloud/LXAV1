@@ -5691,3 +5691,24 @@ html body:not(#_):not(#__):not(#___):not(#____) #spin[data-result="part"] b{
 /* ===== Header: the floating lock + Ko-fi stay ABOVE the ID / flag (z-index 2000) while those slide past, so the lock is always fully visible
    and tappable (before, the flag was drawn over the lock between ~8 and ~47px of scroll). Everything else is the original behaviour. ===== */
 html body:not(#_):not(#__):not(#___):not(#____).lock-kofi-floating #scrollLock,html body:not(#_):not(#__):not(#___):not(#____).lock-kofi-floating #headerActions .kofi-gif{z-index:2100!important}
+
+
+/* ===== Header rotation (see updateLockKofiFloat in index.html): [ID][flag][lock] -> [lock][ID][flag] without anybody landing on anybody ===== */
+@keyframes lxaSwapHop{0%{scale:1}42%{scale:1.22}100%{scale:1}}
+@keyframes lxaSwapDip{0%{scale:1;opacity:1}42%{scale:.8;opacity:.7}100%{scale:1;opacity:1}}
+@keyframes lxaDockIn{0%{opacity:0;translate:0 10px;scale:.9}100%{opacity:1;translate:0 0;scale:1}}
+html body:not(#_):not(#__):not(#___):not(#____).lxa-slide #accountButton,html body:not(#_):not(#__):not(#___):not(#____).lxa-slide #headerActions .language{transform:translateX(calc(var(--hb) + 8px))!important}
+html body:not(#_):not(#__):not(#___):not(#____) #accountButton,html body:not(#_):not(#__):not(#___):not(#____) #headerActions .language{transition:transform .46s cubic-bezier(.3,.7,.2,1)!important}
+html body:not(#_):not(#__):not(#___):not(#____) #scrollLock{transition:translate .46s cubic-bezier(.3,.7,.2,1),filter .25s ease,transform .15s ease!important}
+html body:not(#_):not(#__):not(#___):not(#____) #headerActions .kofi-gif{transition:translate .46s cubic-bezier(.3,.7,.2,1)!important}
+html body:not(#_):not(#__):not(#___):not(#____).lxa-slide:not(.lock-kofi-floating) #scrollLock,html body:not(#_):not(#__):not(#___):not(#____).lxa-slide:not(.lock-kofi-floating) #headerActions .kofi-gif{translate:calc(-2 * (var(--hb) + 8px)) 0}
+html body:not(#_):not(#__):not(#___):not(#____).lxa-slide:not(.lock-kofi-floating) #headerActions #scrollLock.scroll-lock{position:relative!important;z-index:2100!important}
+html body:not(#_):not(#__):not(#___):not(#____).lxa-swapping #scrollLock{animation:lxaSwapHop .46s ease-in-out}
+html body:not(#_):not(#__):not(#___):not(#____).lxa-swapping #headerActions .language{animation:lxaSwapDip .46s ease-in-out}
+html body:not(#_):not(#__):not(#___):not(#____).lock-kofi-floating #scrollLock,html body:not(#_):not(#__):not(#___):not(#____).lock-kofi-floating #headerActions .kofi-gif{transition:none!important}
+html body:not(#_):not(#__):not(#___):not(#____).lxa-dock-in #scrollLock,html body:not(#_):not(#__):not(#___):not(#____).lxa-dock-in #headerActions .kofi-gif{animation:lxaDockIn .38s cubic-bezier(.2,.8,.3,1) both}
+html body:not(#_):not(#__):not(#___):not(#____).lxa-dock-out #scrollLock,html body:not(#_):not(#__):not(#___):not(#____).lxa-dock-out #headerActions .kofi-gif{opacity:0!important;transition:opacity .15s ease!important}
+@media (prefers-reduced-motion:reduce){
+  html body:not(#_):not(#__):not(#___):not(#____) #accountButton,html body:not(#_):not(#__):not(#___):not(#____) #headerActions .language,html body:not(#_):not(#__):not(#___):not(#____) #scrollLock,html body:not(#_):not(#__):not(#___):not(#____) #headerActions .kofi-gif{transition:none!important}
+  html body:not(#_):not(#__):not(#___):not(#____).lxa-swapping #scrollLock,html body:not(#_):not(#__):not(#___):not(#____).lxa-swapping #headerActions .language,html body:not(#_):not(#__):not(#___):not(#____).lxa-dock-in #scrollLock,html body:not(#_):not(#__):not(#___):not(#____).lxa-dock-in #headerActions .kofi-gif{animation:none!important}
+}
