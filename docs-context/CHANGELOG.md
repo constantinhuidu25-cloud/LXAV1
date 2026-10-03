@@ -3,6 +3,10 @@
 Rewritten from scratch 2026-10-03 (65 commits at that time; the hash is the authoritative detail). Newest first. Format per entry: what the user asked / cause / change / how it was verified / limits.
 "Verified" = measured in headless Edge or Jest unless it says otherwise; nothing here was verified on a real phone.
 
+## 2026-10-03 (late) — Prompts and one finding
+- Prompts written in `ClauBack\LXAV1\PROMPTS\` (mirrored in `docs-context/prompts/`): UNIVERSAL_PROMPT (any chat/model/session, capability ladder, CHANGE_POLICY, DECISION LIST, baseline pixel diff, BUDGET), MASTER_AUDIT_v2, MASTER_AUDIT_LITE.
+- Running `audit-simulations.js` (a tool the prompt now prescribes) showed RTP about 164/137/107% for difficulty 1/2/3 and a stale RTP check in `renderer.js` (`reportBalance`, old Drolly targets). Game math untouched; waiting for the user to confirm it is intended (see CONTEXT.md open items).
+
 ## 2026-10-03 (late) — Hand-off preparation
 - Merged the cloud session's branch `main-hsvmm0` (commit 2c36593: no "WILD xN - %" tag) locally as `239c766` (index.html conflict = version numbers only; renderer.js -> v=403). Docs refreshed (`c82da19`).
 - ClauBack: CONTEXT folder rewritten from scratch; `.env.local` removed from the FULL snapshot (it must never be copied into backups).

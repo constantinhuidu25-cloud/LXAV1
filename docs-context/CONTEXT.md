@@ -38,6 +38,7 @@ CHANGELOG.md (what changed and why). The same four files are mirrored in the rep
 - Firebase still holds test accounts (zzprobe*, lxatest*, lxaspd*, ids 14-19): the user deletes them.
 - Not done on purpose: `vercel build` (would pull secret env values to disk); deleting unreferenced art (kept locally, excluded from deploys by `.vercelignore`); duplicate-id race on two truly simultaneous
   `create` calls (needs an id counter node); rate limiter is per serverless instance (in memory); Firebase security rules are not in the repo (anonymous read/write verified denied by a probe only).
+- GAME MATH TO CONFIRM WITH THE USER (found 2026-10-03 by running `node audit-simulations.js`, 100k spins per difficulty): measured RTP about 164% / 137% / 107% for difficulty 1/2/3 and `game.debugReport` line multipliers 1.50 / 1.25 / 1.00. `renderer.js` `reportBalance()` still compares against the old Drolly targets [.993, .8635, .774], so a stale 'LXA EV deviation' console warning fires at every load. Probably intended (progression game, balances reach hundreds of millions) but NOT confirmed: never change the math on my own; ask one question. Harmless clean-up once confirmed: drop or update the stale check.
 - Never verified on real hardware: iPhone, Android, Safari, Firefox, installed PWA on a phone, `@property` ring on iOS < 16.4.
 
 ## 4. Next steps (only when the user asks)
