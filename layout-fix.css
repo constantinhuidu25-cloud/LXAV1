@@ -5597,8 +5597,8 @@ html body:not(#_):not(#__):not(#___):not(#____) #bet{grid-row:2!important;align-
 /* ===== SPIN while a round runs (STOP): hot neon magenta with a breathing glow, a light sheen that keeps sweeping, a white stop square instead
    of extra text, and a bright progress ring (no new texts) ===== */
 @keyframes spinStopPulse{
-  from{box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -4px 10px rgba(60,0,40,.55),0 0 16px rgba(255,70,170,.45),0 6px 16px rgba(0,0,0,.5)}
-  to{box-shadow:inset 0 1px 0 rgba(255,255,255,.75),inset 0 -4px 10px rgba(60,0,40,.55),0 0 34px rgba(255,100,200,.9),0 6px 16px rgba(0,0,0,.5)}
+  from{filter:drop-shadow(0 0 4px rgba(255,70,170,.35))}
+  to{filter:drop-shadow(0 0 20px rgba(255,100,200,.95))}
 }
 @keyframes spinStopSheen{from{transform:translateX(-140%) skewX(-18deg)}to{transform:translateX(430%) skewX(-18deg)}}
 html body:not(#_):not(#__):not(#___):not(#____) #spin[data-state="spinning"]{
@@ -5610,13 +5610,51 @@ html body:not(#_):not(#__):not(#___):not(#____) #spin[data-state="spinning"]::af
   background:linear-gradient(100deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.42) 50%,rgba(255,255,255,0) 100%);
   transform:translateX(-140%) skewX(-18deg);animation:spinStopSheen 1.5s linear infinite;
 }
-html body:not(#_):not(#__):not(#___):not(#____) #spin[data-state="spinning"] b{
-  display:inline-flex!important;align-items:center;justify-content:center;gap:.34em;color:#fff!important;
-  text-shadow:0 2px 0 rgba(70,0,40,.6),0 0 16px rgba(255,205,238,.9)!important;
-}
-html body:not(#_):not(#__):not(#___):not(#____) #spin[data-state="spinning"] b::before{content:'';flex:none;width:.4em;height:.4em;border-radius:.09em;background:#fff;box-shadow:0 0 10px rgba(255,255,255,.95)}
+html body:not(#_):not(#__):not(#___):not(#____) #spin[data-state="spinning"] b{color:#fff!important;text-shadow:0 2px 0 rgba(70,0,40,.6),0 0 16px rgba(255,205,238,.9)!important}
+html body:not(#_):not(#__):not(#___):not(#____) #spin[data-state="spinning"] b::before{background:#fff;border-radius:.09em;width:.4em;height:.4em;margin:-.2em .34em 0 0;box-shadow:0 0 10px rgba(255,255,255,.95);filter:none;opacity:1}
 html body:not(#_):not(#__):not(#___):not(#____) #spin[data-state="spinning"] .spin-ring{background:conic-gradient(from 0deg,#fff var(--spin-p),rgba(255,255,255,.16) 0)!important}
 @media (prefers-reduced-motion:reduce){
   html body:not(#_):not(#__):not(#___):not(#____) #spin[data-state="spinning"]{animation:none!important}
   html body:not(#_):not(#__):not(#___):not(#____) #spin[data-state="spinning"]::after{animation:none!important;display:none!important}
+}
+
+
+/* ===== SPIN button v2: no amount on the button (the "last win" card shows it), so the word is always centred and the same in SPIN and STOP.
+   A small icon hangs to the left of the word (circular arrow while idle, white square while running); the word never moves.
+   Effects use `filter` and ::before/::after (animating box-shadow would lose against the older !important shadows). ===== */
+@keyframes spinIdleBreath{from{filter:drop-shadow(0 0 0 rgba(150,120,255,0))}to{filter:drop-shadow(0 0 11px rgba(160,120,255,.8))}}
+@keyframes spinFlashFade{0%{opacity:0}16%{opacity:1}100%{opacity:0}}
+@keyframes spinGlowGold{0%{filter:drop-shadow(0 0 0 rgba(255,200,60,0))}22%{filter:drop-shadow(0 0 24px rgba(255,205,70,.98))}100%{filter:drop-shadow(0 0 0 rgba(255,200,60,0))}}
+@keyframes spinGlowCool{0%{filter:drop-shadow(0 0 0 rgba(90,220,255,0))}28%{filter:drop-shadow(0 0 12px rgba(90,220,255,.75))}100%{filter:drop-shadow(0 0 0 rgba(90,220,255,0))}}
+@keyframes spinGoldSweep{from{transform:translateX(-140%) skewX(-18deg)}to{transform:translateX(420%) skewX(-18deg)}}
+html body:not(#_):not(#__):not(#___):not(#____) #spin small,html body:not(#_):not(#__):not(#___):not(#____) #spin .spin-subtitle:empty{display:none!important}
+html body:not(#_):not(#__):not(#___):not(#____) #spin b{
+  font-size:clamp(16px,29cqw,42px)!important;line-height:1!important;position:relative!important;overflow:visible!important;
+  width:auto!important;flex:0 0 auto!important;max-width:none!important;text-overflow:clip!important;letter-spacing:1px!important;
+}
+html body:not(#_):not(#__):not(#___):not(#____) #spin b::before{
+  content:'';position:absolute;right:100%;top:50%;width:.52em;height:.52em;margin:-.26em .32em 0 0;pointer-events:none;
+  background:center/contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 12a8 8 0 1 1-2.6-5.9'/%3E%3Cpath d='M20 4v5h-5'/%3E%3C/svg%3E");
+  filter:drop-shadow(0 0 5px rgba(190,225,255,.9));opacity:.95;
+}
+/* a refused round / error text sits in the bottom edge of the button, so the word stays centred */
+html body:not(#_):not(#__):not(#___):not(#____) #spin .spin-subtitle:not(:empty){position:absolute!important;left:6px;right:6px;bottom:3px;margin:0!important;z-index:3;font-size:clamp(8px,3.2cqw,12px)!important;line-height:1.05!important;white-space:normal!important;text-align:center;overflow:hidden;display:-webkit-box!important;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+/* idle: calm breathing glow */
+html body:not(#_):not(#__):not(#___):not(#____) #spin[data-state="idle"][data-funds="ok"]{animation:spinIdleBreath 2.4s ease-in-out infinite alternate}
+/* result flashes: profit = gold, paid but at a loss = short cool pulse; nothing paid = no effect */
+html body:not(#_):not(#__):not(#___):not(#____) #spin::before{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;opacity:0;border-radius:inherit}
+html body:not(#_):not(#__):not(#___):not(#____) #spin.flash-profit{animation:spinGlowGold 1.1s ease-out 1!important}
+html body:not(#_):not(#__):not(#___):not(#____) #spin.flash-profit::before{background:radial-gradient(120% 140% at 50% 50%,rgba(255,240,160,1),rgba(255,184,46,.97) 60%,rgba(222,134,0,.9) 100%);animation:spinFlashFade 1.1s ease-out 1}
+html body:not(#_):not(#__):not(#___):not(#____) #spin.flash-profit::after{background:linear-gradient(100deg,rgba(255,255,255,0) 0%,rgba(255,248,210,.9) 50%,rgba(255,255,255,0) 100%);animation:spinGoldSweep .9s ease-out 1}
+html body:not(#_):not(#__):not(#___):not(#____) #spin.flash-part{animation:spinGlowCool .8s ease-out 1!important}
+html body:not(#_):not(#__):not(#___):not(#____) #spin.flash-part::before{background:radial-gradient(120% 140% at 50% 50%,rgba(140,232,255,.85),rgba(80,170,255,.5) 62%,rgba(40,120,255,.2) 100%);animation:spinFlashFade .8s ease-out 1}
+/* not enough credit for the stake: muted, no glow, no sheen */
+html body:not(#_):not(#__):not(#___):not(#____) #spin[data-funds="low"][data-state="idle"]{filter:saturate(.45) brightness(.82)}
+html body:not(#_):not(#__):not(#___):not(#____) #spin[data-funds="low"][data-state="idle"]::after{display:none!important}
+html body:not(#_):not(#__):not(#___):not(#____) #spin[data-funds="low"][data-state="idle"] b{color:rgba(205,215,235,.78)!important;text-shadow:none!important}
+html body:not(#_):not(#__):not(#___):not(#____) #spin[data-funds="low"][data-state="idle"] b::before{opacity:.55;filter:none}
+@media (prefers-reduced-motion:reduce){
+  html body:not(#_):not(#__):not(#___):not(#____) #spin[data-state="idle"][data-funds="ok"],html body:not(#_):not(#__):not(#___):not(#____) #spin.flash-profit,html body:not(#_):not(#__):not(#___):not(#____) #spin.flash-part{animation:none!important}
+  html body:not(#_):not(#__):not(#___):not(#____) #spin.flash-profit::before,html body:not(#_):not(#__):not(#___):not(#____) #spin.flash-part::before{animation:none!important;opacity:.55}
+  html body:not(#_):not(#__):not(#___):not(#____) #spin.flash-profit::after{animation:none!important;display:none!important}
 }

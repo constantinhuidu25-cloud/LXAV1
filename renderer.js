@@ -1007,7 +1007,7 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
       render(result.spin.board);
       applySpinVisualsV84(result.spin);
       showSpinV79(result.spin);
-      window.LXASpinButton?.finish(result.spin.totalPayout);
+      window.LXASpinButton?.finish(result.spin.totalPayout, spinNetResult(result.spin));
       syncSpinButtonResult(result.spin);
       if (result.spin.totalPayout > 0) {
         await debitAnimation;

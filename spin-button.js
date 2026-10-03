@@ -35,6 +35,19 @@
   const setLearned = n => { try { localStorage.setItem(LEARN_KEY, String(n)); } catch (e) { /* storage unavailable */ } };
   const buzz = pattern => { try { if (navigator.vibrate) navigator.vibrate(pattern); } catch (e) { /* unsupported */ } };
 
+  let flashTimer = 0;
+  function clearFlash() {
+    clearTimeout(flashTimer);
+    if (btn) btn.classList.remove('flash-profit', 'flash-part');
+  }
+  function flash(kind) {
+    clearFlash();
+    if (!kind || !btn) return;
+    void btn.offsetWidth;
+    btn.classList.add('flash-' + kind);
+    flashTimer = setTimeout(clearFlash, 1300);
+  }
+
   function paint() {
     btn.dataset.state = state;
     btn.classList.toggle('coach', state === 'spinning' && learned() < COACH_SPINS);
@@ -49,12 +62,14 @@
 
   const api = {
     recentPointer() { return performance.now() - lastPointerFire < 900; },
+    // The button no longer prints the amount (the "last win" card already shows it); only the sign is kept.
     setResult(text, net) {
       const value = Number(net) || 0;
-      lastResult = { text: String(text || ''), sign: value > 0 ? 'win' : value < 0 ? 'loss' : 'even' };
+      lastResult = { text: '', sign: value > 0 ? 'win' : value < 0 ? 'loss' : 'even' };
       if (state === 'idle' && btn) paint();
     },
     start() {
+      clearFlash();
       state = 'spinning';
       snapped = false;
       delete btn.dataset.ring;
@@ -83,14 +98,18 @@
       ringTo(SNAP_MS);
       buzz(16);
     },
-    finish(payout) {
+    // net > 0: gold flash (profit); something paid but net <= 0: short cool pulse (loss); nothing paid: no effect.
+    finish(payout, net) {
       resetRing();
       setLearned(Math.min(COACH_SPINS, learned() + 1));
       state = 'idle';
       paint();
-      if ((Number(payout) || 0) > 0) buzz([12, 40, 12]);
+      const paid = Number(payout) || 0;
+      if (paid > 0) buzz([12, 40, 12]);
+      if (Number.isFinite(Number(net))) flash(Number(net) > 0 ? 'profit' : paid > 0 ? 'part' : '');
     },
     idle() {
+      clearFlash();
       resetRing();
       state = 'idle';
       paint();
