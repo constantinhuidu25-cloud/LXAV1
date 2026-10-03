@@ -5697,7 +5697,7 @@ html body:not(#_):not(#__):not(#___):not(#____).lock-kofi-floating #scrollLock,h
    column only when that cannot touch the lock (see updateLockKofiFloat in index.html) ===== */
 html body:not(#_):not(#__):not(#___):not(#____).lock-kofi-floating #accountButton,html body:not(#_):not(#__):not(#___):not(#____).lock-kofi-floating #headerActions .language{transform:none!important}
 html body:not(#_):not(#__):not(#___):not(#____).lxa-slid #accountButton,html body:not(#_):not(#__):not(#___):not(#____).lxa-slid #headerActions .language{transform:translateX(calc(var(--hb) + 8px))!important}
-html body:not(#_):not(#__):not(#___):not(#____) #accountButton,html body:not(#_):not(#__):not(#___):not(#____) #headerActions .language{transition:transform .32s cubic-bezier(.3,.7,.2,1)!important}
+html body:not(#_):not(#__):not(#___):not(#____) #accountButton,html body:not(#_):not(#__):not(#___):not(#____) #headerActions .language{transition:transform .30s cubic-bezier(.3,.7,.2,1)!important}
 html body:not(#_):not(#__):not(#___):not(#____).lxa-snap #accountButton,html body:not(#_):not(#__):not(#___):not(#____).lxa-snap #headerActions .language{transition:none!important}
 html body:not(#_):not(#__):not(#___):not(#____) #headerActions{row-gap:4px!important}
 html body:not(#_):not(#__):not(#___):not(#____) #headerActions .kofi-gif{margin:0!important;align-self:start!important}
