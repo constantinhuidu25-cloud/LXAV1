@@ -3,6 +3,9 @@
 Rewritten from scratch 2026-10-03 (65 commits at that time; the hash is the authoritative detail). Newest first. Format per entry: what the user asked / cause / change / how it was verified / limits.
 "Verified" = measured in headless Edge or Jest unless it says otherwise; nothing here was verified on a real phone.
 
+## 2026-10-03 (latest) - Header slide TEST: 20px / 20px / 0.30 s (commit 5a39649; layout-fix v=457)
+- Owner asked to lower the slide trigger to 20 px of scroll (down), return when the flag is 20 px above the lock zone (was 44), duration 0.30 s (was 0.32), "de test". Constants SLIDE_DOWN_AT / SLIDE_BACK_MARGIN in the inline script of index.html.
+- Measured: scrolling down slowly, the flag overlaps the lock for ~18 px of scroll (scrollY 21-39; the flag is still level with the pinned lock when the slide starts); slow scroll up and flicks: no overlap (flicks snap back). The overlap-free version is v26 (45 px / 44 px / .32 s). NOT verified on a real phone. NOT deployed.
 ## 2026-10-03 (latest) - Header: safe-moment slide (commit 548071d; layout-fix v=456, inline script in index.html)
 - Owner clarified: "rocada = alunecare" - the ID + flag slide into the lock's column must stay, without the flag/lock overlap of v23, and without anything disappearing, fading, shrinking, moving or jumping. Chose option A (slide at a safe moment); fallback v23 slightly improved.
 - Constraint stated to the owner: a lock that never moves + a slide into its column cannot both be visible at once; the only overlap-free moment is when the flag's bottom is above the lock's top, i.e. the flag is leaving the screen.
