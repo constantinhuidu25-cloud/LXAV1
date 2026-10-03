@@ -159,6 +159,37 @@ function lxaConfirm(message,opts){
     no.focus();
   });
 }
+// "New version available": an open tab / installed app keeps running the code it loaded until it is reloaded, so after a deploy some screens showed the new layout and
+// others the old one. When the page becomes visible again (and every 10 minutes) the fresh index.html is fetched; if its asset versions differ from the loaded ones a small
+// notice offers a reload (never an automatic reload: a round may be running).
+function lxaWatchVersion(){
+  if(window.__lxaVersionWatch||!window.fetch) return; window.__lxaVersionWatch=true;
+  var sig=function(list){ return list.map(function(u){ return String(u).replace(/^.*\//,''); }).filter(function(u){ return /\.(css|js)\?v=\d+/.test(u); }).sort().join('|'); };
+  var mine=sig(Array.prototype.map.call(document.querySelectorAll('link[href*="?v="],script[src*="?v="]'),function(e){ return e.getAttribute('href')||e.getAttribute('src'); }));
+  var shown=false;
+  function notice(){
+    if(shown) return; shown=true;
+    var l=String(document.documentElement.lang||'de').slice(0,2);
+    var T={de:{t:'Neue Version verf\u00fcgbar',b:'Neu laden'},ro:{t:'Versiune nou\u0103 disponibil\u0103',b:'Re\u00eencarc\u0103'},en:{t:'New version available',b:'Reload'}}[l]||{t:'New version available',b:'Reload'};
+    var bar=document.createElement('div'); bar.className='lxa-update'; bar.setAttribute('role','status');
+    var s=document.createElement('span'); s.textContent=T.t;
+    var b=document.createElement('button'); b.type='button'; b.textContent=T.b; b.addEventListener('click',function(){ location.reload(); });
+    var x=document.createElement('button'); x.type='button'; x.className='lxa-update-x'; x.setAttribute('aria-label','Close'); x.textContent='\u00d7'; x.addEventListener('click',function(){ bar.remove(); });
+    bar.append(s,b,x); document.body.append(bar);
+  }
+  function check(){
+    if(document.hidden||shown) return;
+    fetch('/index.html?chk='+Date.now(),{cache:'no-store'}).then(function(res){ return res.ok?res.text():''; }).then(function(html){
+      if(!html) return;
+      var found=(html.match(/(?:href|src)="[^"]*\?v=\d+"/g)||[]).map(function(m){ return m.replace(/^(?:href|src)="|"$/g,''); });
+      if(found.length&&sig(found)!==mine) notice();
+    }).catch(function(){});
+  }
+  document.addEventListener('visibilitychange',function(){ if(!document.hidden) setTimeout(check,400); });
+  window.addEventListener('pageshow',function(e){ if(e.persisted) setTimeout(check,400); });
+  setInterval(check,10*60*1000);
+  setTimeout(check,4000);
+}
 function lxaSessionLost(){if(!lxaAccount&&!lxaToken)return;lxaInvalidateGame();lxaAccount=null;lxaSafeWord='';lxaClearToken();lxaStore();try{renderLeaderboard()}catch(e){}if(typeof renderAccountPanel==='function')renderAccountPanel('login',lxaCopy().reauth)}
 // v143: admin status lives on the account record (accounts/{id}/role in
 // Firebase, set manually via the Firebase Console), never on the id -
@@ -1495,3 +1526,4 @@ const lxaRenderV76=render;render=function(grid){lxaRenderV76(grid);document.quer
     if (['PageUp', 'PageDown', 'Home', 'End', 'ArrowUp', 'ArrowDown'].includes(event.key) || (event.key === ' ' && tag !== 'BUTTON')) event.preventDefault();
   });
 })();
+try{ lxaWatchVersion(); }catch(e){ /* the update notice is optional */ }
