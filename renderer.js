@@ -675,7 +675,7 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
     });
   }
   function showSpinV79(spin) {
-    const wild = spin.wild.appeared ? ` · WILD ×${spin.wild.totalCount || spin.wild.positions.length} · ${Math.round(spin.wildChance * 100)}%` : '';
+    const wild = ''; // no "WILD ×N · %" tag: it looked like a payout multiplier
     // V353: JACKPOT/5-5 chips moved from #boardDetails into #boardSummary
     // (same reasoning as the V225 GEWINN BRUTTO/NETTO move below) - they used
     // to compete with the 5 LINIE chips for room in #boardDetails, which is
