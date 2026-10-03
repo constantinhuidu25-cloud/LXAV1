@@ -377,7 +377,13 @@
   };
   // Highest allowed stake: half of what the NEXT Wild level costs (follows the admin cost multiplier). The
   // jackpot tiers pay a multiple of the stake, so an uncapped stake would turn money into a multiplier.
-  const maxBetForWildLevel = level => Math.max(5, Math.floor(wildUpgradeCost(level) / 2));
+  // At the top level (50) there is no next level to buy, so the ladder simply continues: level 51 would cost
+  // 51m, giving 25.5m (24.5m at WILD 48, 25m at WILD 49) instead of repeating the previous value.
+  const maxBetForWildLevel = level => {
+    const owned = Math.max(0, Math.floor(Number(level) || 0));
+    const nextPrice = owned >= WILD_LEVEL_MAX ? Math.round((owned + 1) * 1000000 * WILD_COST_MULTIPLIER) : wildUpgradeCost(owned);
+    return Math.max(5, Math.floor(nextPrice / 2));
+  };
   const wildChance = level => Math.min(1, NATURAL_WILD_CHANCE + Math.max(0, Math.min(WILD_LEVEL_MAX, Number(level) || 0)) * WILD_CHANCE_PER_LEVEL);
   // v152: applyWild() (functions/lxa-account.js) draws the "level"-source
   // extra-Wild count from a fixed 78%/20%/2% band distribution capped by the

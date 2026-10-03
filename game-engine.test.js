@@ -350,7 +350,9 @@ describe('LxaGameEngine', () => {
       expect(game.maxBetForWildLevel(0)).toBe(1250000);
       expect(game.maxBetForWildLevel(1)).toBe(1750000);
       expect(game.maxBetForWildLevel(10)).toBe(game.wildUpgradeCost(10) / 2);
-      expect(game.maxBetForWildLevel(50)).toBe(25000000);
+      expect(game.maxBetForWildLevel(48)).toBe(24500000);
+      expect(game.maxBetForWildLevel(49)).toBe(25000000);
+      expect(game.maxBetForWildLevel(50)).toBe(25500000);
     });
     test('resolveSpin rejects a stake above the cap and accepts the cap itself', () => {
       const cap = game.maxBetForWildLevel(0);
