@@ -925,7 +925,8 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
   $('#spin').onclick = async event => {
     // The press already acted on pointerdown (spin-button.js); drop the click
     // that the same touch generates on release, or it would instantly undo it.
-    if (event && event.type === 'click' && event.detail > 0 && window.LXASpinButton?.recentPointer()) return;
+    window.LXASpinButton?.trace?.('onclick ' + (event && event.type) + ' spinning=' + spinning + ' credits=' + gameState.credits + ' bet=' + gameState.bet);
+    if (event && event.type === 'click' && event.detail > 0 && window.LXASpinButton?.recentPointer()) { window.LXASpinButton?.trace?.('click dropped (same touch)'); return; }
     // V231: V161's fast-forward-then-immediately-start-a-new-spin made rapid
     // repeated clicks feel like the game "never stops" — every click
     // canceled the round before it could show a result, so a continuous
@@ -945,7 +946,8 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
     const myToken = ++spinToken;
     gameState = game.initialState({ ...gameState, credits: Number(credits), bet: Number(bet), difficulty: Number(chance) + 1 });
     if (!autoSpinEnabled && normalizeLocalBet()) { persist(); renderGameV79(); }
-    if (gameState.credits < gameState.bet) { setMsg(t[lang].noMoney); return; }
+    if (gameState.credits < gameState.bet) { setMsg(t[lang].noMoney); window.LXASpinButton?.trace?.('no money'); return; }
+    window.LXASpinButton?.trace?.('round starts');
     spinning = true;
     queuedBet = null;
     activeSpinHandle = null;
@@ -1003,6 +1005,7 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
       renderGameV79();
       scheduleRankRefresh();
     } catch (error) {
+      window.LXASpinButton?.trace?.('round failed: ' + (error && error.message));
       if (myToken === spinToken) { activeSpinHandle?.abort(); $('#message').textContent = error.message || 'Spin failed.'; }
       // A rejected spin must never be retried forever by AUTO, and a balance
       // the server disagrees with (stale cache / different device) is re-read

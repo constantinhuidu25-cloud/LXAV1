@@ -93,6 +93,28 @@
   };
   window.LXASpinButton = api;
 
+  // Opt-in diagnostics for phones without dev tools: open the site with ?debug=1 and an on-screen log shows taps, errors and
+  // what the SPIN handler decided. Off (and invisible) in normal use; nothing is stored or sent anywhere.
+  let trace = () => {};
+  if (/[?&]debug=1\b/.test(location.search)) {
+    const box = document.createElement('pre');
+    box.style.cssText = 'position:fixed;left:0;right:0;top:0;max-height:38vh;overflow:hidden;margin:0;padding:4px 6px;font:10px/1.25 monospace;color:#9ff;background:rgba(0,0,0,.82);z-index:2147483647;pointer-events:none;white-space:pre-wrap;word-break:break-all';
+    const lines = [];
+    const show = () => { box.textContent = lines.slice(-14).join('\n'); };
+    trace = msg => { lines.push((performance.now() / 1000).toFixed(1) + 's ' + msg); show(); };
+    api.trace = trace;
+    const describe = el => el ? (el.id ? '#' + el.id : el.tagName.toLowerCase() + (typeof el.className === 'string' && el.className ? '.' + el.className.split(' ')[0] : '')) : 'null';
+    const attach = () => { if (!box.isConnected) document.body.appendChild(box); trace('debug on, ' + innerWidth + 'x' + innerHeight + ' standalone=' + matchMedia('(display-mode: standalone)').matches + ' touch=' + (navigator.maxTouchPoints || 0)); };
+    if (document.body) attach(); else document.addEventListener('DOMContentLoaded', attach);
+    window.addEventListener('error', e => trace('ERROR ' + e.message + ' @' + String(e.filename || '').split('/').pop() + ':' + e.lineno));
+    window.addEventListener('unhandledrejection', e => trace('REJECT ' + (e.reason && e.reason.message || e.reason)));
+    ['pointerdown', 'touchstart', 'click'].forEach(type => document.addEventListener(type, e => {
+      const p = e.touches ? e.touches[0] : e;
+      const top = p ? document.elementFromPoint(p.clientX, p.clientY) : null;
+      trace(type + ' target=' + describe(e.target) + ' top=' + describe(top) + ' @' + (p ? Math.round(p.clientX) + ',' + Math.round(p.clientY) : '-'));
+    }, true));
+  }
+
   function init() {
     btn = document.getElementById('spin');
     if (!btn) return;
@@ -112,6 +134,7 @@
       lastPointerFire = performance.now();
       event.preventDefault();
       btn.classList.add('pressed');
+      trace('spin pointerdown, onclick=' + typeof btn.onclick + ' state=' + state);
       if (typeof btn.onclick === 'function') btn.onclick(event);
     });
     ['pointerup', 'pointercancel', 'pointerleave'].forEach(type => btn.addEventListener(type, () => btn.classList.remove('pressed')));

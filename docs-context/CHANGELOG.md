@@ -86,6 +86,13 @@ The user's PWA screenshot has NO "MAX ..." line under the stake, so that PWA ins
 step in that screenshot is the OLD background, already fixed in 116ffd8; the user must fully close and reopen the PWA. NOT reproduced: SPIN dead in phone browsers (touch tap works in emulated
 browser/PWA/PC; the browser screenshot shows RUNDE 005, so spins ran) -> asked the user for the exact symptom + browser. NOT verified on a real device.
 
+## 2026-10-03 — Opt-in ?debug=1 overlay to diagnose "SPIN does nothing in phone browsers" (renderer.js v=401, spin-button.js v=8)
+User answer to my question: in the phone browser "nothing happens at all" when tapping SPIN (PWA fine). Not reproducible here (touch tap OK in emulated browser/PWA/PC; code review found no
+Safari-only path; no WebKit engine installed; opening the live site in the in-app browser was denied). Added a diagnostic: `https://lxoxa.vercel.app/?debug=1` shows an on-screen log (taps with
+target + element on top, JS errors/rejections, SPIN handler decisions: onclick type, spinning, credits, bet, "round starts", "round failed: ..."). Inert and invisible without the parameter.
+Verified locally: normal URL has no overlay; ?debug=1 + real touch tap logs pointerdown -> onclick -> round starts -> click dropped. Debug text is English only (developer tool, not UI).
+Next: user deploys, opens the URL with ?debug=1 in the failing phone browser, taps SPIN once, sends a screenshot -> read the last lines to find the cause.
+
 ## 2026-10-03 — Cloud hand-off set up
 User pushed origin/main to 7d2e724 himself (an app-side push/move was blocked by the safety classifier, not worked around). docs-context/ added to the repo
 (copies of these 4 docs; middleware.js 404s any .md path so they are not public). Cloud credits: $70 of $100 left, expire 2026-11-05.
