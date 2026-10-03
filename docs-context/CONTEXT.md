@@ -8,7 +8,9 @@
   (`git push origin main`), then opens a cloud session (LXAV1 menu -> Open in -> Continue in -> Cloud, or New -> Cloud) and says
   "git pull origin main, then read docs-context/CONTEXT.md and MEMORY.md". Only ONE session works on the code at a time (avoid conflicts).
   Keep this file and CHANGELOG.md updated after each real change, so a fresh cloud session can resume from them.
-- Latest change: stake can be changed during AUTO (queued, applied to the next round, same caps). See CHANGELOG 2026-10-03 "AUTO stake".
+- Newest (uncommitted until the commit below): header gap parity browser/PWA/PC (layout-fix.css v=432). Open: user's report "SPIN does nothing in phone browsers" (not reproduced; need exact symptom + browser);
+  the user's PWA is stale (no MAX line) and must be closed and reopened; see CHANGELOG "Header parity".
+- Previous change: stake can be changed during AUTO (queued, applied to the next round, same caps). See CHANGELOG 2026-10-03 "AUTO stake".
 - Earlier last round (2026-10-03), all committed, measured in headless Edge:
   1. Max stake: "+" up to the whole balance but never above half the next WILD level price; 50% = half the balance, same cap; "MAX ..." line
      under the stake (a90c4b9, b590e52, 5800313, 3d41b01). WILD 50 = 25.5M (ladder continues).

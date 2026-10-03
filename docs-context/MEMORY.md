@@ -98,6 +98,14 @@ bump on EVERY edit (current: layout-fix 431, renderer 399, game-engine 376, spin
   Viewport audit = 13 viewports x 3 languages for overflow/clip/overlap. Known benign findings: `#headerActions` container box overlaps the cards
   (the floating lock/Ko-fi park there on purpose); one TEXT-OVERLAP at 320px de on the jackpot goal text.
 - CDP full-page screenshot with `captureBeyondViewport:true` + PIL pixel sampling = how edge colours/steps are measured.
+- REAL STANDALONE (PWA) EMULATION (found 2026-10-03): launch Edge headless with `--app=http://127.0.0.1:8890/` -> `matchMedia('(display-mode: standalone)')` is true and the
+  `@media (display-mode:standalone)` CSS applies (`Emulation.setEmulatedMedia` display-mode does NOT work). Add `Emulation.setSafeAreaInsetsOverride {insets:{top:59,bottom:34,left:0,right:0}}`
+  (works: env(safe-area-inset-top) = 59px). Phone browser tab = normal launch, 390 wide, insets 0. Real touch: `Emulation.setTouchEmulationEnabled` + `Input.dispatchTouchEvent`.
+  Scripts: cdp_lib.js (helper with per-call timeout), cdp_parity2.js (rects + gaps + tap on SPIN in browser/pwa/pc), cdp_cmp.js (layout diff browser vs pwa). Recreate them from this description.
+- PARITY RULE: below the header the browser tab and the standalone app have IDENTICAL layout (verified, <=1px); the only intended difference is the header spacer for the status bar
+  (safe-area-inset-top). The gap between the animated art and the cards must be the same everywhere (6px measured in browser, PWA and PC).
+- STALE PWA TRAP: an installed iOS PWA keeps the old page alive for days. A screenshot from the user without the "MAX ..." line under the stake means the PWA runs a build older than
+  commit 5800313; ask the user to close it completely (swipe away) and reopen before judging any "fix did not work" report from the PWA.
 - TRAP: never rewrite UTF-8 files with PowerShell 5.1 `Get-Content -Raw | Set-Content` (turns diacritics/euro into mojibake, adds a BOM); I did it once to
   index.html and had to `git checkout` it. Patch with Python (`open(..., encoding='utf-8', newline='')`) or the Edit tool; keep CRLF when the file has it.
 - TRAP: `Start-Sleep` followed by a read is blocked by the harness; use background commands (run_in_background) and wait for the notification.

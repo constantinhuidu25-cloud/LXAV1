@@ -76,6 +76,16 @@ Verification (headless Edge 390px, guest): 100 -> `+,+` mid-round -> 120; stake 
 Jest 56/56, ESLint 0 errors. No new visible text (no translations needed).
 Result: done locally; NOT deployed; NOT verified on a real phone (touch hold-repeat during AUTO).
 
+## 2026-10-03 — Header parity browser / PWA / PC (layout-fix.css v=432)
+Task: user (iPhone screenshots): in the phone BROWSER the LXA header overlaps the JACKPOT MISSION / payout cards, the PWA does not; SPIN reportedly dead in phone browsers but fine in the PWA;
+PWA force-scroll shows a sudden colour change at the top; "why not 1:1 between phone browser, PWA and PC".
+Findings (measured with Edge --app standalone emulation + safe-area override, 390 px and 1280 px): gap between the header art and the cards = browser -1px, PC -2px (overlap), PWA +6px.
+Cause: my `overflow:visible` header change let the 1.18/1.22x scaled art spill over the cards in the modes without the standalone safe-area geometry.
+Fix: `@media not all and (display-mode:standalone){.topbar{margin-bottom:calc(var(--lxa-logo-h)*.1 + 3px)}}` -> gap +6 in browser, PWA and PC. Layout below the header is identical browser vs PWA (<=1px, 18 elements compared).
+The user's PWA screenshot has NO "MAX ..." line under the stake, so that PWA instance ran a build older than 5800313 (stale, old background CSS: bright glows at the page top) -> the force-scroll
+step in that screenshot is the OLD background, already fixed in 116ffd8; the user must fully close and reopen the PWA. NOT reproduced: SPIN dead in phone browsers (touch tap works in emulated
+browser/PWA/PC; the browser screenshot shows RUNDE 005, so spins ran) -> asked the user for the exact symptom + browser. NOT verified on a real device.
+
 ## 2026-10-03 — Cloud hand-off set up
 User pushed origin/main to 7d2e724 himself (an app-side push/move was blocked by the safety classifier, not worked around). docs-context/ added to the repo
 (copies of these 4 docs; middleware.js 404s any .md path so they are not public). Cloud credits: $70 of $100 left, expire 2026-11-05.

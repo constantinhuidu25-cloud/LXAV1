@@ -5536,3 +5536,9 @@ html{
     linear-gradient(180deg,#272079 0%,#1c1c80 45%,#272079 100%)!important;
   background-repeat:no-repeat!important;background-size:100% 100%!important;
 }
+
+/* ===== Header parity: the installed app (standalone) keeps ~6px of air between the animated art and the cards; the browser tab
+   and the desktop did not (art overflowed the cards' top edge by 1-2px after the overflow:visible change). Same gap everywhere ===== */
+@media not all and (display-mode:standalone){
+  html body:not(#_):not(#__):not(#___):not(#____) .topbar{margin-bottom:calc(var(--lxa-logo-h) * .1 + 3px)!important}
+}
