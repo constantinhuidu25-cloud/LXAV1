@@ -4570,7 +4570,9 @@ html body:not(#_):not(#__) .topbar .brand-cluster .brand img{
    stops) -> result (cyan win / slate no-win) -> idle. Size and position are
    untouched; only the surface, the ring and the three text lines change. */
 @property --spin-p{syntax:'<percentage>';inherits:false;initial-value:0%}
-@keyframes spinRingFill{from{--spin-p:0%}to{--spin-p:100%}}
+@keyframes spinRingWait{from{--spin-p:0%}to{--spin-p:12%}}
+@keyframes spinRingToA{from{--spin-p:var(--spin-from,0%)}to{--spin-p:100%}}
+@keyframes spinRingToB{from{--spin-p:var(--spin-from,0%)}to{--spin-p:100%}}
 @keyframes spinShine{0%,70%{transform:translateX(-130%) skewX(-18deg)}100%{transform:translateX(330%) skewX(-18deg)}}
 @keyframes spinCoach{0%,100%{box-shadow:0 0 0 0 rgba(255,196,64,.0),0 0 14px rgba(255,196,64,.45)}50%{box-shadow:0 0 0 5px rgba(255,196,64,.28),0 0 26px rgba(255,196,64,.85)}}
 @keyframes spinResultIn{from{transform:scale(.94);opacity:.4}to{transform:scale(1);opacity:1}}
@@ -4615,8 +4617,10 @@ html body:not(#_):not(#__) #spin .spin-ring{
   opacity:0;transition:opacity .15s ease;
 }
 html body:not(#_):not(#__) #spin[data-state="spinning"] .spin-ring{opacity:1}
-html body:not(#_):not(#__) #spin.run .spin-ring{animation:spinRingFill var(--spin-ms,2300ms) linear forwards}
-html body:not(#_):not(#__) #spin.snapped .spin-ring{animation-duration:.18s}
+/* waiting for the server: the ring creeps to 12%; landing()/stopped() in spin-button.js then run it to 100% in the real slide time */
+html body:not(#_):not(#__) #spin.run .spin-ring{animation:spinRingWait 1.4s cubic-bezier(.2,.7,.3,1) forwards}
+html body:not(#_):not(#__) #spin.run[data-ring="a"] .spin-ring{animation:spinRingToA var(--spin-ms,2500ms) linear forwards}
+html body:not(#_):not(#__) #spin.run[data-ring="b"] .spin-ring{animation:spinRingToB var(--spin-ms,2500ms) linear forwards}
 
 html body:not(#_):not(#__) #spin b,
 html body:not(#_):not(#__) #spin .spin-subtitle,
@@ -4660,7 +4664,8 @@ html body:not(#_):not(#__) #spin[data-funds="low"][data-state="idle"] .spin-subt
   html body:not(#_):not(#__) #spin::after,
   html body:not(#_):not(#__) #spin.coach,
   html body:not(#_):not(#__) #spin[data-state="result"]{animation:none!important}
-  html body:not(#_):not(#__) #spin.run .spin-ring{animation-duration:.01s!important}
+  html body:not(#_):not(#__) #spin.run .spin-ring,
+  html body:not(#_):not(#__) #spin.run[data-ring] .spin-ring{animation-duration:.01s!important}
 }
 
 html body:not(#_):not(#__) #spin b,

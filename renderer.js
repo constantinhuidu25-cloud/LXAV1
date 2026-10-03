@@ -834,7 +834,14 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
           track.style.transform = `translateY(${startY}px)`;
           animations.push(track.animate([{ transform: `translateY(${startY}px)` }, { transform: 'translateY(0px)' }], { duration, easing: EASE, fill: 'forwards' }));
         });
-        const promise = new Promise(resolve => { resolvePromise = resolve; timer = setTimeout(resolve, longest + 150); });
+        // Resolve the moment the last reel actually comes to rest (the timer is only a safety net), and tell the SPIN
+        // button how long that slide takes so its progress ring is full exactly then.
+        const promise = new Promise(resolve => {
+          resolvePromise = resolve;
+          timer = setTimeout(resolve, longest + 150);
+          Promise.all(animations.map(anim => anim.finished.catch(() => {}))).then(resolve);
+        });
+        if (!stopWanted) window.LXASpinButton?.landing(longest);
         if (stopWanted) finishAll();
         return promise;
       },

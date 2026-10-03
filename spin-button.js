@@ -4,12 +4,27 @@
 (function () {
   'use strict';
 
-  const SPIN_MS = 4200;
+  const SNAP_MS = 180;
   const LEARN_KEY = 'lxa-spin-stop-learned-v1';
   const COACH_SPINS = 3;
   const LABEL = { spin: 'SPIN', stop: 'STOP' };
 
-  let btn, main, sub, hint, state = 'idle', lastPointerFire = 0, lastResult = null;
+  let btn, main, sub, hint, state = 'idle', lastPointerFire = 0, lastResult = null, snapped = false;
+
+  // Progress ring: while the server is answering it creeps forward (CSS .run); ringTo() then restarts it from the
+  // current fill to 100% over `ms`. Two identical keyframes (a/b) are alternated so each call restarts the animation.
+  function ringTo(ms) {
+    const ring = btn.querySelector('.spin-ring');
+    const filled = ring ? parseFloat(getComputedStyle(ring).getPropertyValue('--spin-p')) : 0;
+    btn.style.setProperty('--spin-from', (Number.isFinite(filled) ? filled : 0) + '%');
+    btn.style.setProperty('--spin-ms', Math.max(1, Math.round(ms)) + 'ms');
+    btn.dataset.ring = btn.dataset.ring === 'a' ? 'b' : 'a';
+  }
+  function resetRing() {
+    btn.classList.remove('run', 'snapped');
+    delete btn.dataset.ring;
+    snapped = false;
+  }
 
   const digits = id => {
     const el = document.getElementById(id);
@@ -41,28 +56,37 @@
     },
     start() {
       state = 'spinning';
-      btn.style.setProperty('--spin-ms', SPIN_MS + 'ms');
+      snapped = false;
+      delete btn.dataset.ring;
       btn.classList.remove('run');
       void btn.offsetWidth;
       btn.classList.add('run');
       paint();
       buzz(8);
     },
+    // The result arrived and the reels begin their final slide: the ring now runs from wherever it is to 100% in
+    // exactly that slide time, so it is full at the instant the reels stop (renderer.js passes the real duration).
+    landing(ms) {
+      if (state !== 'spinning') return;
+      ringTo(snapped ? SNAP_MS : ms);
+    },
     stopped() {
       if (state !== 'spinning') return;
       setLearned(COACH_SPINS);
+      snapped = true;
       btn.classList.add('snapped');
+      ringTo(SNAP_MS);
       buzz(16);
     },
     finish(payout) {
-      btn.classList.remove('run', 'snapped');
+      resetRing();
       setLearned(Math.min(COACH_SPINS, learned() + 1));
       state = 'idle';
       paint();
       if ((Number(payout) || 0) > 0) buzz([12, 40, 12]);
     },
     idle() {
-      btn.classList.remove('run', 'snapped');
+      resetRing();
       state = 'idle';
       paint();
     }
