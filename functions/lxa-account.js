@@ -407,7 +407,10 @@ exports.handler = async event => {
       await saveLeaderboard({});
       return json({ ok: true });
     }
-    if (action === 'leaderboard') { const level = difficulty(input.difficulty || 1), boards = await getLeaderboard(), records = boards[`leaderboard:profile-${DIFFICULTY_PROFILE_VERSION}:${level}`] || []; records.sort((a, b) => number(b.score) - number(a.score) || number(a.updatedAt) - number(b.updatedAt)); const position = input.id ? records.findIndex(row => Number(row.id) === Number(input.id)) + 1 : 0; return json({ difficulty: level, records: records.slice(0, 10).map(({ name, score }) => ({ name, score })), yourPosition: position || null }); }
+    if (action === 'leaderboard') { const level = difficulty(input.difficulty || 1), boards = await getLeaderboard(), records = boards[`leaderboard:profile-${DIFFICULTY_PROFILE_VERSION}:${level}`] || []; records.sort((a, b) => number(b.score) - number(a.score) || number(a.updatedAt) - number(b.updatedAt)); let position = input.id ? records.findIndex(row => Number(row.id) === Number(input.id)) + 1 : 0;
+      // An account with no record on this board yet (it has not spun at this difficulty since the profile version changed) used to get position null, which the
+      // game showed as "#-". Rank it by its own score among the existing records instead (ties: the older record stays ahead).
+      if (!position && input.id) { try { const own = await read(input.id); if (own) { const ownScore = number(own.difficultyData?.[level]?.score), ownAt = number(own.updatedAt, Date.now()); position = records.filter(row => number(row.score) > ownScore || (number(row.score) === ownScore && number(row.updatedAt) <= ownAt)).length + 1; } } catch (error) { /* keep null */ } } return json({ difficulty: level, records: records.slice(0, 10).map(({ name, score }) => ({ name, score })), yourPosition: position || null }); }
     // v150: admin-only player management (USERS, deferred from v143). Every
     // action here re-reads the CALLER's account fresh from Firebase and
     // requires role:"admin" + safeWord, exactly like the RTP/leaderboard

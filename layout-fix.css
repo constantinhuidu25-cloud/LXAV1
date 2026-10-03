@@ -5713,8 +5713,34 @@ html body:not(#_):not(#__):not(#___):not(#____).lock-kofi-floating #scrollLock,h
    logo off the page's glow centre. This radial glow sits behind the logo (same x as the banner image) and gives portrait the same level. ===== */
 @media (max-width:500px){
   html body:not(#_):not(#__):not(#___):not(#____) .topbar{
-    background-image:radial-gradient(ellipse 210px 26px at var(--lxa-logo-cx,58%) var(--lxa-logo-cy,30px),rgba(205,110,255,.5) 0%,rgba(165,90,255,.26) 45%,rgba(140,80,255,0) 100%),
-      radial-gradient(ellipse 110px 34px at var(--lxa-logo-cx,58%) var(--lxa-logo-cy,30px),rgba(90,120,255,.45) 0%,rgba(90,120,255,0) 100%)!important;
+    background-image:radial-gradient(ellipse var(--lxa-glow-rx,260px) 30px at var(--lxa-logo-cx,40%) var(--lxa-logo-cy,30px),rgba(205,110,255,.42) 0%,rgba(165,90,255,.23) 42%,rgba(140,80,255,0) 100%),
+      radial-gradient(ellipse 125px 36px at var(--lxa-logo-cx,40%) var(--lxa-logo-cy,30px),rgba(90,120,255,.42) 0%,rgba(90,120,255,0) 100%)!important;
     background-repeat:no-repeat!important;
   }
 }
+
+
+/* ===== Mission lines (LINIA 1..5) get exactly the columns of the prize boxes (5 / 10 / 15 / 20 / 25 EUR) below them: no side padding, same gap ===== */
+html body:not(#_):not(#__):not(#___):not(#____) .mission-line-grid{padding-left:0!important;padding-right:0!important;gap:1px!important}
+html body:not(#_):not(#__):not(#___):not(#____) .milestone-list{gap:1px!important}
+
+/* ===== Landscape / desktop: the Ko-fi cup no longer sits on the end of the jackpot card's goal text; the lock never touches the card below: --lxa-hero-gap is
+   computed on every device by updateLockKofiFloat() (0 when there is room) ===== */
+@media (min-width:700px){ html body:not(#_):not(#__):not(#___):not(#____) .target-head #missionGoal{margin-right:44px!important} }
+
+/* ===== In-app confirm dialog (replaces the white native confirm() sheet) ===== */
+@keyframes lxaConfirmIn{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+.lxa-confirm{position:fixed;inset:0;z-index:3000;display:grid;place-items:center;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));
+  background:rgba(4,6,28,.74);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.lxa-confirm-card{width:min(100%,420px);box-sizing:border-box;padding:22px 20px 16px;border-radius:18px;border:1px solid rgba(255,120,240,.55);
+  background:linear-gradient(160deg,#1b2a78 0%,#2a1a7a 55%,#3a1668 100%);color:#fff;box-shadow:0 0 0 1px rgba(40,20,120,.6),0 18px 50px rgba(0,0,0,.6),0 0 30px rgba(232,44,255,.28);
+  animation:lxaConfirmIn .18s ease-out}
+.lxa-confirm-text{margin:0 0 18px;font:600 16px/1.45 Consolas,Menlo,monospace;letter-spacing:.2px;color:#f3eaff;text-align:center;overflow-wrap:anywhere}
+.lxa-confirm-actions{display:flex;gap:10px}
+.lxa-confirm-actions button{flex:1 1 0;min-height:46px;border-radius:12px;font:800 14px/1 Consolas,Menlo,monospace;letter-spacing:.6px;text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.lxa-confirm-no{background:rgba(255,255,255,.08);color:#d9ccff;border:1px solid rgba(180,160,255,.45)}
+.lxa-confirm-yes{background:linear-gradient(180deg,#ff6bd8 0%,#c21fb0 100%);color:#fff;border:1px solid #ffa6f0;text-shadow:0 1px 0 rgba(70,0,60,.6);box-shadow:0 0 16px rgba(232,44,255,.45)}
+.lxa-confirm-actions button:focus-visible{outline:2px solid #fff;outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.lxa-confirm-card{animation:none}}
+
+html body:not(#_):not(#__):not(#___):not(#____) .hero{margin-top:var(--lxa-hero-gap,0px)!important}

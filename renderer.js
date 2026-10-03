@@ -131,6 +131,34 @@ function lxaClearToken(){lxaToken='';localStorage.removeItem(LXA_TOKEN_KEY)}
 let lxaAuthGeneration=0;
 function lxaInvalidateGame(){lxaAuthGeneration++;try{if(window.__lxaGameInvalidate)window.__lxaGameInvalidate()}catch(e){}}
 // A stored id / name / cached balance is only a label, never a session: when the server says the token is not valid the login state is cleared.
+// In-app confirm dialog (the native confirm() is a white system sheet on iOS / Android that cannot be styled): dark glass card, magenta confirm button,
+// Esc / tap outside / Cancel = false, Enter / Confirm = true, focus is trapped in the dialog and restored afterwards. Works in all three languages.
+function lxaConfirm(message,opts){
+  opts=opts||{};
+  var l=String(document.documentElement.lang||'de').slice(0,2);
+  var T={de:{ok:'Bestätigen',cancel:'Abbrechen'},ro:{ok:'Confirmă',cancel:'Anulează'},en:{ok:'Confirm',cancel:'Cancel'}}[l]||{ok:'Confirm',cancel:'Cancel'};
+  return new Promise(function(resolve){
+    var prev=document.activeElement;
+    var wrap=document.createElement('div'); wrap.className='lxa-confirm'; wrap.setAttribute('role','alertdialog'); wrap.setAttribute('aria-modal','true');
+    var card=document.createElement('div'); card.className='lxa-confirm-card';
+    var text=document.createElement('p'); text.className='lxa-confirm-text'; text.id='lxaConfirmText'+Date.now(); text.textContent=String(message||'');
+    wrap.setAttribute('aria-labelledby',text.id);
+    var row=document.createElement('div'); row.className='lxa-confirm-actions';
+    var no=document.createElement('button'); no.type='button'; no.className='lxa-confirm-no'; no.textContent=opts.cancelLabel||T.cancel;
+    var yes=document.createElement('button'); yes.type='button'; yes.className='lxa-confirm-yes'; yes.textContent=opts.okLabel||T.ok;
+    row.append(no,yes); card.append(text,row); wrap.append(card); document.body.append(wrap);
+    function done(v){ document.removeEventListener('keydown',key,true); wrap.remove(); try{ if(prev&&prev.focus) prev.focus(); }catch(e){} resolve(v); }
+    function key(e){
+      if(e.key==='Escape'){ e.preventDefault(); e.stopPropagation(); done(false); }
+      else if(e.key==='Tab'){ e.preventDefault(); (document.activeElement===yes?no:yes).focus(); }
+      else if(e.key==='Enter'&&document.activeElement!==no){ e.preventDefault(); e.stopPropagation(); done(true); }
+    }
+    document.addEventListener('keydown',key,true);
+    no.addEventListener('click',function(){done(false)}); yes.addEventListener('click',function(){done(true)});
+    wrap.addEventListener('pointerdown',function(e){ if(e.target===wrap) done(false); });
+    no.focus();
+  });
+}
 function lxaSessionLost(){if(!lxaAccount&&!lxaToken)return;lxaInvalidateGame();lxaAccount=null;lxaSafeWord='';lxaClearToken();lxaStore();try{renderLeaderboard()}catch(e){}if(typeof renderAccountPanel==='function')renderAccountPanel('login',lxaCopy().reauth)}
 // v143: admin status lives on the account record (accounts/{id}/role in
 // Firebase, set manually via the Firebase Console), never on the id -
@@ -215,10 +243,10 @@ accountPanel.querySelector('[data-account-action="reset-admin"]')?.addEventListe
 // player actually nets including WILD. Jackpot excluded on purpose (rare,
 // needs multi-spin progression to simulate properly) and said so, short.
 accountPanel.querySelector('[data-account-action="simulate-rtp"]')?.addEventListener('click',()=>{const g=window.LxaGameEngine,out=accountPanel.querySelector('#rtpSimResult');if(!g||!out)return;out.textContent=x.simulating;setTimeout(()=>{const trials=3000,bet=5,pct=d=>{let paid=0;for(let i=0;i<trials;i++){const res=Array.from({length:5},()=>g.selectLineResult(d));const w=g.applyWild(res,Math.random,0);paid+=w.paytableResults.reduce((s,h)=>s+(bet/5)*(g.PAYTABLE[h]||0),0)}return Math.round(paid/(trials*bet)*1000)/10};out.textContent=`🍯${pct(1)}% · 🌶️${pct(2)}% · 💀${pct(3)}% (${x.noJackpot})`},10)});
-accountPanel.querySelector('[data-account-action="reset-leaderboard"]')?.addEventListener('click',async()=>{if(!confirm(x.resetLeaderboardConfirm))return;try{await lxaRequest('reset-leaderboard',{id:lxaAccount.id});renderAccountPanel('admin',x.resetLeaderboardDone)}catch(error){renderAccountPanel('admin',error.message)}});
+accountPanel.querySelector('[data-account-action="reset-leaderboard"]')?.addEventListener('click',async()=>{if(!await lxaConfirm(x.resetLeaderboardConfirm))return;try{await lxaRequest('reset-leaderboard',{id:lxaAccount.id});renderAccountPanel('admin',x.resetLeaderboardDone)}catch(error){renderAccountPanel('admin',error.message)}});
 accountPanel.querySelector('[data-account-action="open-players-admin"]')?.addEventListener('click',async()=>{try{lxaPlayersCache=(await lxaRequest('list-players',{id:lxaAccount.id})).players||[]}catch(error){renderAccountPanel('admin',error.message);return}renderAccountPanel('players-admin')});
 accountPanel.querySelectorAll('[data-account-action="edit-player"]').forEach(button=>button.addEventListener('click',()=>{lxaEditPlayerId=Number(button.dataset.id);renderAccountPanel('player-edit')}));
-accountPanel.querySelectorAll('[data-account-action="delete-player"]').forEach(button=>button.addEventListener('click',async()=>{const id=Number(button.dataset.id);if(!confirm(x.deletePlayerConfirm))return;try{await lxaRequest('admin-delete-player',{id:lxaAccount.id,playerId:id});lxaPlayersCache=(lxaPlayersCache||[]).filter(p=>Number(p.id)!==id);renderAccountPanel('players-admin',x.deletePlayerDone)}catch(error){renderAccountPanel(view,error.message)}}));
+accountPanel.querySelectorAll('[data-account-action="delete-player"]').forEach(button=>button.addEventListener('click',async()=>{const id=Number(button.dataset.id);if(!await lxaConfirm(x.deletePlayerConfirm))return;try{await lxaRequest('admin-delete-player',{id:lxaAccount.id,playerId:id});lxaPlayersCache=(lxaPlayersCache||[]).filter(p=>Number(p.id)!==id);renderAccountPanel('players-admin',x.deletePlayerDone)}catch(error){renderAccountPanel(view,error.message)}}));
 accountPanel.querySelector('select[name="difficulty"]')?.addEventListener('change',event=>{const freq=lxaRtpCache?.settings?.jackpotFreq||{},d=event.target.value,input=accountPanel.querySelector('input[name="multiplier"]');if(input)input.value=Math.round((freq[d]??1)*10)/10;if(accountPanel.querySelector('form')?.dataset.accountForm==='custom-admin'){const cur=lxaRtpCache?.currentDistribution?.[d]||{};[0,3,4,5,6,7,8,9,10].forEach(k=>{const el=accountPanel.querySelector(`input[name="b${k}"]`);if(el)el.value=cur[k]??''})}});
 accountPanel.querySelector('[data-account-action="reset-custom"]')?.addEventListener('click',async()=>{const d=accountPanel.querySelector('select[name="difficulty"]')?.value||1;try{await lxaRequest('reset-rtp-settings',{id:lxaAccount.id,scope:'customDistribution',scopeDifficulty:d});lxaRtpCache=await lxaRequest('get-rtp-settings',{});renderAccountPanel('custom-admin',x.rtpResetDone)}catch(error){renderAccountPanel('custom-admin',error.message)}});
 accountPanel.querySelector('input[name="extraWildFreq"]')?.addEventListener('input',event=>{const preview=accountPanel.querySelector('#extraWildPreview');if(preview)preview.textContent=`≈${Math.min(50,Math.round(2.47*(Number(event.target.value)||1)))} ${x.wildPreviewUnit}`});
@@ -1338,7 +1366,7 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
     renderGameV79();
   }, true);
   resetButton.onclick = async () => {
-    if (lxaAccount && !window.confirm(T118('resetConfirm'))) return;
+    if (lxaAccount && !await lxaConfirm(T118('resetConfirm'))) return;
     stopAutoSpin();
     // RESET is the only new-game action: clear every game field, including
     // BANK, Wild level, jackpot, history and difficulty progress.
