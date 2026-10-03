@@ -5679,14 +5679,6 @@ html body:not(#_):not(#__):not(#___):not(#____) #spin[data-funds="low"][data-sta
 }
 
 
-/* ===== Lock + floating Ko-fi: one column, one gap =====
-   Both stay in the header column (lock above, Ko-fi centred under it) whether the page is at the top or scrolled; the gap between them is 4px in
-   both states (grid row-gap at rest, `top` in index.html updateLockKofiFloat() when floating). The cup is nudged 10% of its width to the right
-   by the transform above because its visible mass sits left of the image centre. ===== */
-html body:not(#_):not(#__):not(#___):not(#____) #headerActions{row-gap:4px!important}
-html body:not(#_):not(#__):not(#___):not(#____) #headerActions .kofi-gif{margin:0!important;align-self:start!important}
-
-
 /* ===== Result colour on the WORD (replaces the result ring): gold word + icon after a profit, soft pink-red after a payout below the stake,
    until the next round starts (data-result). During the burst itself the word stays white (it would vanish on the gold / coral flash). ===== */
 html body:not(#_):not(#__):not(#___):not(#____) #spin[data-result="profit"] b{color:#3dffa8!important;text-shadow:1px 0 0 #03321f,-1px 0 0 #03321f,0 1px 0 #03321f,0 -1px 0 #03321f,0 3px 0 rgba(2,50,30,.75),0 0 16px rgba(57,245,167,.85)!important}
@@ -5696,12 +5688,6 @@ html body:not(#_):not(#__):not(#___):not(#____) #spin[data-result="part"] b{
 }
 
 
-/* ===== Header dock, driven by the scroll position (see updateLockKofiFloat in index.html): lock + Ko-fi fade out, the ID and flag slide one column
-   right, then the pair rises/fades in at the top once the flag has scrolled away. Inline values come from the script; these short transitions
-   only smooth fast flicks. ===== */
-html body:not(#_):not(#__):not(#___):not(#____) #accountButton,html body:not(#_):not(#__):not(#___):not(#____) #headerActions .language{transition:transform .2s ease-out!important}
-html body:not(#_):not(#__):not(#___):not(#____) #scrollLock{transition:opacity .18s ease-out,translate .18s ease-out,scale .18s ease-out,filter .25s ease,transform .15s ease!important}
-html body:not(#_):not(#__):not(#___):not(#____) #headerActions .kofi-gif{transition:opacity .18s ease-out,translate .18s ease-out,scale .18s ease-out!important}
-@media (prefers-reduced-motion:reduce){
-  html body:not(#_):not(#__):not(#___):not(#____) #accountButton,html body:not(#_):not(#__):not(#___):not(#____) #headerActions .language,html body:not(#_):not(#__):not(#___):not(#____) #scrollLock,html body:not(#_):not(#__):not(#___):not(#____) #headerActions .kofi-gif{transition:none!important}
-}
+/* ===== Header: the floating lock + Ko-fi stay ABOVE the ID / flag (z-index 2000) while those slide past, so the lock is always fully visible
+   and tappable (before, the flag was drawn over the lock between ~8 and ~47px of scroll). Everything else is the original behaviour. ===== */
+html body:not(#_):not(#__):not(#___):not(#____).lock-kofi-floating #scrollLock,html body:not(#_):not(#__):not(#___):not(#____).lock-kofi-floating #headerActions .kofi-gif{z-index:2100!important}
