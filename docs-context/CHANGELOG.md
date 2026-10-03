@@ -3,6 +3,9 @@
 Rewritten from scratch 2026-10-03 (65 commits at that time; the hash is the authoritative detail). Newest first. Format per entry: what the user asked / cause / change / how it was verified / limits.
 "Verified" = measured in headless Edge or Jest unless it says otherwise; nothing here was verified on a real phone.
 
+## 2026-10-03 (latest) - Header slide 5 px later (commit e715a02; layout-fix v=460)
+- Owner asked for 5 more pixels (chose option A: the slide point). SLIDE_LATER = 5 in the inline script of index.html: point = lock top + 0.65 x flag height - 5; the slide-back point moves with it (SLIDE_HYST 4 unchanged).
+- Measured (3 viewports): slide in at scrollY 24-30 (was 18-24); same state for the four ways of arriving at a position; ~5 px less overlap. NOT deployed.
 ## 2026-10-03 (latest) - Header slide: position-only trigger (commit afbb303; layout-fix v=459)
 - Owner: "mostly very good but sometimes it does not respect these values, sometimes it differs".
 - Cause (measured on v28): the slide state depended on the scroll direction; between ~24 and ~60 px of scroll the same position gave different results depending on how you arrived (down: slid from 24; up / jump from below: slid only at 66), and scrolling up inside that band snapped the flag back instantly (lxa-snap).
