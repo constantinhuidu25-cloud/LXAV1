@@ -3,6 +3,9 @@
 Rewritten from scratch 2026-10-03 (65 commits at that time; the hash is the authoritative detail). Newest first. Format per entry: what the user asked / cause / change / how it was verified / limits.
 "Verified" = measured in headless Edge or Jest unless it says otherwise; nothing here was verified on a real phone.
 
+## 2026-10-03 (latest) - SPIN profit: mint-green word + opaque gold burst (commit 94595bd; layout-fix v=444)
+- Owner: drop the yellow word, use a nice green that fits the site, and bring back the strong gold burst without transparency (it was made translucent only so a gold word stayed readable).
+- Now: profit word + icon #3dffa8 (site mint, same family as the lock glow / win lines) with a dark green outline; gold burst fully opaque again (rgba(...,1)). Loss (pink-red #ff7a90) unchanged. Checked in headless Edge: the green word is readable on the opaque gold from the first frame. Jest 91/91, ESLint 0 errors. NOT verified on a real phone. NOT deployed.
 ## 2026-10-03 (latest) - Header castling: lock/flag swap without overlap (commit 9573c34; layout-fix v=443, inline script in index.html)
 - Owner: kept the slide animation (flag takes the lock's place) but wanted it overlap-free and more professional.
 - Why the old slide collided: since the floating lock sits in the header column, the flag slid onto it. A swap needs the lock to be elsewhere while the flag arrives.
