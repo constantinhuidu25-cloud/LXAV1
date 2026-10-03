@@ -90,6 +90,17 @@ async function updateAccount(accountKey, mutate) {
 
 // `strict` is for read-modify-write callers: if the read fails they must stop instead of saving a board built from {}
 // (saveLeaderboard replaces the whole node). Plain display reads keep the old forgiving behaviour.
+// Account ids come from an atomic counter (`meta/lastAccountId`) so two simultaneous `create` calls can never receive the same id
+// (verified: 5 parallel creates all got id 12 when the id was computed as max(existing)+1 from a read). `floor` = highest id seen in
+// `accounts`, so the counter can never fall behind existing accounts.
+async function reserveAccountId(floor) {
+  initFirebase();
+  if (!db) throw new Error('Firebase not initialized');
+  const result = await db.ref('meta/lastAccountId').transaction(current => Math.max(Number(current) || 0, Number(floor) || 0) + 1);
+  if (!result.committed) throw new Error('Account id reservation did not commit');
+  return result.snapshot.val();
+}
+
 async function getLeaderboard({ strict = false } = {}) {
   try {
     initFirebase();
@@ -149,6 +160,7 @@ module.exports = {
   getLeaderboard,
   saveLeaderboard,
   updateAccount,
+  reserveAccountId,
   getRtpSettings,
   saveRtpSettings
 };

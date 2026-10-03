@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 const { checkRateLimit, checkGlobalRateLimit, auditAction, detectFraud, sanitizeInput, validateBet, idempotencyCache } = require('./security.js');
-const { getAccounts, saveAccounts, getLeaderboard, saveLeaderboard, updateAccount, getRtpSettings, saveRtpSettings } = require('./firebase-storage');
+const { getAccounts, saveAccounts, getLeaderboard, saveLeaderboard, updateAccount, getRtpSettings, saveRtpSettings, reserveAccountId } = require('./firebase-storage');
 const game = require('../game-engine.js');
 // v143: admin status lives on the account record itself (accounts/{id}/role
 // in Firebase), never on the id. There is no hardcoded admin id anywhere -
@@ -211,7 +211,7 @@ exports.handler = async event => {
     } else if (action === 'login' && input.silent !== true) {
       if (!checkRateLimit('LOGIN_ATTEMPT', `LOGIN_ATTEMPT:${clientIp}`)) return json({ error: 'Too many login attempts. Please try again later.' }, 429);
     }
-    if (action === 'create') { const name = cleanName(input.name); if (name.length < 2) return json({ error: 'Name must contain at least 2 characters.' }, 400); const accounts = await getAccounts(); const nameExists = Object.values(accounts).some(acc => nameKey(acc.name) === nameKey(name)); if (nameExists) return json({ error: 'This name is already in use.' }, 409); const existingIds = Object.values(accounts).map(acc => Number(acc && acc.id)).filter(id => id >= 11); let id = Math.max(11, ...existingIds, 10) + 1; const plainSafeWord = makeSafeWord(), token = makeSessionToken(); const account = defaults({ id, name, safeWord: hashSafeWord(plainSafeWord), sessionToken: token, role: 'user', balance: 250, bank: 0, wildLevel: 0, difficulty: 2, difficultyProfileVersion: DIFFICULTY_PROFILE_VERSION, records: [0, 0, 0, 0, 0], jackpotProgress: 0, jackpotFinished: false, stats: {}, history: [], difficultyData: blankDifficulty(), createdAt: Date.now() }); await save(account); return json({ account: publicAccount(account), safeWord: plainSafeWord, token }); }
+    if (action === 'create') { const name = cleanName(input.name); if (name.length < 2) return json({ error: 'Name must contain at least 2 characters.' }, 400); const accounts = await getAccounts(); const nameExists = Object.values(accounts).some(acc => nameKey(acc.name) === nameKey(name)); if (nameExists) return json({ error: 'This name is already in use.' }, 409); const existingIds = Object.values(accounts).map(acc => Number(acc && acc.id)).filter(id => id >= 11); const highestId = Math.max(11, ...existingIds, 10); let id = typeof reserveAccountId === 'function' ? await reserveAccountId(highestId) : highestId + 1; const plainSafeWord = makeSafeWord(), token = makeSessionToken(); const account = defaults({ id, name, safeWord: hashSafeWord(plainSafeWord), sessionToken: token, role: 'user', balance: 250, bank: 0, wildLevel: 0, difficulty: 2, difficultyProfileVersion: DIFFICULTY_PROFILE_VERSION, records: [0, 0, 0, 0, 0], jackpotProgress: 0, jackpotFinished: false, stats: {}, history: [], difficultyData: blankDifficulty(), createdAt: Date.now() }); await save(account); return json({ account: publicAccount(account), safeWord: plainSafeWord, token }); }
     if (action === 'login') {
       let account = null;
       if (input.id !== undefined && input.id !== null && String(input.id).trim() !== '') {
