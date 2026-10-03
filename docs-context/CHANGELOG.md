@@ -3,6 +3,10 @@
 Rewritten from scratch 2026-10-03 (65 commits at that time; the hash is the authoritative detail). Newest first. Format per entry: what the user asked / cause / change / how it was verified / limits.
 "Verified" = measured in headless Edge or Jest unless it says otherwise; nothing here was verified on a real phone.
 
+## 2026-10-03 (latest) - Banner glow centred on the visible logo (commit bf2f6b8; layout-fix v=471)
+- Owner: on portrait the right part of the added glow looks lost.
+- Cause: --lxa-logo-cx used the centre of the image box (217 px at 390 wide) but the visible logo sits at 35-39 % of that box (glyph centroid 151 / 170 / 208 px at 390 / 430 / 480): the glow was ~60 px right of the logo, its right half ran into the header's right edge and its left half hid behind the logo.
+- Now: logoFrac = 0.35 + 0.00048 * (clamp(width, 360, 500) - 390) in updateLockKofiFloat(); glow centred on the glyph at 390 / 430 / 480 (checked in screenshots: haze on both sides of the logo, nothing cut). NOT verified on a real phone. NOT deployed.
 ## 2026-10-03 (latest) - Same smoke behind the LXA banner on narrow portrait screens (commit 6d8f012; layout-fix v=470)
 - Owner chose option A: portrait gets the same look as landscape. Earlier hypotheses were wrong: .brand has a transparent background at every size, the standalone scrim / top fade have no visible effect (checked in a real --app standalone window), and lxa-header.webp (1280x80, 42 frames, transparent sides, centroid x 0.504) has a constant blue smoke (frame variation 1.16x).
 - Measured (screenshots): brightness above the logo minus the header's far-left edge = +32..37 on landscape / desktop / tablet, +3..7 on 360 / 390 / 412 px portrait, +27 on 568 px. The glow is the page background; narrow layouts move the logo off its centre.
