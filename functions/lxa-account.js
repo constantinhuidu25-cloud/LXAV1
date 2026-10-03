@@ -142,39 +142,18 @@ async function leaderboard(account) { const level = String(account.difficulty), 
 async function applyRtpSettings() {
   let settings = {};
   try { settings = (await getRtpSettings()) || {}; } catch { settings = {}; }
-  [1, 2, 3].forEach(d => {
-    const raw = settings[d] ?? settings[String(d)];
-    if (raw !== undefined && Number.isFinite(Number(raw))) game.setDifficultyRtp(d, Number(raw));
-    else game.resetDifficultyRtp(d);
-  });
-  const customDistribution = settings.customDistribution || {};
-  [1, 2, 3].forEach(d => {
-    const buckets = customDistribution[d] ?? customDistribution[String(d)];
-    if (buckets) game.setCustomDistribution(d, buckets);
-    else game.resetCustomDistribution(d);
-  });
-  const jackpotFreq = settings.jackpotFreq || {};
-  [1, 2, 3].forEach(d => {
-    const raw = jackpotFreq[d] ?? jackpotFreq[String(d)];
-    if (raw !== undefined && Number.isFinite(Number(raw))) game.setJackpotFrequency(d, Number(raw));
-    else game.resetJackpotFrequency(d);
-  });
-  if (settings.wildChance !== undefined && Number.isFinite(Number(settings.wildChance))) game.setWildChancePercent(Number(settings.wildChance));
-  else game.resetWildChancePercent();
-  if (settings.wildPerLevel !== undefined && Number.isFinite(Number(settings.wildPerLevel))) game.setWildPerLevelPercent(Number(settings.wildPerLevel));
-  else game.resetWildPerLevelPercent();
-  if (settings.wildCap !== undefined && Number.isFinite(Number(settings.wildCap))) game.setWildCap(Number(settings.wildCap));
-  else game.resetWildCap();
-  if (settings.wildCostMult !== undefined && Number.isFinite(Number(settings.wildCostMult))) game.setWildCostMultiplier(Number(settings.wildCostMult));
-  else game.resetWildCostMultiplier();
-  if (settings.extraWildFreq !== undefined && Number.isFinite(Number(settings.extraWildFreq))) game.setExtraWildFrequency(Number(settings.extraWildFreq));
-  else game.resetExtraWildFrequency();
-  if (settings.payoutMult !== undefined && Number.isFinite(Number(settings.payoutMult))) game.setPayoutMultiplier(Number(settings.payoutMult));
-  else game.resetPayoutMultiplier();
-  if (settings.jackpotValueMult !== undefined && Number.isFinite(Number(settings.jackpotValueMult))) game.setJackpotValueMultiplier(Number(settings.jackpotValueMult));
-  else game.resetJackpotValueMultiplier();
+  // ONE shared implementation (game-engine.js) turns the stored admin settings into engine state, in a fixed order that does not depend on
+  // what an earlier request left behind; the browser's guest mirror calls the very same function.
+  game.applyAdminSettings(settings);
   return settings;
 }
+// What the admin panel shows next to the inputs: the LINE return, the exact TOTAL return (lines + WILD + jackpot) at the reference WILD level,
+// and the totals for a player with no WILD levels and with the maximum level (WILD upgrades pay more).
+const rtpSummary = settings => {
+  const ref = Math.max(0, Math.min(50, Math.round(Number((settings || {}).rtpRefLevel) || 0))), out = {};
+  for (const d of [1, 2, 3]) out[d] = { lineRtp: game.expectedLineMultiplier(d) * 100, totalRtp: game.expectedTotalRtp(d, ref), totalRtp0: game.expectedTotalRtp(d, 0), totalRtpMax: game.expectedTotalRtp(d, 50) };
+  return out;
+};
 function applyWild(results, level) { const wildLevel = Math.max(0, Math.min(MAX_WILD_LEVEL, Math.floor(number(level)))); const chance = game.wildChance(wildLevel), naturalCount = Math.random() < chance ? 1 : 0, maximumExtra = Math.min(wildLevel, 50 - naturalCount); let levelCount = 0; const pick = (low, high) => low + Math.floor(Math.random() * (high - low + 1)); if (maximumExtra <= 2) levelCount = pick(0, maximumExtra); else { const roll = Math.random(); if (roll < .78) levelCount = pick(0, Math.min(2, maximumExtra)); else if (roll < .98) levelCount = pick(3, Math.min(8, maximumExtra)); else levelCount = pick(Math.min(9, maximumExtra), maximumExtra); } levelCount = Math.max(0, Math.min(maximumExtra, Math.round(levelCount * game.EXTRA_WILD_FREQUENCY))); const totalCount = naturalCount + levelCount, cells = Array.from({ length: 50 }, (_, index) => ({ line: Math.floor(index / 10), column: index % 10 })), wilds = []; for (let index = 0; index < totalCount; index++) { const swapIndex = index + Math.floor(Math.random() * (cells.length - index)); [cells[index], cells[swapIndex]] = [cells[swapIndex], cells[index]]; wilds.push({ ...cells[index], source: index === 0 && naturalCount ? 'natural' : 'level' }); } const perLine = [0, 0, 0, 0, 0]; wilds.forEach(wild => { perLine[wild.line]++; }); return { results: results.map((hits, line) => Math.min(10, hits + perLine[line])), paytableResults: results.map((hits, line) => Math.min(10, hits + Math.min(perLine[line], game.PAYTABLE_WILD_CAP))), wildAssistedTen: results.map((hits, line) => hits < 10 && Math.min(10, hits + perLine[line]) === 10), lineHasWild: perLine.map(count => count > 0), wilds, chance, naturalCount, levelCount, totalCount }; }
 // v158 (user request): miss cells must only ever show a LXA letter
 // - never 'X' or any character outside D/R/O/L/I/N/G/E. Was sending a
@@ -340,7 +319,7 @@ exports.handler = async event => {
         wildCostMult: { min: game.WILD_COST_MULTIPLIER_MIN, max: game.WILD_COST_MULTIPLIER_MAX },
         extraWildFreq: { min: game.EXTRA_WILD_FREQ_MIN, max: game.EXTRA_WILD_FREQ_MAX }
       };
-      return json({ settings, defaults, bounds, customDistribution: { 1: game.getCustomDistribution(1), 2: game.getCustomDistribution(2), 3: game.getCustomDistribution(3) }, currentDistribution: { 1: game.DIFFICULTY_DISTRIBUTIONS[0], 2: game.DIFFICULTY_DISTRIBUTIONS[1], 3: game.DIFFICULTY_DISTRIBUTIONS[2] } });
+      return json({ settings, defaults, bounds, computed: rtpSummary(settings), customDistribution: { 1: game.getCustomDistribution(1), 2: game.getCustomDistribution(2), 3: game.getCustomDistribution(3) }, currentDistribution: { 1: game.DIFFICULTY_DISTRIBUTIONS[0], 2: game.DIFFICULTY_DISTRIBUTIONS[1], 3: game.DIFFICULTY_DISTRIBUTIONS[2] } });
     }
     // v156/v158: explicit per-bucket win-chance override, independent
     // action (different shape than set-rtp-settings' flat numeric fields:
@@ -392,9 +371,11 @@ exports.handler = async event => {
         if (!Number.isFinite(value)) return json({ error: `Invalid value for ${field}.` }, 400);
         next[field] = Math.max(min, Math.min(max, value));
       }
+      if (input.rtpLinked !== undefined && input.rtpLinked !== '') next.rtpLinked = input.rtpLinked === true || input.rtpLinked === 'true' || input.rtpLinked === 'on' || input.rtpLinked === 1 || input.rtpLinked === '1';
+      if (input.rtpRefLevel !== undefined && input.rtpRefLevel !== '') { const level = Number(input.rtpRefLevel); if (!Number.isFinite(level)) return json({ error: 'Invalid reference WILD level.' }, 400); next.rtpRefLevel = Math.max(0, Math.min(MAX_WILD_LEVEL, Math.round(level))); }
       await saveRtpSettings(next);
       await applyRtpSettings();
-      return json({ settings: next, actual: { 1: game.expectedLineMultiplier(1) * 100, 2: game.expectedLineMultiplier(2) * 100, 3: game.expectedLineMultiplier(3) * 100 } });
+      return json({ settings: next, computed: rtpSummary(next), actual: { 1: game.expectedLineMultiplier(1) * 100, 2: game.expectedLineMultiplier(2) * 100, 3: game.expectedLineMultiplier(3) * 100 } });
     }
     if (action === 'reset-rtp-settings') {
       const account = await read(input.id); if (!account) return json({ error: 'ID not found.' }, 404);
@@ -406,7 +387,7 @@ exports.handler = async event => {
       } else {
         const current = (await getRtpSettings({ strict: true })) || {};
         const next = { ...current };
-        if (scope === 'rtp') { delete next[1]; delete next[2]; delete next[3]; if (next.customDistribution) delete next.customDistribution; }
+        if (scope === 'rtp') { delete next[1]; delete next[2]; delete next[3]; delete next.rtpLinked; delete next.rtpRefLevel; if (next.customDistribution) delete next.customDistribution; }
         else if (scope === 'customDistribution') { const d = difficulty(input.scopeDifficulty); if (next.customDistribution) delete next.customDistribution[d]; }
         else if (scope === 'jackpotFreq') { delete next.jackpotFreq; }
         else if (scope === 'wild') { delete next.wildChance; delete next.wildPerLevel; delete next.wildCap; delete next.wildCostMult; delete next.extraWildFreq; }

@@ -262,10 +262,11 @@
   // (no fixed/locked bucket) - jackpotFreq below still applies on top as an
   // independent additional multiplier if an admin also sets one.
   let customDistribution = [null, null, null];
-  function recomputeDistribution(index) {
+  // Pure: the distribution a difficulty WOULD have for a given line-RTP target (custom distribution still wins, jackpot frequency applied).
+  function computeDistribution(index, lineTarget) {
     let dist = customDistribution[index]
       ? { ...customDistribution[index] }
-      : buildDistributionForRtp(index, difficultyRtpTarget[index]);
+      : buildDistributionForRtp(index, lineTarget);
     const freq = difficultyJackpotFreq[index];
     if (freq !== 1) {
       // Sanity caps (30%/20%) stop an extreme multiplier combined with an
@@ -280,8 +281,9 @@
       for (const key of [0, 3, 4, 5, 6, 7, 8]) scaled[key] = dist[key] * scale;
       dist = scaled;
     }
-    activeDifficultyDistributions[index] = roundToHundred(dist);
+    return roundToHundred(dist);
   }
+  function recomputeDistribution(index) { activeDifficultyDistributions[index] = computeDistribution(index, difficultyRtpTarget[index]); }
   // Apply the initial 150/125/100 targets immediately at module load, so
   // the very first spin (before any admin ever opens the RTP panel) is
   // already on-target - not left on the raw DEFAULT_DIFFICULTY_DISTRIBUTIONS
@@ -403,6 +405,107 @@
       if (Math.abs(totalProbability(index + 1) - 100) > 0.01) throw new Error(`Difficulty ${index + 1} does not total 100%.`);
     });
     return true;
+  }
+
+  // ===================== TOTAL RTP: lines + WILD + jackpot, computed exactly =====================
+  // The admin RTP target fixes only the LINE return (expectedLineMultiplier). WILD substitution and the jackpot pay on top of it
+  // (about +7..12 points for a player without WILD levels). expectedTotalRtp() computes the real long-run return of one stake
+  // for a player at a given WILD level, from the SAME rules resolveSpin/applyWild use (line buckets, WILD count law, paytable and
+  // WILD cap, jackpot tiers and the cycle of 5 different lines), so the "connected" admin mode can solve for a TOTAL target
+  // without simulating. Verified against seeded simulations in rtp-linked.test.js. Large-stake model: the per-line integer
+  // rounding (cents()) in resolveSpin is ignored, so very small stakes pay slightly more than the figure.
+  const BINOMIAL = (() => { const t = [[1]]; for (let n = 1; n <= 50; n++) { t[n] = [1]; for (let k = 1; k <= n; k++) t[n][k] = (t[n - 1][k - 1] || 0) + (t[n - 1][k] || 0); } return t; })();
+  const choose = (n, k) => (n < 0 || k < 0 || k > n ? 0 : BINOMIAL[n][k]);
+  // P(total WILD count = w) for a player at `level`: natural WILD (Bernoulli) plus the level extras (78% / 20% / 2% bands, scaled by the extra-WILD frequency).
+  function wildCountDistribution(level) {
+    const lv = Math.max(0, Math.min(WILD_LEVEL_MAX, Math.floor(Number(level) || 0)));
+    const chance = wildChance(lv), out = new Array(COLUMN_COUNT * LINE_COUNT + 1).fill(0);
+    for (const [natural, pNatural] of [[0, 1 - chance], [1, chance]]) {
+      if (pNatural <= 0) continue;
+      const maxExtra = Math.min(lv, COLUMN_COUNT * LINE_COUNT - natural), extra = new Map();
+      const add = (count, p) => extra.set(count, (extra.get(count) || 0) + p);
+      const band = (low, high, p) => { const n = high - low + 1; for (let k = low; k <= high; k++) add(k, p / n); };
+      if (maxExtra <= 0) add(0, 1);
+      else if (maxExtra <= 2) band(0, maxExtra, 1);
+      else { band(0, Math.min(2, maxExtra), 0.78); band(3, Math.min(8, maxExtra), 0.20); band(Math.min(9, maxExtra), maxExtra, 0.02); }
+      for (const [count, p] of extra) out[natural + Math.max(0, Math.min(maxExtra, Math.round(count * EXTRA_WILD_FREQUENCY)))] += pNatural * p;
+    }
+    return out;
+  }
+  function expectedTotalRtpFor(distribution, level) {
+    const cells = COLUMN_COUNT * LINE_COUNT, pW = wildCountDistribution(level), probs = {};
+    for (let hits = 0; hits <= COLUMN_COUNT; hits++) probs[hits] = (Number(distribution[hits]) || 0) / 100;
+    // normal line payout per unit stake = expected paytable value of ONE line (5 lines x stake/5)
+    let normal = 0;
+    for (let w = 0; w <= cells; w++) {
+      if (!pW[w]) continue;
+      const all = choose(cells, w); let perLine = 0;
+      for (let x = 0; x <= Math.min(COLUMN_COUNT, w); x++) {
+        const px = choose(COLUMN_COUNT, x) * choose(cells - COLUMN_COUNT, w - x) / all;
+        if (!px) continue;
+        const bonus = Math.min(x, PAYTABLE_WILD_CAP); let value = 0;
+        for (let hits = 0; hits <= COLUMN_COUNT; hits++) if (probs[hits]) value += probs[hits] * (PAYTABLE[Math.min(COLUMN_COUNT, hits + bonus)] || 0);
+        perLine += px * value;
+      }
+      normal += pW[w] * perLine;
+    }
+    // jackpot: a spin pays tier[k] x stake when one of the (5-k) still-open lines is a natural 10/10 with no WILD on it. One tier per spin,
+    // so a cycle of 5 awards takes sum(1/a_k) spins; a_k = P(award | k lines done) by inclusion-exclusion over WILD-free lines.
+    const p10 = probs[COLUMN_COUNT]; let cycleSpins = 0, cycleAward = 0;
+    for (let k = 0; k < LINE_COUNT; k++) {
+      const open = LINE_COUNT - k; let none = 0;
+      for (let w = 0; w <= cells; w++) {
+        if (!pW[w]) continue;
+        const all = choose(cells, w); let acc = 0;
+        for (let j = 0; j <= open; j++) acc += choose(open, j) * Math.pow(-p10, j) * (choose(cells - COLUMN_COUNT * j, w) / all);
+        none += pW[w] * acc;
+      }
+      const award = 1 - none;
+      cycleSpins += award > 1e-12 ? 1 / award : Infinity; cycleAward += Number(JACKPOT_TIER_MULTIPLIERS[k]) || 0;
+    }
+    const jackpot = Number.isFinite(cycleSpins) && cycleSpins > 0 ? cycleAward / cycleSpins : 0;
+    return (normal + jackpot) * 100;
+  }
+  const expectedTotalRtp = (difficulty, wildLevel = 0) => expectedTotalRtpFor(distributionFor(difficulty), wildLevel);
+  // CONNECTED RTP: the admin value is the TOTAL return (lines + WILD + jackpot) for a player at `wildLevel`; the line target is solved so the
+  // total lands on it (bisection, exact model, no simulation). A custom win-chance table keeps its precedence (skipped). A target outside
+  // what the line buckets can reach is clamped and reported.
+  function setDifficultyTotalRtp(difficulty, totalTargetPercent, wildLevel = 0) {
+    const index = clampDifficulty(difficulty) - 1;
+    if (customDistribution[index]) return { skipped: 'custom', lineTarget: difficultyRtpTarget[index], lineRtp: expectedLineMultiplier(difficulty) * 100, totalRtp: expectedTotalRtp(difficulty, wildLevel), clamped: false };
+    const target = Math.max(RTP_MIN_PERCENT, Math.min(RTP_MAX_PERCENT, Number(totalTargetPercent) || 0));
+    const totalAt = line => expectedTotalRtpFor(computeDistribution(index, line), wildLevel);
+    let lo = RTP_MIN_PERCENT, hi = RTP_MAX_PERCENT, line, clamped = false;
+    const atLo = totalAt(lo), atHi = totalAt(hi);
+    if (target <= atLo) { line = lo; clamped = target < atLo - 0.05; }
+    else if (target >= atHi) { line = hi; clamped = target > atHi + 0.05; }
+    else { for (let i = 0; i < 48; i++) { const mid = (lo + hi) / 2; if (totalAt(mid) < target) lo = mid; else hi = mid; } line = (lo + hi) / 2; }
+    difficultyRtpTarget[index] = line; recomputeDistribution(index); validateConfiguration();
+    return { lineTarget: Math.round(line * 1000) / 1000, lineRtp: expectedLineMultiplier(difficulty) * 100, totalRtp: expectedTotalRtp(difficulty, wildLevel), clamped };
+  }
+  // ONE place that turns the stored admin settings into engine state. The server (before every spin / settings read) and the browser (guest
+  // mirror) both call it, so they cannot drift apart. Deterministic: the result depends only on `settings`, never on what a previous call left
+  // behind (the payout multiplier is reset first because the line targets are calibrated against the standard paytable).
+  function applyAdminSettings(settings) {
+    const s = settings && typeof settings === 'object' ? settings : {};
+    const has = v => v !== undefined && v !== null && v !== '' && Number.isFinite(Number(v));
+    const pick = (obj, d) => (obj ? (obj[d] ?? obj[String(d)]) : undefined);
+    resetPayoutMultiplier();
+    [1, 2, 3].forEach(d => { const raw = pick(s, d); if (has(raw)) setDifficultyRtp(d, Number(raw)); else resetDifficultyRtp(d); });
+    [1, 2, 3].forEach(d => { const buckets = pick(s.customDistribution, d); if (buckets) setCustomDistribution(d, buckets); else resetCustomDistribution(d); });
+    [1, 2, 3].forEach(d => { const raw = pick(s.jackpotFreq, d); if (has(raw)) setJackpotFrequency(d, Number(raw)); else resetJackpotFrequency(d); });
+    if (has(s.wildChance)) setWildChancePercent(Number(s.wildChance)); else resetWildChancePercent();
+    if (has(s.wildPerLevel)) setWildPerLevelPercent(Number(s.wildPerLevel)); else resetWildPerLevelPercent();
+    if (has(s.wildCap)) setWildCap(Number(s.wildCap)); else resetWildCap();
+    if (has(s.wildCostMult)) setWildCostMultiplier(Number(s.wildCostMult)); else resetWildCostMultiplier();
+    if (has(s.extraWildFreq)) setExtraWildFrequency(Number(s.extraWildFreq)); else resetExtraWildFrequency();
+    if (has(s.payoutMult)) setPayoutMultiplier(Number(s.payoutMult)); else resetPayoutMultiplier();
+    if (has(s.jackpotValueMult)) setJackpotValueMultiplier(Number(s.jackpotValueMult)); else resetJackpotValueMultiplier();
+    const linked = s.rtpLinked === true || s.rtpLinked === 'true';
+    const refLevel = Math.max(0, Math.min(WILD_LEVEL_MAX, Math.round(Number(s.rtpRefLevel) || 0)));
+    // connected mode runs LAST, after every knob it depends on is final
+    if (linked) [1, 2, 3].forEach(d => { const raw = pick(s, d); setDifficultyTotalRtp(d, has(raw) ? Number(raw) : getDefaultRtpPercent(d), refLevel); });
+    return { linked, refLevel };
   }
 
   function selectLineResult(difficulty, rng = Math.random) {
@@ -627,6 +730,7 @@
     setWildCap, resetWildCap,
     setWildCostMultiplier, resetWildCostMultiplier,
     setExtraWildFrequency, resetExtraWildFrequency,
-    debugReport, validateConfiguration
+    debugReport, validateConfiguration,
+    expectedTotalRtp, setDifficultyTotalRtp, applyAdminSettings
   });
 });

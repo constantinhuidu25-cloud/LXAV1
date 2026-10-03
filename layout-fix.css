@@ -5566,3 +5566,8 @@ html body:not(#_):not(#__):not(#___):not(#____):not(#_____) .jackpot-target .mis
 html body:not(#_):not(#__):not(#___):not(#____) :is(button,a[href],input,select,textarea,[tabindex]):focus-visible{
   outline:2px solid #ffd6fb!important;outline-offset:2px!important;box-shadow:0 0 0 4px rgba(232,44,255,.45)!important;
 }
+
+
+/* ===== Admin RTP panel: the "RTP linked" switch and the computed line / total figures ===== */
+html body:not(#_):not(#__):not(#___):not(#____) .account-rtp-form .account-check{display:flex!important;align-items:center!important;gap:8px!important;flex-direction:row!important;text-align:left!important}
+html body:not(#_):not(#__):not(#___):not(#____) .account-rtp-form .account-check input{width:auto!important;flex:none!important}
