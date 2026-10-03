@@ -3,6 +3,11 @@
 Rewritten from scratch 2026-10-03 (65 commits at that time; the hash is the authoritative detail). Newest first. Format per entry: what the user asked / cause / change / how it was verified / limits.
 "Verified" = measured in headless Edge or Jest unless it says otherwise; nothing here was verified on a real phone.
 
+## 2026-10-03 (latest) - SPIN button v2 (commit 1f747fb; spin-button.js v=10, renderer v=408, layout-fix v=438)
+- Owner: SPIN and STOP words sat at different heights (the last-win line under SPIN pushed the word up) -> amount removed from the button (the "last win" card shows it); word bigger (clamp 16px..42px) and identical in both states, centred to within 0.7 px in 4 viewports.
+- Icon hangs left of the word (arrow idle, white square running); error text (rejected round) sits at the bottom edge, 2 lines max. Idle: breathing glow. Round end: gold flash if net > 0, short cool pulse if paid but net <= 0, nothing if nothing paid (called from finish(payout, net) only, so a language switch or reload never replays it). Not enough credit: muted button.
+- Finding: the older `box-shadow !important` rules beat an animated box-shadow, so the STOP pulse added earlier today was not animating; all effects now animate `filter`. prefers-reduced-motion: static colour only.
+- Verified in headless Edge (screenshots of idle/STOP/profit/part/error/low in portrait + landscape; real guest rounds fire both flashes). Jest 91/91, ESLint 0 errors. NOT verified on a real phone. NOT deployed. aria-label is now just "SPIN".
 ## 2026-10-03 (latest) - UI round: admin popup scroll, stake centred, SPIN STOP, flag/Ko-fi (commit 40b7cc0; renderer v=407, layout-fix v=437)
 - Owner: admin popup could not be scrolled (portrait and landscape); stake lower/centred between +/-; Ko-fi under the lock; flag lower; nicer SPIN while running, no extra text.
 - Cause (popup): height limit existed only below 641 px wide, and the global page-lock touchmove/wheel handlers in renderer.js blocked scrolling inside the popup. Fix: card limited to the viewport at every width with its own scroll, handlers exempt .account-panel, page behind locked while open.
