@@ -3,6 +3,11 @@
 Rewritten from scratch 2026-10-03 (65 commits at that time; the hash is the authoritative detail). Newest first. Format per entry: what the user asked / cause / change / how it was verified / limits.
 "Verified" = measured in headless Edge or Jest unless it says otherwise; nothing here was verified on a real phone.
 
+## 2026-10-03 (latest) - Header: old look + dock reveal instead of the castling (commit 4649848; layout-fix v=446, inline script in index.html)
+- Owner: the castling looked chaotic before docking (lock stranded in the middle column, cup over a card) -> chose "D: go back, but improved".
+- Checked the pre-change behaviour in a temp worktree of fdc391d: ID + flag slide right into the lock's column, lock + Ko-fi pinned at top 14px; flag and lock overlapped for scroll 8..~47px.
+- Now: scroll > 8px: ID + flag slide one column right (0.46 s, after a 0.14 s delay) while the lock + Ko-fi fade out in place (.lxa-dock-hidden); when the flag has scrolled 22px above the pinned spot the pair drops into the header column (.lock-kofi-floating + .lxa-dock-in, top 14px + safe-area, Ko-fi 4px under the lock); scrolling up, it fades out (.lxa-dock-out, exit threshold 14px above the lock) before the flag returns; at the top it fades back in at its grid spot. Reduced-motion = no transitions.
+- Measured (headless Edge, 3 viewports): no visible overlap at any settled position and during slow scrolls (5px steps / 50 ms) down and up; end state identical to the start. The pair is invisible for roughly the first 65px of scroll (by design). NOT verified on a real phone / iPhone notch. NOT deployed.
 ## 2026-10-03 (latest) - SPIN profit: mint-green word + opaque gold burst (commit 94595bd; layout-fix v=444)
 - Owner: drop the yellow word, use a nice green that fits the site, and bring back the strong gold burst without transparency (it was made translucent only so a gold word stayed readable).
 - Now: profit word + icon #3dffa8 (site mint, same family as the lock glow / win lines) with a dark green outline; gold burst fully opaque again (rgba(...,1)). Loss (pink-red #ff7a90) unchanged. Checked in headless Edge: the green word is readable on the opaque gold from the first frame. Jest 91/91, ESLint 0 errors. NOT verified on a real phone. NOT deployed.
