@@ -1,43 +1,59 @@
-# LXAV1 — CONTEXT (current state)
+# LXAV1 — CONTEXT (current state, read this FIRST)
 
-## Current state (as of 2026-10-03, after the master audit + merge of the cloud branch; GitHub origin/main is still 7d2e724 until the user pushes)
-- LEONXOXANA reskin: complete. Core game/server rules: stable, 56/56 Jest tests, ESLint 0 errors.
-- DEPLOY STATE: the user deploys by hand (`vercel --prod`). The USER pushed GitHub `origin/main` to 7d2e724 (docs-context + the 20 earlier commits).
-  Commits after 7d2e724 are local until the user pushes again. Nothing below is live until the user deploys.
-- SESSIONS: the user has $70 of "Cloud session credits" (expire 2026-11-05) to use when the Pro limit runs out. Hand-off = user pushes
-  (`git push origin main`), then opens a cloud session (LXAV1 menu -> Open in -> Continue in -> Cloud, or New -> Cloud) and says
-  "git pull origin main, then read docs-context/CONTEXT.md and MEMORY.md". Only ONE session works on the code at a time (avoid conflicts).
-  Keep this file and CHANGELOG.md updated after each real change, so a fresh cloud session can resume from them.
-- Newest: opt-in ?debug=1 overlay (spin-button.js v=8, renderer.js v=401) to find why SPIN does nothing in the user's phone browser (user: "nothing happens at all").
-  Next step = user deploys, opens the site with ?debug=1 on the phone, taps SPIN once, sends a screenshot; read the last log lines. Before that: header gap parity browser/PWA/PC (layout-fix.css v=432). Open: user's report "SPIN does nothing in phone browsers" (not reproduced; need exact symptom + browser);
-  the user's PWA is stale (no MAX line) and must be closed and reopened; see CHANGELOG "Header parity".
-- Previous change: stake can be changed during AUTO (queued, applied to the next round, same caps). See CHANGELOG 2026-10-03 "AUTO stake".
-- Earlier last round (2026-10-03), all committed, measured in headless Edge:
-  1. Max stake: "+" up to the whole balance but never above half the next WILD level price; 50% = half the balance, same cap; "MAX ..." line
-     under the stake (a90c4b9, b590e52, 5800313, 3d41b01). WILD 50 = 25.5M (ladder continues).
-  2. SPIN progress ring synced with the real reel stop (~2.5 s) (937c527).
-  3. Header LXA: no hard edges (glow layer fade + overflow visible) (1ecf410).
-  4. Page edges for overscroll/force-scroll: top/bottom = exactly #272079 (116ffd8).
-- ClauBack: full snapshot `FULL_2026-10-03_116ffd8` + these docs created this round.
+Last rewritten from scratch: 2026-10-03, after commit `c82da19`. Companion docs in this folder: MEMORY.md (permanent knowledge + rules), ARCHITECTURE.md (how it is built),
+CHANGELOG.md (what changed and why). The same four files are mirrored in the repo as `docs-context/` (for cloud sessions) — keep both copies identical.
 
-## Files recently modified
-game-engine.js (maxBetForWildLevel), functions/lxa-account.js (server cap), renderer.js (setLocalBet/normalizeLocalBet, #betMax, reel landing -> LXASpinButton.landing),
-spin-button.js (ring), layout-fix.css (appended blocks: #betMax, ring keyframes, glow fade, overflow, root background), index.html (cache-bust v=431/399/376/7),
-readme.md (Maximum stake section), game-engine.test.js + account-keys.test.js (cap tests).
+## 1. Snapshot
+- Project: LXAV1 = LEONXOXANA virtual-credit slot demo (no real money). Folder `C:\Users\leon4\Desktop\LXAV1`, repo github.com/leoxoxana/LXAV1 (remotes `origin` and `leo`, same URL), branch `main`.
+- Local HEAD: `c82da19` (65+ commits). Working tree clean. GitHub `origin/main` is still `7d2e724` -> **10 local commits are NOT on GitHub** until the user runs `git push origin main`.
+  GitHub also has branch `main-hsvmm0` (made by the user's cloud session: removes the "WILD xN - %" tag); it is already merged locally (`239c766`). It can be deleted on GitHub.
+- Deploy: the USER deploys (`vercel --prod` from the LXAV1 folder). Last confirmed live build = `116ffd8` (assets layout-fix 431 / renderer 399 / spin-button 7). Everything after it is committed
+  locally but NOT confirmed deployed.
+- Vercel: project lxa3/lxa; domains lxoxa.vercel.app (primary), lxav1.vercel.app, lxa-lxa3.vercel.app. Database: Firebase Realtime DB `lxav1-a5cfd` (europe-west1).
+- Asset versions now in index.html: style.css 376, layout-fix.css 434, responsive-compact.css 374, game-engine.js 376, spin-button.js 9, renderer.js 403. Service worker cache `lxa-v3-cache`.
+- Checks at this commit: Jest 63/63 (7 suites), ESLint 0 errors / 18 warnings (old unused vars), deployment-check.js "client and server in sync", installability errors [].
 
-## Tests / results
-`npx jest` 56/56. `npx eslint .` 0 errors / 18 warnings (pre-existing, unused vars). Real-page checks of the stake rule on 6 balance/WILD combinations
-(2M@40, 120M@40, 800k@0, 3k@0, 900M@50, 120M@0) all match MEMORY.md. Layout audit (13 viewports x 3 languages) unchanged.
+## 2. What the last session round did (details in CHANGELOG)
+1. Stake rules: max stake = half the price of the next WILD level (25.5M at WILD 50); "+" up to the whole balance but never above that cap; 50% = half balance clamped; "MAX ..." line under the stake.
+2. Stake can be changed during AUTO (queued for the next round). 3. SPIN ring synced with the real reel timing.
+4. Header: no hard edges; same 6 px gap under the art in browser / installed app / PC; no purple haze above the art in the installed app.
+5. Page edges for force-scroll: root background ends exactly on #272079.
+6. Spin failures are now visible (red reason under SPIN, de/ro/en; expired session opens the login panel). The old status line `#message` is display:none.
+7. Mission card: smaller heading/goal, 6 px between the LINIE row and the prize row, no light frame around the LINIE row.
+8. Android icons: compressed `lxa-icon-*` files, no `?v` strings. 9. "WILD xN - %" tag removed from the round summary.
+10. Master audit: Firebase reads fail closed (duplicate-id / "session expired" root cause), per-IP limits use Vercel's real client IP, `.vercelignore`, lighter assets (letters, Ko-fi mug), slider aria name.
+11. `?debug=1` on-screen log (spin-button.js) to diagnose taps on a phone without dev tools.
+12. Memory/hand-off: this folder, `docs-context/`, `ClauBack\LXAV1\vN` backups, cloud-session hand-off prepared.
 
-## Current bugs / blockers
-None known in code. Open questions / unverifiable here:
-- Android: "Install app" does nothing on the user's phone (site passes Chromium installability on live + local). Need phone model + browser.
-- iPhone real-device behaviour of the new page-edge background / header / ring is unverified.
-- "WILD x1 - 50%" tag in the round summary: DECIDED (done by the cloud session on branch main-hsvmm0, merged locally): removed completely (renderer.js showSpinV79, `const wild = ''`).
+## 3. Open items (honest list)
+- User report "SPIN does nothing in the phone browser, works in the installed app": NOT reproduced in emulation. Likely explained by invisible server rejections (now visible) — to be confirmed after deploy.
+  If it persists: open `https://lxoxa.vercel.app/?debug=1` on the phone, tap SPIN once, send a screenshot of the log.
+- Lost session ("password asked again"): by design RESET / WILD / GELD / settings / admin need the real password in memory after every reopen. A token that stops matching is probably the old duplicate-id /
+  failed-read problem (fixed in code, needs the deploy). Root cause not proven.
+- Android "Install app" does nothing / shortcut icon sits on a white tile (= launcher-made shortcut, no WebAPK). Icons were slimmed down to match the working Drolly app; unconfirmed on the phone.
+  Need: phone model + browser. After deploying, the user must delete the old home-screen shortcut and add it again. Do NOT add an install button unless asked.
+- The user's installed iOS PWA can be a stale page (no "MAX ..." line under the stake = build older than 5800313): close it completely and reopen before judging a "fix did not work".
+- Firebase still holds test accounts (zzprobe*, lxatest*, lxaspd*, ids 14-19): the user deletes them.
+- Not done on purpose: `vercel build` (would pull secret env values to disk); deleting unreferenced art (kept locally, excluded from deploys by `.vercelignore`); duplicate-id race on two truly simultaneous
+  `create` calls (needs an id counter node); rate limiter is per serverless instance (in memory); Firebase security rules are not in the repo (anonymous read/write verified denied by a probe only).
+- Never verified on real hardware: iPhone, Android, Safari, Firefox, installed PWA on a phone, `@property` ring on iOS < 16.4.
 
-## Next recommended task
-Wait for the user. If they ask: (1) deploy checklist (they run `vercel --prod`; re-test login/stake rule/header on a real phone), (2) resolve the
-"WILD x1" wording (3 languages), (3) Android install diagnosis once phone + browser are known, (4) cleanup of unused assets/scripts (needs approval),
-(5) user deletes test accounts in Firebase (zzprobe*, lxatest*, lxaspd*, ids 14-19).
+## 4. Next steps (only when the user asks)
+1. User pushes (`git push origin main`) and deploys (`vercel --prod`), closes + reopens the PWA, re-adds the Android shortcut.
+2. Check SPIN in the phone browser; read the visible error / debug log if it still fails.
+3. Optional cleanup with approval: delete unreferenced art, old `icon-*.png`, dead `html.lxa-standalone` CSS (class is never set), unused `responsive-compact.css` rules.
+4. Optional: id counter node for `create`; Firebase rules file in the repo.
 
-On resume: read this file + MEMORY.md BEFORE scanning code; open ARCHITECTURE.md sections only for the task at hand; check `git status`/`git log -5`.
+## 5. Sessions, usage and cloud hand-off
+- Plan: Claude Pro. Usage windows: 5-hour (was 86% at the last check, resets about every 5 h) and weekly (51%, resets Thursday 21:00). "Extra usage" is OFF (0 EUR).
+- Separate credit: "Cloud session credits" $70 of $100 left, expires 2026-11-05 08:59 (GMT+1). It applies automatically ONLY to cloud sessions (after it is used, the normal plan applies).
+- Hand-off: (1) user runs `git push origin main`; (2) menu `LXAV1 v` -> Open in -> Continue in -> Cloud, or New -> Cloud on repo leoxoxana/LXAV1 branch main;
+  (3) first message: "Citește docs-context/CONTEXT.md și docs-context/MEMORY.md. Răspunde scurt, numerotat, în română. Nu face deploy și nu face push fără să-ți cer. Textele noi se scriu în de, ro, en.";
+  (4) check `git log -1 --oneline` = latest hash. Only ONE session edits the code at a time. Cloud cannot run the Edge/CDP tests nor `vercel --prod`. `.env.local` never leaves the PC.
+- An in-app attempt to move the session to the cloud was blocked by the safety classifier; the user does the move/push from the UI (do not work around that).
+
+## 6. Resume protocol (for me, any session)
+1. Read this file and MEMORY.md. Open ARCHITECTURE.md only for the area being changed. 2. `git status`, `git log -5`, `git rev-list --count origin/main..HEAD`.
+3. After EVERY real change: verify measurably (Jest, ESLint, headless Edge incl. real standalone), commit locally with the trailer, bump the `?v=` of every edited asset in index.html,
+   save the touched files in `ClauBack\LXAV1\vN\` with a README, update CHANGELOG + CONTEXT (+ MEMORY if permanent), mirror the 4 docs to `docs-context/`, commit.
+4. Answer short, numbered, Romanian; end with "rulează `vercel --prod` din folderul LXAV1". Never deploy, never push, never touch secrets.

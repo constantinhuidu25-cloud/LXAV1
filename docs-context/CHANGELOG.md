@@ -1,159 +1,72 @@
 # LXAV1 — CHANGELOG
 
-(Format as in the Drolly changelog: Task / Files / Changes / Reason / How / Result / Remaining. Entries before 2026-10-03 were reconstructed from
-`git log` on 2026-10-03 and are summaries; the commit hash is the authoritative detail. Anything marked NOT VERIFIED was not checked on a real device.)
+Rewritten from scratch 2026-10-03 (65 commits at that time; the hash is the authoritative detail). Newest first. Format per entry: what the user asked / cause / change / how it was verified / limits.
+"Verified" = measured in headless Edge or Jest unless it says otherwise; nothing here was verified on a real phone.
 
-## 2026-10-02 — Reskin to LEONXOXANA, move to Vercel/Firebase LXAV1 (reconstructed from git)
-Task: turn Drollyv3 into LXAV1 (LEONXOXANA), deployed on Vercel with Firebase project `lxav1-a5cfd`.
-Commits: e551eb7 (letter reskin + visual fixes), 48488b8 (vercel.json outputDirectory), a9fcfed (cron jobs, demo bots, legacy build script removed;
-service worker rewritten), 7914165 / 9f719fc (per-letter badge images, full-bleed app icons), 471be89 (all Drolly/Drollinger identifiers renamed to LXA),
-20055f6 (Firebase URL fallback -> LXAV1 DB, env URL sanitised), 6e322c2 (.vercel/.env* ignored).
-Result: site up on lxoxa.vercel.app. Login first returned 500 "Server temporarily unavailable" because the env vars had been added after the deploy -> redeploy.
+## 2026-10-03 (late) — Hand-off preparation
+- Merged the cloud session's branch `main-hsvmm0` (commit 2c36593: no "WILD xN - %" tag) locally as `239c766` (index.html conflict = version numbers only; renderer.js -> v=403). Docs refreshed (`c82da19`).
+- ClauBack: CONTEXT folder rewritten from scratch; `.env.local` removed from the FULL snapshot (it must never be copied into backups).
 
-## 2026-10-02 — Game/server rule changes (reconstructed)
-- 74af7e5: a line that shows a WILD cell no longer counts for the jackpot mission or for records (still pays its normal line payout). Engine + server.
-- 3b5efa3 / 0d6bd49: Firebase account nodes keyed `"<id> : <name>"` (first `<id>_<name>` with zero padding, then the user's exact format, no padding);
-  lookup by the `id` field; legacy `account:N` nodes renamed on save or when the admin opens PLAYERS.
-- 87e88a8: session restore never trusts a cached admin role (role is re-read from the server).
-- 0c58cd7: reels start instantly on SPIN (no wait for the server) — user: "why wait 1-2 s after pressing spin".
-Tests: Jest grew to 56 (account-keys, spin-grid-letters, idempotency, engine).
+## 2026-10-03 — Master audit (9acb861)
+Scope: user's master prompt (audit -> root cause -> minimal repair -> verify; keep the LXA design; no deploy).
+- Data integrity: `getAccounts()` returned {} on a failed Firebase read -> login "ID not found", `create` reused an id, duplicate ids -> "session expired"; whole-node saves could wipe boards/settings. Now it
+  throws (HTTP 500); `getLeaderboard/getRtpSettings({strict:true})` for read-modify-write callers. Tests: storage-failure.test.js, storage-contract.test.js.
+- Rate-limit bypass: per-IP limits used the Netlify-only `x-nf-client-connection-ip` header (spoofable on Vercel) -> now x-vercel-forwarded-for / x-real-ip / x-forwarded-for.
+- LXA_PEPPER missing in production now logs a warning (default pepper kept; changing it would lock accounts out).
+- `.vercelignore` (docs, tests, dev tools, ~14 MB unreferenced art, old icons). Netlify leftovers were comments only (two texts fixed).
+- Performance: reel letters 135 -> 34 KB each, Ko-fi mug GIF 533 -> 126 KB (120 px; shown at 26-32 px). a11y: `#chance` slider named via aria-labelledby.
+- Checked OK: admin role from the DB (no hardcoded id), guards on every action, idempotency, CSP/HSTS, XSS escaping, no tracked secrets, anonymous Firebase read/write = 401 (a PUT probe was sent and denied),
+  npm audit (2 moderate, transitive, unreachable), deployment-check in sync, layout audit 33 viewport x language combos + 4 orientation switches = 0 findings, parity gap 6 px in browser/PWA/PC.
+- Not done: `vercel build` (would pull secrets), id counter for simultaneous `create`, rate limits are per instance, Firebase rules not in the repo.
+- Incident: C: at 0 GB because 27 Edge test profiles took 8.6 GB; removed; repo verified (git fsck, node --check, images decode).
 
-## 2026-10-02 — Visual system (reconstructed, many iterations)
-Header image: GIF -> panoramic registered GIF -> transparent animated WebP + CSS light (1650219, 346d688, f5e47b6, 6c2b00f, 768e35d, 8ec34bd, ed987eb).
-Brighter magenta theme (f5e47b6); one card style everywhere, styled control buttons, 1px gaps (3ee7a14, 9e510dc, 8ec34bd); JACKPOT MISSION info joined to WILD BANK
-(33aaf1f, user praised the joined card); WILD bonus image fills its cell corner to corner, `wild-wide.webp` (>700px) / `wild-stack.webp` (portrait) (8c385e2);
-PWA edge-to-edge banner + safe-area (a3c48af); page background on the root canvas (094115c); floating lock/Ko-fi parked at the card edge (3380381, eb0c373);
-SPIN/STOP-only state-driven button with the net result under the label (e1d8a7d, 30ea5b4, b318482); lock blocks scroll only on touch screens (3ee7a14).
+## 2026-10-03 — Android icons, mission card, visible spin errors (37fae14)
+- Icons: the user's Android shows LXA on a white tile (launcher-made shortcut) while DROLLY fills its tile (real WebAPK). Drollyv3 had the SAME icon set; differences = file size (14/52/41 KB vs 79/454/352 KB)
+  and `?v=2` URLs. New palette PNGs `lxa-icon-192/512/512-maskable` (32/171/110 KB), manifest + sw (cache lxa-v3) updated, `?v=2` removed from manifest/icon URLs, apple-touch-icon untouched.
+  Installability errors []. NOT verified that Chrome now creates a WebAPK; the old shortcut must be removed and re-added.
+- Mission card: heading/goal smaller, `#missionList` gap 2 -> 6 px (progress bars sit on the cell bottom), light frame around `.mission-line-grid` removed; checked 320-1280 px x de/ro/en.
+- Spin errors: `#message` is display:none, so rejected spins looked like "nothing happens". Reason now shows under SPIN (red; de/ro/en keys spinErrSession/Busy/Net/Fail, MAX BET) and an expired
+  session opens the login panel. Tested with faked 401/429/500/400 answers. Protected actions that need the in-memory password are listed in MEMORY.md section 4.
 
-## 2026-10-03 — Max stake = half the price of the next WILD level (a90c4b9, b590e52, 5800313, 3d41b01)
-Task: user wanted a ceiling so a huge stake cannot act as a money multiplier (jackpot tiers pay a multiple of the stake), while the 50% button keeps meaning
-half the balance, capped.
-Files: game-engine.js, functions/lxa-account.js, renderer.js, index.html (asset versions), readme.md ("Maximum stake"), game-engine.test.js, account-keys.test.js.
-Changes: `maxBetForWildLevel(level) = max(5, floor(wildUpgradeCost(level)/2))` (WILD 50 continues the ladder: (50+1) x 1M / 2 = 25.5M instead of repeating 25M);
-engine `resolveSpin` and server `spin` reject a stake above it; UI `normalizeLocalBet`/`setLocalBet` clamp to balance AND cap and show "MAX. EINSATZ / MIZĂ MAXIMĂ / MAX BET: <cap>";
-50% button = `balance * 0.5` then clamped (old sqrt formula above 4M removed); `#betMax` line "MAX <min(balance, cap)>" under the stake.
-How / verification: jest (cap tests, server 400 test); real page, headless Edge, pressing "+" until it stops rising: 2M@WILD40 -> 2,000,000 (50% = 1,000,000);
-120M@WILD40 -> 20,500,000; 800k@0 -> 800,000; 3k@0 -> 3,000; 900M@50 -> 25,500,000; 120M@0 -> 1,250,000; labels checked in de/ro/en; 320px label fits.
-Mistakes/lessons: (1) I stated 5/5 jackpot = 15x; it is 5x (tier multipliers [1,2,3,4,5]; 15x is the cycle total). (2) My table said "level 6 -> 3,000,000": the cap uses the
-NEXT level's price, so the table row was for level 5. (3) I implemented "+ stops at half the balance" (option A) after a misreading; the user then said "+ must reach the
-whole balance, only the WILD level limits it" -> reverted before committing. Ask one precise question when a rule has two readings, and show concrete numbers.
-Result: done, verified in the real page; NOT deployed.
-Remaining: none.
+## 2026-10-03 — Installed-app header haze (a74b4cc)
+- Cause: in standalone the `.brand` box (112 px = 62 spacer + 50) also holds the status-bar spacer; the animated `::after` glow (sized in %) bloomed into it -> purple haze above the LXA that the browser did not have.
+  Fix: `@media (display-mode:standalone){.brand::after{inset:env(safe-area-inset-top) 0 8px 0}}`. Measured: colour range above the art 31/25/41 -> 7/2/5; art brightness within 2% of the browser.
 
-## 2026-10-03 — SPIN button ring synced with the real reel timing (937c527)
-Task: user: the button animation is not synchronised with the spin timing (~2.3-2.5 s).
-Root cause: fixed 4.2 s CSS fill vs reels stopping after ~2.5 s -> the ring vanished at ~60%.
-Files: spin-button.js, layout-fix.css, renderer.js, index.html.
-Changes: ring creeps to 12% while the server answers; `LXASpinButton.landing(ms)` (called from `startReelSpin().land`) restarts it from the current fill to 100% over the real slide
-duration (keyframes a/b alternate); STOP snaps from the current fill in 180 ms; the reel promise resolves on `animation.finished` (was +150 ms timer).
-Verification: sampled every 40 ms on phone (390) and PC (1280): ring 1% -> 95% linear, reels at rest and button idle at ~2.5 s (natural) / ~1.27 s (stop at 1.2 s).
-Lesson: restarting a CSS animation with the same name needs a reflow; alternating two identical keyframes avoids it.
-Result: done; NOT verified on iOS < 16.4 (no @property animation).
+## 2026-10-03 — `?debug=1` log (4b47b47, a1e9303)
+- SPIN reported dead in the phone browser; not reproducible. Opt-in on-screen log (taps + element on top, errors, handler decisions). Inert without the parameter.
 
-## 2026-10-03 — Header: no hard edges around the animated LXA (1ecf410)
-Task: user: "the header does not blend with the background". Root causes found by contrast-boosting a screenshot and by measuring pixel rows:
-(1) the animated `::after` light layer had no edge fade (luminance +17 at the top, -21 at the bottom of the box); (2) `.brand{overflow:hidden}` clipped the 1.22x scaled image
-~6px before its own mask reached zero (flat cut across the letters).
-Files: layout-fix.css, index.html (v=429, 430). Changes: 4-side mask on `::after` and a glow that dies inside the box; `.brand`/`.topbar` overflow visible.
-Verification: row luminance profile before/after (ramp 46->48->54->61->69->78 instead of a step), zoomed boosted crops, layout audit identical, 56 tests.
-Result: done on phone + PC captures; NOT verified on a real device.
+## 2026-10-03 — Header parity browser / PWA / PC (0cf92c8)
+- Measured gap art -> cards: browser -1 px, PC -2 px (overlap), PWA +6 px. Cause: my earlier `overflow:visible`. Fix: topbar margin-bottom `calc(var(--lxa-logo-h)*.1 + 3px)` outside standalone -> 6 px everywhere.
+  Layout below the header identical browser vs PWA (18 elements, <= 1 px). Found the user's PWA was stale (no "MAX ..." line).
 
-## 2026-10-03 — Seamless page edges for overscroll / force scrolling (116ffd8)
-Task: user: pulling past the page edge shows a background of another colour.
-Root cause: the bounce area shows the root background-COLOUR (#272079) but the gradient was lighter at the top (rgb 53-67,36-44,158-166) and different at the bottom.
-Fix: html background layers now die out inside the page (glows positioned a full radius away from the edges) and the base gradient starts/ends on #272079.
-Verification: full-page CDP screenshot, first/last rows = rgb(39,32,121) at 5 x positions on phone and PC; page looks coherent.
-Result: done; NOT verified on a real iPhone/Android rubber-band.
+## 2026-10-03 — Stake can be changed during AUTO (6617547)
+- Cause: `+/-/50%` returned early while `spinning` and AUTO leaves only 0.26 s between rounds; also the landing overwrote the stake with `result.state`. Now the change is shown at once, queued (`queuedBet`),
+  re-applied after landing with balance + WILD caps. Verified: 100 -> +,+ -> 120; stakes used per round 100 then 120; 50% at 100k -> 50,000; `+` x30 at 120M WILD 0 stays 1,250,000; manual spins stay locked.
 
-## 2026-10-03 — Stake can be changed while AUTO runs (new commit after 7d2e724)
-Task: user: "why can't I change the stake while AUTO runs?". Cause: (1) `+`/`-`/50% returned early while `spinning` (a round ~2.5 s, AUTO gap only 0.26 s);
-(2) V118 rule "stake frozen during AUTO"; and at landing `gameState = result.state` overwrote any mid-round change with the round's stake.
-Files: renderer.js (queuedBet in setLocalBet, spin landing, hold-bet `change`, 50% handler), index.html (renderer.js?v=400).
-Changes: while AUTO is on, `+`/`-`/50% work during a round; the new stake is shown at once, remembered in `queuedBet` and re-applied right after
-`gameState = result.state`, clamped to balance and `maxBetForWildLevel`; `queuedBet` is cleared at every round start. Manual (non-AUTO) spins stay locked.
-Verification (headless Edge 390px, guest): 100 -> `+,+` mid-round -> 120; stake per round measured from before/gross/after = 100 (round in flight), then 120,120,120,120.
-50% mid-round at 100k -> 50,000 and used next round; `+` x30 at 120M WILD 0 -> 1,250,000 (cap kept); manual spin: `+` during the round stays 100; AUTO start/stop label OK;
-Jest 56/56, ESLint 0 errors. No new visible text (no translations needed).
-Result: done locally; NOT deployed; NOT verified on a real phone (touch hold-repeat during AUTO).
+## 2026-10-03 — Overscroll edges (116ffd8) and header edges (1ecf410)
+- Root background ends exactly on #272079 at top/bottom (glows centred a full radius from the edges); first/last rows = rgb(39,32,121).
+- Header: the `::after` glow had no edge fade (luminance step +17/-21) and `.brand{overflow:hidden}` clipped the 1.22x art; fixed with 4-side mask + `overflow:visible`.
 
-## 2026-10-03 — Header parity browser / PWA / PC (layout-fix.css v=432)
-Task: user (iPhone screenshots): in the phone BROWSER the LXA header overlaps the JACKPOT MISSION / payout cards, the PWA does not; SPIN reportedly dead in phone browsers but fine in the PWA;
-PWA force-scroll shows a sudden colour change at the top; "why not 1:1 between phone browser, PWA and PC".
-Findings (measured with Edge --app standalone emulation + safe-area override, 390 px and 1280 px): gap between the header art and the cards = browser -1px, PC -2px (overlap), PWA +6px.
-Cause: my `overflow:visible` header change let the 1.18/1.22x scaled art spill over the cards in the modes without the standalone safe-area geometry.
-Fix: `@media not all and (display-mode:standalone){.topbar{margin-bottom:calc(var(--lxa-logo-h)*.1 + 3px)}}` -> gap +6 in browser, PWA and PC. Layout below the header is identical browser vs PWA (<=1px, 18 elements compared).
-The user's PWA screenshot has NO "MAX ..." line under the stake, so that PWA instance ran a build older than 5800313 (stale, old background CSS: bright glows at the page top) -> the force-scroll
-step in that screenshot is the OLD background, already fixed in 116ffd8; the user must fully close and reopen the PWA. NOT reproduced: SPIN dead in phone browsers (touch tap works in emulated
-browser/PWA/PC; the browser screenshot shows RUNDE 005, so spins ran) -> asked the user for the exact symptom + browser. NOT verified on a real device.
+## 2026-10-03 — SPIN ring synced with the reels (937c527)
+- Old fixed 4.2 s fill vanished at ~60% (reels stop at ~2.5 s). Now creep to 12% while the server answers, `landing(ms)` runs to 100% over the real slide, STOP snaps in 180 ms; the reel promise resolves on
+  `animation.finished`. Sampled every 40 ms: ring 1 -> 95% linear, button idle at ~2.5 s (natural) / ~1.27 s (stop at 1.2 s).
 
-## 2026-10-03 — Master audit (Vercel readiness / security / data integrity / performance / a11y)
-Scope: user's master prompt (audit -> root cause -> minimal repair -> verify; preserve the LXA design; no deploy). Method: reused the project memory, targeted searches, 63 Jest tests,
-Edge CDP runs (browser tab, real standalone via --app + safe-area override, PC, 11 viewports x 3 languages + 4 live orientation switches).
-REPAIRED
-- DATA INTEGRITY (functions/firebase-storage.js): `getAccounts()` returned {} when the Firebase read failed. Effects: login "ID not found"; `create` computed id = max(11)+1 = 12 and ignored
-  existing names -> duplicate ids (findEntryById then picks an arbitrary node -> a token that matches one node fails on the other = "session expired"). Now it THROWS (HTTP 500 "Server temporarily
-  unavailable", client shows NO CONNECTION / retries the silent restore). `getLeaderboard`/`getRtpSettings` take `{strict:true}`; every read-modify-write caller (leaderboard writer, admin
-  update/delete player, admin RTP saves) uses it, because `saveLeaderboard`/`saveRtpSettings` replace the whole node (a failed read used to be able to wipe all boards / admin settings).
-  Display reads stay forgiving. New tests: storage-failure.test.js (handler + IP), storage-contract.test.js (storage contract, firebase-admin mocked).
-- RATE-LIMIT BYPASS (functions/lxa-account.js): the client IP came from the Netlify-only header x-nf-client-connection-ip, which Vercel does not set -> any caller could pick its own "IP" and dodge
-  the per-IP login (10/h) and account-creation (5/h) limits. Now x-vercel-forwarded-for > x-real-ip > first x-forwarded-for (Vercel overwrites these). Tested.
-- PEPPER: `LXA_PEPPER || 'drolly-v137-default-pepper'` kept (changing it would lock every account out) but a production warning is logged when the env var is missing.
-- VERCEL: `.vercelignore` added (docs-context, scripts, tests, dev tools, readme, unreferenced source art ~14 MB, old unused icons). middleware.js still blocks sensitive root files. Netlify remnants
-  were comments only (security.js, scripts/build.js text fixed; api adapter / middleware / .gitignore comments kept as history). No netlify.toml, no Netlify runtime code.
-- PERFORMANCE: reel letters 6 x ~135 KB -> ~34 KB (palette PNG, visually identical at 320 px), Ko-fi mug GIF 600 px / 533 KB shown at 26-32 px -> 120 px / 126 KB; Android icons (see below).
-- A11Y: `#chance` slider had no accessible name -> aria-labelledby (follows the language). Other controls named; smallest targets (Ko-fi 26 px, leaderboard tabs 24 px high) meet WCAG 2.5.8.
-VERIFIED OK (no change): admin = role:"admin" read from the DB (7 checks, no hardcoded id); every state-changing action needs token or password; set-difficulty token OR password; spin token+bet cap;
-idempotency cache; CSP/HSTS/X-Frame-Options in vercel.json; manifest/installability; sw network-first (no stale lock-in); XSS: names/notice escaped with lxaEsc; no secrets tracked (.env* ignored);
-Firebase anonymous access: read 401, write 401 (probe against the live DB URL; a PUT probe was sent and denied, nothing stored); npm audit --omit=dev: 2 moderate (uuid via gaxios inside firebase-admin,
-not reachable from this code); deployment-check.js: client/server in sync; layout audit 33 viewport x language combinations + 4 orientation switches: 0 findings; header gap 6 px in browser/PWA/PC.
-NOT DONE / LIMITS: `vercel build` (needs an env pull, avoided); rate limiter is per serverless instance (in memory), per-account lockout IS persisted; duplicate-id race on two truly simultaneous
-`create` calls is still possible (very unlikely, 5/h per IP; fix would need an id counter node); Firebase security rules are not in the repo (anonymous access verified closed only by probe);
-real iPhone/Android/Safari/Firefox untested; unreferenced art kept locally (not deleted).
-INCIDENT: C: ran out of disk (0.00 GB) because ~27 throwaway Edge test profiles in the session scratchpad grew to 8.6 GB. Removed (rd /s /q with \\?\ long paths); repo verified (git fsck, node --check, images decode).
+## 2026-10-03 — Max stake rule (a90c4b9, b590e52, 5800313, 3d41b01)
+- Cap = half the price of the NEXT WILD level (WILD 50 = 25.5M, ladder continues); "+" up to the whole balance, capped; 50% = half balance, clamped (old sqrt formula above 4M removed); "MAX ..." line;
+  enforced in engine, server (400) and UI. Verified on 6 balance/WILD combinations. Wrong turn: half-balance cap for "+" (reverted before committing).
 
-## 2026-10-03 — Android home-screen icon, mission card, visible spin errors (layout-fix.css v=434, renderer.js v=402, spin-button.js v=9, sw cache lxa-v3)
-1) Icon (user screenshot, Android launcher): DROLLY fills its tile (real WebAPK, maskable) while LXA sits on a white tile (launcher-generated shortcut = WebAPK minting did not happen).
-   Drollyv3 had the SAME icon set (192, 512, 512-maskable, apple 180, favicons) and the same manifest layout, so "more icon versions" was not the difference. Differences found: LXA icon bytes
-   79/454/352 KB vs Drolly 14/52/41 KB, and `?v=2` on the manifest/icon URLs (Drolly had none). Changes: new palette-compressed icons `assets/icons/lxa-icon-192/512/512-maskable.png`
-   (32/171/110 KB, mean error 3/255, visually identical), manifest + sw.js point to them, `?v=2` removed from the manifest link and icon URLs, sw cache lxa-v3. apple-touch-icon untouched
-   (iOS already looks right). Verified locally: manifest errors [], installability errors [], icons HTTP 200. NOT verified: whether Chrome now mints a WebAPK on the user's phone. An
-   existing home-screen shortcut keeps its old bitmap -> remove it and add again after deploying.
-2) Mission card (user): heading `#missionTitle` and goal `#missionGoal` smaller (clamp 13-23px / 10-14px; desktop 18-25 / 12-15), `#missionList` gap 2->6px (the progress bars sit on the
-   cells' bottom edge), light 1px frame around `.mission-line-grid` removed. Verified at 320/360/390/440/768/1280 px x de/ro/en: text fits, gap 6px, card height within 2px of before.
-   The prize row (`.milestone-list`) keeps its light frame (not requested).
-3) Spin errors were invisible: `#message` is `display:none`, so a rejected spin (expired session, 429, network) looked like "nothing happens, the ring flashes once". Now the reason shows
-   under SPIN in red (`LXASpinButton.fail`, keys spinErrSession/Busy/Net/Fail in de/ro/en; stake cap shows MAX. EINSATZ), and an expired session opens the login panel with the same notice.
-   Verified with intercepted server answers 401/429/500/400 in de/ro/en.
-   Session finding: spin uses only the cached token; `lxaRestoreSession` shows the cached account even when the server says "Session expired", so the UI looked logged in while spins failed.
-   Protected actions that need the real password in memory (re-asked after every reopen BY DESIGN): update, deposit (GELD), reset-new-game (RESET), buy-wild (WILD), admin actions.
-   Server limits (in memory, per warm instance): spin 500/h per account, real logins 10/h per IP, create 5/h. Root cause of the lost token NOT found (server keeps one sessionToken per account,
-   created at account creation / first real login); the visible error will name it next time.
+## 2026-10-03 — Earlier same morning (eb0c373)
+- Single continuous reel motion, floating lock aligned by visible glyph, cleaner taller header art.
 
-## 2026-10-03 — Installed app header: no purple haze above the art (layout-fix.css v=433)
-Task: user (two iPhone screenshots, browser vs PWA): "big background difference at the GIF/header between phone browser and PWA; the browser looks much better".
-Cause (reproduced with Edge --app + safe-area 62px, 440 px wide): in standalone the `.brand` box also contains the status-bar spacer (box 112px = 62 + 50), and the animated `::after`
-glow/sweep layer (`inset:0`, sized in % of the box) bloomed up into the status-bar zone -> a purple haze above the LXA that the browser (box 42px) does not have.
-Fix: `@media (display-mode:standalone){ .brand::after{inset:env(safe-area-inset-top,0px) 0 8px 0!important} }` -> glow layer = the 42px art band, same as the browser.
-Verification (frames paused at 1.5 s, 3x capture): mean colour above the art (CSS 0-55) before (44,34,126) with range 31/25/41 -> after (39,32,122) with range 7/2/5 (flat); art-band brightness
-browser 57.2 / PWA before 59.8 / PWA after 58.3. NOT verified on a real iPhone.
+## 2026-10-02 — Visual system and rules (many iterations; see `git log`)
+- Header: GIF -> panoramic registered GIF -> transparent animated WebP + CSS light (1650219, 346d688, f5e47b6, 6c2b00f, 768e35d, 8ec34bd, ed987eb). Brighter magenta theme (f5e47b6). One card style, styled
+  control buttons, 1 px gaps (3ee7a14, 9e510dc, 8ec34bd). JACKPOT MISSION joined to WILD BANK (33aaf1f). WILD image fills its cell (8c385e2). PWA edge-to-edge banner + safe-area (a3c48af).
+  Page background on the root canvas (094115c). Floating lock/Ko-fi parked at the card edge (3380381). State-driven SPIN/STOP with the net result under the label (e1d8a7d, 30ea5b4, b318482).
+  Touch-down SPIN/STOP and full-bleed app icons (9f719fc). Reels start instantly on SPIN (0c58cd7).
+- Rules/server: a line showing a WILD cell no longer counts for the mission or records (74af7e5); Firebase nodes keyed `<id> : <name>`, lookup by the id field (3b5efa3, 0d6bd49); session restore never trusts a
+  cached admin role (87e88a8); Firebase fallback -> LXAV1 DB and env URL sanitised (20055f6); `.vercel`/`.env*` ignored (6e322c2).
+- Rename/reskin: LEONXOXANA letters (e551eb7), per-letter badge images (7914165), all Drolly/Drollinger identifiers -> LXA (471be89), cron jobs/demo bots/legacy build script removed + service worker rewritten (a9fcfed).
 
-## 2026-10-03 — Opt-in ?debug=1 overlay to diagnose "SPIN does nothing in phone browsers" (renderer.js v=401, spin-button.js v=8)
-User answer to my question: in the phone browser "nothing happens at all" when tapping SPIN (PWA fine). Not reproducible here (touch tap OK in emulated browser/PWA/PC; code review found no
-Safari-only path; no WebKit engine installed; opening the live site in the in-app browser was denied). Added a diagnostic: `https://lxoxa.vercel.app/?debug=1` shows an on-screen log (taps with
-target + element on top, JS errors/rejections, SPIN handler decisions: onclick type, spinning, credits, bet, "round starts", "round failed: ..."). Inert and invisible without the parameter.
-Verified locally: normal URL has no overlay; ?debug=1 + real touch tap logs pointerdown -> onclick -> round starts -> click dropped. Debug text is English only (developer tool, not UI).
-Next: user deploys, opens the URL with ?debug=1 in the failing phone browser, taps SPIN once, sends a screenshot -> read the last lines to find the cause.
-
-## 2026-10-03 — Cloud hand-off set up
-User pushed origin/main to 7d2e724 himself (an app-side push/move was blocked by the safety classifier, not worked around). docs-context/ added to the repo
-(copies of these 4 docs; middleware.js 404s any .md path so they are not public). Cloud credits: $70 of $100 left, expire 2026-11-05.
-
-## 2026-10-03 — Android "Install app" investigation (no code change)
-Findings: Chromium reports 0 installability errors on https://lxoxa.vercel.app and local; manifest/sw/icons OK (sizes 192/512/512-maskable correct, HTTP 200).
-User: "Install app" does nothing on Android, "Add to home screen" makes a browser-style shortcut; iOS gives a real app look. Probable device-side WebAPK minting failure.
-Result: no change made (no install button without an explicit request). Remaining: phone model + browser needed.
-
-## 2026-10-03 — Misc answers / findings
-- "WILD x1 · 50%" in the round summary (renderer.js showSpinV79, ~L678) = number of WILD cells + the game's WILD chance, not a payout multiplier. Not changed; user not yet decided.
-- Process incident: rewrote index.html through PowerShell Get-Content/Set-Content -> mojibake + BOM; restored with `git checkout`, re-applied with Python. See MEMORY.md TRAP.
-- ClauBack/LXAV1 created (full snapshot FULL_2026-10-03_116ffd8 + these docs) after the user pointed me at the old CONTEXT design.
+## 2026-10-01 — Fork and migration (21cd7b7 ... ba56070)
+- Initial import of the Drollyv3 security/bug fixes, LXA cyber-neon palette, rebrand to LXA, new brand assets, UTF-16 fix in .gitignore, migration from Netlify to Vercel (ba56070), animated LXA wordmark GIF as header.
+- First deploy returned 500 "Server temporarily unavailable" because the env vars were added after the deploy -> redeploy.
