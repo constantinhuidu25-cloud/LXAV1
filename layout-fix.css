@@ -5680,3 +5680,11 @@ html body:not(#_):not(#__):not(#___):not(#____) #spin[data-funds="low"][data-sta
   html body:not(#_):not(#__):not(#___):not(#____) #spin.flash-profit::after,html body:not(#_):not(#__):not(#___):not(#____) #spin.flash-profit b::after{animation:none!important;display:none!important}
   html body:not(#_):not(#__):not(#___):not(#____) #spin[data-result] .spin-ring,html body:not(#_):not(#__):not(#___):not(#____) #spin[data-auto="on"] b::before{animation:none!important}
 }
+
+
+/* ===== Lock + floating Ko-fi: one column, one gap =====
+   Both stay in the header column (lock above, Ko-fi centred under it) whether the page is at the top or scrolled; the gap between them is 4px in
+   both states (grid row-gap at rest, `top` in index.html updateLockKofiFloat() when floating). The cup is nudged 10% of its width to the right
+   by the transform above because its visible mass sits left of the image centre. ===== */
+html body:not(#_):not(#__):not(#___):not(#____) #headerActions{row-gap:4px!important}
+html body:not(#_):not(#__):not(#___):not(#____) #headerActions .kofi-gif{margin:0!important;align-self:start!important}
