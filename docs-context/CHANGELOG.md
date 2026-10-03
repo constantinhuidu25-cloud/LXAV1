@@ -3,6 +3,10 @@
 Rewritten from scratch 2026-10-03 (65 commits at that time; the hash is the authoritative detail). Newest first. Format per entry: what the user asked / cause / change / how it was verified / limits.
 "Verified" = measured in headless Edge or Jest unless it says otherwise; nothing here was verified on a real phone.
 
+## 2026-10-03 (latest) - Header dock driven by scrollY (commit 401af75; layout-fix v=450, inline script in index.html)
+- Owner: the timer-based dock reveal "disappears or jumps too fast"; chose option 1 (same look, scroll-linked).
+- Now updateLockKofiFloat() computes everything from the scroll position: stage 1 (scrollY 8..20) lock + Ko-fi fade out in the grid; stage 2 (26..50) ID + flag slide one column right (inline transform, !important beats the old class rules); stage 3 (flag bottom 14..38 px above the pinned spot) the pair is position:fixed in the header column (top 14px + safe area, Ko-fi 4px under the lock) and rises 10px / scales .9->1 while fading in. Same motion in both directions; short transitions (.08-.2 s, fade-out faster than fade-in) only smooth flicks.
+- Exit from the docked state forces opacity 0 without a transition before returning to the grid; the fade-in at the top waits .3 s for the flag to slide out. Result: no visible overlap at settled positions, in slow scrolls (4px/40ms) down and up, and in flicks 0->120 / 120->0 (3 viewports). The pair is invisible between roughly 20 and 55-60 px of scroll (by design). Reduced-motion = no transitions. NOT verified on a real phone / iPhone notch. NOT deployed.
 ## 2026-10-03 (latest) - Header: old look + dock reveal instead of the castling (commit 4649848; layout-fix v=446, inline script in index.html)
 - Owner: the castling looked chaotic before docking (lock stranded in the middle column, cup over a card) -> chose "D: go back, but improved".
 - Checked the pre-change behaviour in a temp worktree of fdc391d: ID + flag slide right into the lock's column, lock + Ko-fi pinned at top 14px; flag and lock overlapped for scroll 8..~47px.
