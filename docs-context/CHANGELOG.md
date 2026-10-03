@@ -3,6 +3,10 @@
 Rewritten from scratch 2026-10-03 (65 commits at that time; the hash is the authoritative detail). Newest first. Format per entry: what the user asked / cause / change / how it was verified / limits.
 "Verified" = measured in headless Edge or Jest unless it says otherwise; nothing here was verified on a real phone.
 
+## 2026-10-03 (latest) - SPIN result shown on the word, not a ring (commit 6f48557; layout-fix v=441)
+- Owner disliked the orange/coral frame after a loss and proposed colouring the text instead (chose variant A).
+- Now: after the burst, word + icon are gold (profit) or soft pink-red #ff7a90 with a dark outline (payout below stake) until the next round starts (data-result); nothing paid = white. The ring rules were removed. Idle / AUTO icons are CSS masks painted with currentColor so they follow the word colour; the STOP square is a plain white square. During the burst the word is white (it would vanish on the gold / coral flash). STOP state unchanged (owner agreed).
+- Verified in headless Edge (frames portrait + landscape). Jest 91/91, ESLint 0 errors. NOT verified on a real phone. NOT deployed.
 ## 2026-10-03 (latest) - Lock + floating Ko-fi: one column, one gap (commit eff2d16; layout-fix v=440, inline script in index.html)
 - Owner: "chaos" in the distances. Measured before: floating lock 2/4/17/29 px from the right edge vs 13/13/23/35 at rest; Ko-fi 9/9/24/36 vs 15.4/11.8/23.8/35.8; gap lock->Ko-fi 1/4/4/4 at rest and 8 floating.
 - Cause: updateLockKofiFloat() parked the floating pair on the content-card edge and used 	op = lock + 8, while at rest the header grid decided the x and a margin decided the gap.
