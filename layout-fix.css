@@ -5542,3 +5542,11 @@ html{
 @media not all and (display-mode:standalone){
   html body:not(#_):not(#__):not(#___):not(#____) .topbar{margin-bottom:calc(var(--lxa-logo-h) * .1 + 3px)!important}
 }
+/* ===== Installed app: the animated light (sweep + glow) belongs to the art band only. The standalone header box also
+   contains the status-bar spacer above the art, so the glow (sized in % of the box) bloomed up into the status-bar area and
+   showed as a purple haze that the phone browser does not have. Same band geometry as the browser (art box = logo height) ===== */
+@media (display-mode:standalone){
+  html body:not(#_):not(#__):not(#___):not(#____) .topbar .brand-cluster .brand::after{
+    inset:env(safe-area-inset-top,0px) 0 8px 0!important;
+  }
+}

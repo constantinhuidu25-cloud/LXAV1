@@ -86,6 +86,14 @@ The user's PWA screenshot has NO "MAX ..." line under the stake, so that PWA ins
 step in that screenshot is the OLD background, already fixed in 116ffd8; the user must fully close and reopen the PWA. NOT reproduced: SPIN dead in phone browsers (touch tap works in emulated
 browser/PWA/PC; the browser screenshot shows RUNDE 005, so spins ran) -> asked the user for the exact symptom + browser. NOT verified on a real device.
 
+## 2026-10-03 — Installed app header: no purple haze above the art (layout-fix.css v=433)
+Task: user (two iPhone screenshots, browser vs PWA): "big background difference at the GIF/header between phone browser and PWA; the browser looks much better".
+Cause (reproduced with Edge --app + safe-area 62px, 440 px wide): in standalone the `.brand` box also contains the status-bar spacer (box 112px = 62 + 50), and the animated `::after`
+glow/sweep layer (`inset:0`, sized in % of the box) bloomed up into the status-bar zone -> a purple haze above the LXA that the browser (box 42px) does not have.
+Fix: `@media (display-mode:standalone){ .brand::after{inset:env(safe-area-inset-top,0px) 0 8px 0!important} }` -> glow layer = the 42px art band, same as the browser.
+Verification (frames paused at 1.5 s, 3x capture): mean colour above the art (CSS 0-55) before (44,34,126) with range 31/25/41 -> after (39,32,122) with range 7/2/5 (flat); art-band brightness
+browser 57.2 / PWA before 59.8 / PWA after 58.3. NOT verified on a real iPhone.
+
 ## 2026-10-03 — Opt-in ?debug=1 overlay to diagnose "SPIN does nothing in phone browsers" (renderer.js v=401, spin-button.js v=8)
 User answer to my question: in the phone browser "nothing happens at all" when tapping SPIN (PWA fine). Not reproducible here (touch tap OK in emulated browser/PWA/PC; code review found no
 Safari-only path; no WebKit engine installed; opening the live site in the in-app browser was denied). Added a diagnostic: `https://lxoxa.vercel.app/?debug=1` shows an on-screen log (taps with
