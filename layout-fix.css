@@ -5696,20 +5696,12 @@ html body:not(#_):not(#__):not(#___):not(#____) #spin[data-result="part"] b{
 }
 
 
-/* ===== Header dock reveal (see updateLockKofiFloat in index.html): the ID and flag slide one column right when the page scrolls, the lock + Ko-fi fade
-   out in place while that happens and drop into the header column at the top once the flag has scrolled away - no overlap at any scroll ===== */
-@keyframes lxaDockIn{0%{opacity:0;translate:0 -12px;scale:.9}100%{opacity:1;translate:0 0;scale:1}}
-html body:not(#_):not(#__):not(#___):not(#____).lxa-slide #accountButton,html body:not(#_):not(#__):not(#___):not(#____).lxa-slide #headerActions .language{transform:translateX(calc(var(--hb) + 8px))!important}
-html body:not(#_):not(#__):not(#___):not(#____).lock-kofi-floating:not(.lxa-slide) #accountButton,html body:not(#_):not(#__):not(#___):not(#____).lock-kofi-floating:not(.lxa-slide) #headerActions .language{transform:none!important}
-html body:not(#_):not(#__):not(#___):not(#____) #accountButton,html body:not(#_):not(#__):not(#___):not(#____) #headerActions .language{transition:transform .46s cubic-bezier(.3,.7,.2,1)!important}
-html body:not(#_):not(#__):not(#___):not(#____).lxa-slide #accountButton,html body:not(#_):not(#__):not(#___):not(#____).lxa-slide #headerActions .language{transition-delay:.14s!important}
-html body:not(#_):not(#__):not(#___):not(#____) #scrollLock{transition:opacity .32s ease .12s,filter .25s ease,transform .15s ease!important}
-html body:not(#_):not(#__):not(#___):not(#____) #headerActions .kofi-gif{transition:opacity .32s ease .12s!important}
-html body:not(#_):not(#__):not(#___):not(#____).lxa-dock-hidden #scrollLock,html body:not(#_):not(#__):not(#___):not(#____).lxa-dock-hidden #headerActions .kofi-gif{opacity:0!important;visibility:hidden;pointer-events:none;transition:opacity .14s ease,visibility 0s linear .14s!important}
-html body:not(#_):not(#__):not(#___):not(#____).lxa-dock-out #scrollLock,html body:not(#_):not(#__):not(#___):not(#____).lxa-dock-out #headerActions .kofi-gif{opacity:0!important;transition:opacity .15s ease!important}
-html body:not(#_):not(#__):not(#___):not(#____).lxa-dock-in #scrollLock{animation:lxaDockIn .38s cubic-bezier(.2,.8,.3,1) both}
-html body:not(#_):not(#__):not(#___):not(#____).lxa-dock-in #headerActions .kofi-gif{animation:lxaDockIn .38s cubic-bezier(.2,.8,.3,1) both}
+/* ===== Header dock, driven by the scroll position (see updateLockKofiFloat in index.html): lock + Ko-fi fade out, the ID and flag slide one column
+   right, then the pair rises/fades in at the top once the flag has scrolled away. Inline values come from the script; these short transitions
+   only smooth fast flicks. ===== */
+html body:not(#_):not(#__):not(#___):not(#____) #accountButton,html body:not(#_):not(#__):not(#___):not(#____) #headerActions .language{transition:transform .2s ease-out!important}
+html body:not(#_):not(#__):not(#___):not(#____) #scrollLock{transition:opacity .18s ease-out,translate .18s ease-out,scale .18s ease-out,filter .25s ease,transform .15s ease!important}
+html body:not(#_):not(#__):not(#___):not(#____) #headerActions .kofi-gif{transition:opacity .18s ease-out,translate .18s ease-out,scale .18s ease-out!important}
 @media (prefers-reduced-motion:reduce){
   html body:not(#_):not(#__):not(#___):not(#____) #accountButton,html body:not(#_):not(#__):not(#___):not(#____) #headerActions .language,html body:not(#_):not(#__):not(#___):not(#____) #scrollLock,html body:not(#_):not(#__):not(#___):not(#____) #headerActions .kofi-gif{transition:none!important}
-  html body:not(#_):not(#__):not(#___):not(#____).lxa-dock-in #scrollLock,html body:not(#_):not(#__):not(#___):not(#____).lxa-dock-in #headerActions .kofi-gif{animation:none!important}
 }
