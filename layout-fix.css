@@ -5560,3 +5560,9 @@ html body:not(#_):not(#__):not(#___):not(#____):not(#_____) .jackpot-target .tar
 }
 html body:not(#_):not(#__):not(#___):not(#____):not(#_____) .jackpot-target #missionList{gap:6px!important}
 html body:not(#_):not(#__):not(#___):not(#____):not(#_____) .jackpot-target .mission-line-grid{border:0!important;outline:0!important;box-shadow:none!important}
+
+/* ===== Keyboard focus: every control shows a visible ring when it is reached with the keyboard (the lock and the win-chance slider showed none).
+   :focus-visible never triggers for mouse/touch taps, so the look for players using a pointer is unchanged ===== */
+html body:not(#_):not(#__):not(#___):not(#____) :is(button,a[href],input,select,textarea,[tabindex]):focus-visible{
+  outline:2px solid #ffd6fb!important;outline-offset:2px!important;box-shadow:0 0 0 4px rgba(232,44,255,.45)!important;
+}

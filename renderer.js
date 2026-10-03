@@ -867,8 +867,11 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
     return handle;
   }
   const legacyApplyLanguage = applyLanguage;
+  // Landmark names follow the language too (they were German-only in the markup).
+  const ARIA_NAMES = { slot: { de: 'Spielautomat', ro: 'Aparat de joc', en: 'Slot machine' }, rules: { de: 'Spielregeln', ro: 'Regulile jocului', en: 'Game rules' } };
   applyLanguage = () => {
     legacyApplyLanguage(); paintPaytable(); renderMissionV79();
+    document.querySelectorAll('[data-aria]').forEach(el => { const names = ARIA_NAMES[el.dataset.aria]; if (names) el.setAttribute('aria-label', names[lang] || names.de); });
     // V118: round label, history, last-win panel and the result board also follow the language.
     renderGameV79();
     if (gameState.lastSpin && $('#winBoard')?.classList.contains('show')) showSpinV79(gameState.lastSpin);
