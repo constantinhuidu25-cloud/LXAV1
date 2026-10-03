@@ -3,6 +3,25 @@
 Rewritten from scratch 2026-10-03 (65 commits at that time; the hash is the authoritative detail). Newest first. Format per entry: what the user asked / cause / change / how it was verified / limits.
 "Verified" = measured in headless Edge or Jest unless it says otherwise; nothing here was verified on a real phone.
 
+## 2026-10-03 (latest) — Persistent login, logout, AUTO/bet synchronisation (user's master prompt; renderer v=404)
+- The prompt assumed Netlify + Firebase Authentication; the real stack is Vercel + a custom per-device token (no Firebase Auth, no SDK on the client). Same goals, applied to the real architecture.
+- ROOT CAUSES: (1) "password asked again" = RESET / WILD / BANK required the password held only in memory (gone after a restart) while spin used the token; (2) `login` with id + NAME (no password) issued a full token
+  (anyone knowing a public leaderboard name + small id); (3) `reset-geld` had NO authentication; (4) one shared plain `sessionToken` per account (logout could not revoke a device; stored in the DB in clear);
+  (5) a failed silent restore showed the cached account as if logged in; (6) AUTO started the next round 260 ms after the previous one regardless of PLUS/MINUS activity.
+- SERVER (functions/lxa-account.js): sessions = hashed per-device tokens (`issueSession`, `revokeSession`, `revokeAllSessions`, legacy field honoured), `authorize` (token OR password) for deposit / buy-wild / reset-new-game / reset-geld,
+  id+name-only login removed, new `logout` action, password change and admin reset revoke all sessions, `publicAccount` strips `sessions`.
+- CLIENT (renderer.js): token added to every request, password only for update/admin, `lxaSessionLost()` (401 on a token action or a failed restore -> clear token + cache, drop the game session, open the login panel),
+  logout = server revoke + `lxaInvalidateGame()` (AUTO stopped, `spinToken++`, reel animation aborted, `queuedBet` cleared; a result arriving later is discarded before any animation/credit change), `lxaAuthGeneration`
+  checked by the AUTO loop, hint texts + new `resetConfirm` in de/ro/en, RESET confirmation, id+name branch removed from the login form.
+- AUTO/BET: PLUS/MINUS only change `gameState.bet` (the NEXT round); the round in flight keeps its own stake; AUTO waits (`BET_SETTLE_MS` = 800 ms after the last change, and while a button is held) before starting the next round,
+  then uses the final bet; AUTO is never disabled.
+- Tests: Jest 76/76 (auth-session.test.js: 12 server tests incl. legacy token, revoke, password change, admin still password-only, unauthenticated GELD). End-to-end (real Edge page -> intercepted /api -> the REAL handler with
+  in-memory storage; recipe in MEMORY.md): 21/21 PASS — login, no password in storage, refresh, full browser restart, BANK/GELD without password, id+name refused, AUTO+bet (round 1 keeps its stake, round 2 the new one, no spin
+  inside the settle window, burst + + + - -> one spin with the final bet, hold + -> no spin while held, AUTO still on, balance = start + sum(payout - stake) = displayed balance), logout during a pending spin (state cleared,
+  AUTO stopped, no new spin, pending result dropped, server revoked the token, stays logged out after refresh), stale token -> unauthenticated + login panel, no game operation while unauthenticated, RESET confirmation.
+- NOT VERIFIED: real iPhone/Android/Safari behaviour of the restored session, `confirm()` inside an installed iOS PWA, the live deployment (nothing deployed), real Firebase transactions for `reserveAccountId`/saves.
+- Consequence to tell the user: after the deploy nobody can log in with id + name alone; the owner needs a known password (or the database `safeWord` edit).
+
 ## 2026-10-03 (late) — DEEP audit round 2 (started at 98% of the 5-hour usage window, so only the cheap, high-value part ran)
 - Read-only live checks: `/functions/..`, `/package.json`, `/readme.md`, docs, tests, dev tools, `/.env.local`, `/.vercel/..`, `/scripts/build.js` all return 404; HSTS/CSP/XFO/nosniff/Referrer present;
   Permissions-Policy and Cross-Origin-Opener-Policy were MISSING -> added to vercel.json (invisible hardening; needs the deploy).

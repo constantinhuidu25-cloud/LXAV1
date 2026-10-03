@@ -39,11 +39,19 @@ Rewritten from scratch 2026-10-03. Everything here was checked against the code/
   `middleware.js` (Edge) 404s sensitive root files. The client never talks to Firebase directly.
 - Env var NAMES (values only in Vercel): FIREBASE_SERVICE_ACCOUNT (server only), FIREBASE_DATABASE_URL (pattern-validated, falls back to the LXAV1 DB URL constant), LXA_PEPPER (fallback default pepper in
   source; never change once accounts exist; a production warning is logged if it is missing). Env values added AFTER a deploy need a redeploy (login once failed with "Server temporarily unavailable" for that reason).
-- Identity: each account has a `sessionToken` (24 random bytes hex; created at account creation or first real login, reused afterwards) and a `safeWord` (password: salted + peppered SHA-256).
-  Login = any 2 of {id, name, password}. Silent restore needs id + token. Admin = `role:"admin"` on the account record (7 checks, no hardcoded id; a cached role is never trusted).
-  Per-account password lockout is persisted; per-IP limits are in memory per serverless instance (create 5/h, real login 10/h, spin 500/h per account, buy-wild 100/h, global 5000/min).
-- Every state-changing action needs token or password; set-difficulty = token OR password; spin = token (+ password path) + bet validation + idempotency (requestId cache).
-  Actions needing the real password in memory (so the app asks again after every reopen, BY DESIGN): update, deposit (GELD), reset-new-game (RESET), buy-wild (WILD), all admin actions.
+- SESSIONS (rewritten 2026-10-03): login needs the PASSWORD (id or name + password). ID and name are identifiers, never proof: the old "any 2 of 3 / id + name" login was removed (it handed a full token to anyone who
+  knew a public leaderboard name and a small id). Each real login issues a NEW per-device session token (24 random bytes); the server stores only `sessions: [{h: sha256(token), at}]` (max 8 devices; the legacy single
+  `sessionToken` field is still honoured until logout / password change). The browser keeps only the token (`lxa-session-token-v1`) and a display cache (`lxa-account-cache-v1`); the password is NEVER stored anywhere
+  (memory only, for the update / admin actions). Closing the tab/browser is not a logout; only the explicit LOGOUT button is: it calls the `logout` action (revokes THAT device's token on the server), stops AUTO, bumps
+  `lxaAuthGeneration` (drops any in-flight spin result and animation) and clears token + cache. A token the server rejects (401 "Session expired") or a cached id without a token = UNAUTHENTICATED: token and cache are
+  cleared and the login panel opens (a stored id/name/balance is only a label). Changing the password (`update`) or an admin password reset revokes EVERY session (the changing device gets a fresh one).
+  Admin = `role:"admin"` on the account record (7 checks, no hardcoded id; a cached role is never trusted). Per-account password lockout (5 wrong attempts -> 15 min) is persisted; per-IP limits are in memory per instance
+  (create 5/h, real login 10/h, spin 500/h per account, buy-wild 100/h, global 5000/min).
+- PASSWORD RECOVERY (no email infrastructure exists; none invented): forgotten password = the admin edits the player in Admin Panel > PLAYERS (sets a new password; all sessions are revoked), or the owner sets a plain-text
+  `safeWord` on the account in the database console (the server accepts a non-hashed value once and stores a salted hash at the next successful login). There is no self-service reset.
+- Authorisation per action: session token OR password (`authorize`) for spin, set-difficulty, deposit (BANK), buy-wild (WILD), reset-geld (GELD; it had NO authentication before 2026-10-03) and reset-new-game (RESET; the
+  client now asks for a confirmation, text `resetConfirm` in 3 languages); PASSWORD ONLY for `update` (name/password change) and every admin action (the admin panel asks for the password again after a reopen, by design);
+  `logout` needs the token (a bad token is a silent no-op). Spin also validates the bet + idempotency (requestId cache).
 - Account nodes: `accounts/"<id> : <name>"` (no zero padding); the server finds accounts by the `id` FIELD (hand-edited nodes work); the key is renamed on the next save / when the admin opens PLAYERS.
 - FAIL-CLOSED RULE: reads that feed auth, id allocation or a whole-node write must THROW, never return {} (`getAccounts`; `getLeaderboard`/`getRtpSettings` with `{strict:true}` for read-modify-write
   callers). Reason: a failed read used to look like an empty DB -> login "ID not found", `create` reused id 12 (duplicate ids -> a token valid for one node fails on the other = "session expired"), and a

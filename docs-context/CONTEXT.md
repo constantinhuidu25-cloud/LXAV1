@@ -25,13 +25,15 @@ CHANGELOG.md (what changed and why). The same four files are mirrored in the rep
 8. Android icons: compressed `lxa-icon-*` files, no `?v` strings. 9. "WILD xN - %" tag removed from the round summary.
 10. Master audit: Firebase reads fail closed (duplicate-id / "session expired" root cause), per-IP limits use Vercel's real client IP, `.vercelignore`, lighter assets (letters, Ko-fi mug), slider aria name.
 11. `?debug=1` on-screen log (spin-button.js) to diagnose taps on a phone without dev tools.
-12. Memory/hand-off: this folder, `docs-context/`, `ClauBack\LXAV1\vN` backups, cloud-session hand-off prepared.
+12. Auth + AUTO rewrite: per-device hashed sessions, explicit logout (server revoke + game invalidation), no id+name login, token-authorised play actions, GELD authentication hole closed, AUTO waits 800 ms while the bet is being changed (no spin/result/balance change from PLUS/MINUS), stale results after logout dropped; 21 end-to-end browser checks against the real server code.
+13. Memory/hand-off: this folder, `docs-context/`, `ClauBack\LXAV1\vN` backups, cloud-session hand-off prepared.
 
 ## 3. Open items (honest list)
 - User report "SPIN does nothing in the phone browser, works in the installed app": NOT reproduced in emulation. Likely explained by invisible server rejections (now visible) — to be confirmed after deploy.
   If it persists: open `https://lxoxa.vercel.app/?debug=1` on the phone, tap SPIN once, send a screenshot of the log.
-- Lost session ("password asked again"): by design RESET / WILD / GELD / settings / admin need the real password in memory after every reopen. A token that stops matching is probably the old duplicate-id /
-  failed-read problem (fixed in code, needs the deploy). Root cause not proven.
+- Persistent login (done 2026-10-03, needs the deploy): login once with the password, then the per-device session token keeps the user logged in across refresh / tab close / browser restart; BANK, WILD, GELD, RESET and
+  difficulty no longer ask for the password (RESET asks for a confirmation). ID + name without a password is no longer a login (a password is required). Forgotten password: see MEMORY.md "PASSWORD RECOVERY" — the owner must
+  know the password of at least one account or edit the database (plain `safeWord`). After the deploy every existing browser has a LEGACY token: it keeps working until the user logs out or changes the password.
 - Android "Install app" does nothing / shortcut icon sits on a white tile (= launcher-made shortcut, no WebAPK). Icons were slimmed down to match the working Drolly app; unconfirmed on the phone.
   Need: phone model + browser. After deploying, the user must delete the old home-screen shortcut and add it again. Do NOT add an install button unless asked.
 - The user's installed iOS PWA can be a stale page (no "MAX ..." line under the stake = build older than 5800313): close it completely and reopen before judging a "fix did not work".

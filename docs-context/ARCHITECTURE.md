@@ -22,7 +22,7 @@ Rewritten from scratch 2026-10-03 from the code as of commit `c82da19`. Open onl
 ## 3. Server (`functions/lxa-account.js`)
 - `exports.handler`: parse -> global rate limit -> per-action limits (create 5/h per IP, real login 10/h per IP, spin 500/h per account, buy-wild 100/h) -> dispatch. Client IP = x-vercel-forwarded-for >
   x-real-ip > x-forwarded-for[0]. Errors -> HTTP 500 "Server temporarily unavailable." (also when a Firebase read fails: fail closed).
-- Actions: create, login (real / silent with token), update (name/password), set-difficulty, deposit (GELD), reset-geld, reset-new-game (RESET), buy-wild, spin, leaderboard, get-rtp-settings,
+- Actions: create, login (password / silent with token), logout, update (name/password; password only), set-difficulty, deposit (BANK), reset-geld (GELD), reset-new-game (RESET), buy-wild, spin, leaderboard, get-rtp-settings,
   and admin-only set-rtp-settings, reset-rtp-settings, set-custom-distribution, reset-leaderboard, list-players, admin-update-player, admin-delete-player.
 - `spin`: validateBet (min 5, <= balance) -> difficulty -> `applyRtpSettings` -> cap check `maxBetForWildLevel` (400) -> grid (LXA letters + WILD marker) -> payouts -> jackpot/records (WILD lines skipped) ->
   save + leaderboard (strict read) -> response. Idempotency: client `requestId` (reused on a timeout retry) -> `idempotencyCache` replays the response.
@@ -40,8 +40,10 @@ Rewritten from scratch 2026-10-03 from the code as of commit `c82da19`. Open onl
 - Debug: `?debug=1` adds an on-screen log (taps with target + element on top, errors, handler decisions) via `LXASpinButton.trace` (inert without the parameter).
 
 ## 5. Accounts on the client
-- Panel `renderAccountPanel(view, notice)` (views: home, login, create, settings, admin screens). `lxaRequest(action, data)` adds the in-memory password for the PROTECTED actions
-  (update, deposit, reset-new-game, buy-wild, admin) and shows the login view with a "reauth" message when it is missing. `lxaToken` (localStorage) is sent for spin/set-difficulty/silent login.
+- Panel `renderAccountPanel(view, notice)` (views: home, login, create, settings, admin screens). `lxaRequest(action, data)` adds the session token to every call (except `login`), the in-memory password only for the
+  password-only actions (update + admin), and treats a 401 on a token action as a lost session (`lxaSessionLost()`). `lxaToken` lives in localStorage; the password only in memory.
+
+- AUTO loop (`runAutoSpin`): stops when the generation changed; waits while PLUS/MINUS are held or changed within `BET_SETTLE_MS` (800 ms); the stake of a running round is never modified (`queuedBet` applies to the next round).
 - `lxaRestoreSession()` on every load: silent login with id + token; on failure it shows the cached account (offline-friendly) and retries after 4 s.
 
 ## 6. UI / layout
