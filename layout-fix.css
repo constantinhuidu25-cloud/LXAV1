@@ -5011,15 +5011,19 @@ html body:not(#_):not(#__):not(#___) .chance-head span{grid-area:l!important}
 html body:not(#_):not(#__):not(#___) .chance-head small{grid-area:h!important;flex:none!important;text-align:left!important;margin:0!important}
 html body:not(#_):not(#__):not(#___) .chance-head strong{grid-area:v!important;justify-self:end!important}
 
+/* ===== extra space (10px) between the status bar and the LXA banner in the installed app; the variable feeds the safe-area rules below ===== */
+@media (display-mode:standalone){html{--lxa-top-gap:10px}}
+html.lxa-standalone{--lxa-top-gap:10px}
+
 /* ===== PWA / Add-to-Home-Screen (standalone): the status bar sits over the page, so the bar gets a
    safe-area spacer row above the banner instead of a taller single row - the banner and the icon
    cluster live in row 2 and can never slide down over the cards ===== */
 @media (display-mode:standalone){
   html body:not(#_):not(#__):not(#___) .topbar{
     padding-top:0!important;box-sizing:border-box!important;
-    height:calc(var(--lxa-logo-h) + 8px + env(safe-area-inset-top,0px))!important;
-    min-height:calc(var(--lxa-logo-h) + 8px + env(safe-area-inset-top,0px))!important;
-    grid-template-rows:env(safe-area-inset-top,0px) calc(var(--lxa-logo-h) + 8px)!important;
+    height:calc(var(--lxa-logo-h) + 8px + calc(env(safe-area-inset-top,0px) + var(--lxa-top-gap,0px)))!important;
+    min-height:calc(var(--lxa-logo-h) + 8px + calc(env(safe-area-inset-top,0px) + var(--lxa-top-gap,0px)))!important;
+    grid-template-rows:calc(env(safe-area-inset-top,0px) + var(--lxa-top-gap,0px)) calc(var(--lxa-logo-h) + 8px)!important;
   }
   html body:not(#_):not(#__):not(#___) .topbar .brand-cluster,
   html body:not(#_):not(#__):not(#___) .topbar #headerActions{grid-row:2!important}
@@ -5027,9 +5031,9 @@ html body:not(#_):not(#__):not(#___) .chance-head strong{grid-area:v!important;j
 }
 html.lxa-standalone body:not(#_):not(#__):not(#___) .topbar{
   padding-top:0!important;box-sizing:border-box!important;
-  height:calc(var(--lxa-logo-h) + 8px + env(safe-area-inset-top,0px))!important;
-  min-height:calc(var(--lxa-logo-h) + 8px + env(safe-area-inset-top,0px))!important;
-  grid-template-rows:env(safe-area-inset-top,0px) calc(var(--lxa-logo-h) + 8px)!important;
+  height:calc(var(--lxa-logo-h) + 8px + calc(env(safe-area-inset-top,0px) + var(--lxa-top-gap,0px)))!important;
+  min-height:calc(var(--lxa-logo-h) + 8px + calc(env(safe-area-inset-top,0px) + var(--lxa-top-gap,0px)))!important;
+  grid-template-rows:calc(env(safe-area-inset-top,0px) + var(--lxa-top-gap,0px)) calc(var(--lxa-logo-h) + 8px)!important;
 }
 html.lxa-standalone body:not(#_):not(#__):not(#___) .topbar .brand-cluster,
 html.lxa-standalone body:not(#_):not(#__):not(#___) .topbar #headerActions{grid-row:2!important}
@@ -5055,11 +5059,11 @@ html body:not(#_):not(#__):not(#___) .reel span.wild-symbol::after{display:none!
     margin-left:-8px!important;margin-right:-8px!important;width:calc(100% + 16px)!important;
   }
   html body:not(#_):not(#__):not(#___) .topbar .brand-cluster .brand{
-    height:calc(env(safe-area-inset-top,0px) + var(--lxa-logo-h) + 8px)!important;
+    height:calc(calc(env(safe-area-inset-top,0px) + var(--lxa-top-gap,0px)) + var(--lxa-logo-h) + 8px)!important;
     border-radius:0 0 16px 16px!important;
   }
   html body:not(#_):not(#__):not(#___) .topbar .brand-cluster .brand img{
-    top:env(safe-area-inset-top,0px)!important;height:var(--lxa-logo-h)!important;
+    top:calc(env(safe-area-inset-top,0px) + var(--lxa-top-gap,0px))!important;height:var(--lxa-logo-h)!important;
     -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 12%,#000 88%,transparent 100%),linear-gradient(180deg,transparent 0,#000 22%);
     -webkit-mask-composite:source-in;
     mask-image:linear-gradient(90deg,transparent 0,#000 12%,#000 88%,transparent 100%),linear-gradient(180deg,transparent 0,#000 22%);
@@ -5084,11 +5088,11 @@ html body:not(#_):not(#__):not(#___) .reel span.wild-symbol::after{display:none!
     margin-left:-8px!important;margin-right:-8px!important;width:calc(100% + 16px)!important;
   }
   html.lxa-standalone body:not(#_):not(#__):not(#___) .topbar .brand-cluster .brand{
-    height:calc(env(safe-area-inset-top,0px) + var(--lxa-logo-h) + 8px)!important;
+    height:calc(calc(env(safe-area-inset-top,0px) + var(--lxa-top-gap,0px)) + var(--lxa-logo-h) + 8px)!important;
     border-radius:0 0 16px 16px!important;
   }
   html.lxa-standalone body:not(#_):not(#__):not(#___) .topbar .brand-cluster .brand img{
-    top:env(safe-area-inset-top,0px)!important;height:var(--lxa-logo-h)!important;
+    top:calc(env(safe-area-inset-top,0px) + var(--lxa-top-gap,0px))!important;height:var(--lxa-logo-h)!important;
     -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 12%,#000 88%,transparent 100%),linear-gradient(180deg,transparent 0,#000 22%);
     -webkit-mask-composite:source-in;
     mask-image:linear-gradient(90deg,transparent 0,#000 12%,#000 88%,transparent 100%),linear-gradient(180deg,transparent 0,#000 22%);
