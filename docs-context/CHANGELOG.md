@@ -3,6 +3,11 @@
 Rewritten from scratch 2026-10-03 (65 commits at that time; the hash is the authoritative detail). Newest first. Format per entry: what the user asked / cause / change / how it was verified / limits.
 "Verified" = measured in headless Edge or Jest unless it says otherwise; nothing here was verified on a real phone.
 
+## 2026-10-03 (latest) - SPIN result colour instantly + AUTO pause after profit (commit 93af522; renderer v=409, layout-fix v=442)
+- Owner: the coloured word appeared late (white SPIN first) and in AUTO no change was visible.
+- Cause 1: I forced the word white during the burst (1.2-2.4 s). Cause 2: in AUTO the next round starts ~0.3 s after finish() and start() clears the result.
+- Now: word + icon coloured from the first frame (gold / pink-red), burst overlay strong at the edges and light in the middle, dark outline on the word. AUTO_PROFIT_PAUSE_MS = 1000 in renderer.js (profit only; 260 ms otherwise). Measured in real guest AUTO: gap after profit 1.32 s, after a payout below the stake 0.58 s.
+- Open: the lock/flag overlap when floating starts (options A+B proposed; owner asked whether the flag can take the lock's place safely - answered: not at the same spot at the same time; awaiting decision). NOT verified on a real phone. NOT deployed.
 ## 2026-10-03 (latest) - SPIN result shown on the word, not a ring (commit 6f48557; layout-fix v=441)
 - Owner disliked the orange/coral frame after a loss and proposed colouring the text instead (chose variant A).
 - Now: after the burst, word + icon are gold (profit) or soft pink-red #ff7a90 with a dark outline (payout below stake) until the next round starts (data-result); nothing paid = white. The ring rules were removed. Idle / AUTO icons are CSS masks painted with currentColor so they follow the word colour; the STOP square is a plain white square. During the burst the word is white (it would vanish on the gold / coral flash). STOP state unchanged (owner agreed).
