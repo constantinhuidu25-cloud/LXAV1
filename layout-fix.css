@@ -5499,3 +5499,26 @@ html body:not(#_):not(#__):not(#___) #bet{align-self:start!important;margin-top:
 html body:not(#_):not(#__):not(#___) #betMax{grid-column:2!important;grid-row:2!important;align-self:end!important;justify-self:center!important;display:block!important;max-width:100%!important;
   margin:0!important;padding:0!important;font:700 8px/1 var(--v117-mono)!important;letter-spacing:.3px!important;color:var(--lxa-text-muted)!important;white-space:nowrap!important;text-transform:none!important;pointer-events:none}
 @media (max-width:420px){html body:not(#_):not(#__):not(#___) #betMax{font-size:7px!important;letter-spacing:0!important}}
+
+/* ===== The animated light (sweep + glow) used to end in hard edges at the top and bottom of the header box, which read as a
+   pasted rectangle. Its glow now dies out inside the box and the whole layer fades on all four sides, like the image ===== */
+html body:not(#_):not(#__):not(#___):not(#____) .topbar .brand-cluster .brand::after{
+  background:
+    linear-gradient(100deg,transparent 42%,rgba(175,210,255,.42) 50%,transparent 58%) 100% 0/300% 100% no-repeat,
+    radial-gradient(ellipse 30% 62% at 50% 55%,rgba(70,130,255,.5),rgba(190,70,255,.22) 55%,transparent 74%)!important;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 20%,#000 80%,transparent 100%),linear-gradient(180deg,transparent 0,#000 34%,#000 66%,transparent 100%)!important;
+  mask-image:linear-gradient(90deg,transparent 0,#000 20%,#000 80%,transparent 100%),linear-gradient(180deg,transparent 0,#000 34%,#000 66%,transparent 100%)!important;
+  -webkit-mask-composite:source-in!important;mask-composite:intersect!important;
+}
+@media (max-width:699px){
+  html body:not(#_):not(#__):not(#___):not(#____) .topbar .brand-cluster .brand::after{
+    background:
+      linear-gradient(100deg,transparent 42%,rgba(175,210,255,.42) 50%,transparent 58%) 100% 0/300% 100% no-repeat,
+      radial-gradient(ellipse 34% 62% at 32% 55%,rgba(70,130,255,.5),rgba(190,70,255,.22) 55%,transparent 74%)!important;
+  }
+}
+
+/* the 1.22x scaled header image is ~6px taller than its 50px box and the box clipped it, leaving a hard flat edge on the
+   letters at the top and bottom; let it overflow - the image's own four-side fade is already zero at its true edges */
+html body:not(#_):not(#__):not(#___):not(#____) .topbar .brand-cluster .brand{overflow:visible!important}
+html body:not(#_):not(#__):not(#___):not(#____) .topbar{overflow:visible!important}
