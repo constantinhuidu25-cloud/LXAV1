@@ -69,8 +69,8 @@ function setLockLabel(locked){const labels={de:locked?'Seite entsperren':'Seite 
 const v56LockClick=scrollLock.onclick;
 scrollLock.onclick=()=>{v56LockClick();setLockLabel(document.body.classList.contains('scroll-locked'))};
 const touchScreenOnly=()=>window.matchMedia&&window.matchMedia('(pointer:coarse)').matches;
-document.addEventListener('touchmove',event=>{if(document.body.classList.contains('scroll-locked'))event.preventDefault()},{passive:false});
-document.addEventListener('wheel',event=>{if(touchScreenOnly()&&document.body.classList.contains('scroll-locked'))event.preventDefault()},{passive:false});
+document.addEventListener('touchmove',event=>{if(document.body.classList.contains('scroll-locked')&&!(event.target.closest&&event.target.closest('.account-panel')))event.preventDefault()},{passive:false});
+document.addEventListener('wheel',event=>{if(touchScreenOnly()&&document.body.classList.contains('scroll-locked')&&!(event.target.closest&&event.target.closest('.account-panel')))event.preventDefault()},{passive:false});
 document.addEventListener('gesturestart',event=>{if(document.body.classList.contains('scroll-locked'))event.preventDefault()},{passive:false});
 
 const languageControl=$('#languageControl'),languageSelect=$('#language');let languageMenu;
