@@ -5,8 +5,10 @@ CHANGELOG.md (what changed and why). The same four files are mirrored in the rep
 
 ## 1. Snapshot
 - Project: LXAV1 = LEONXOXANA virtual-credit slot demo (no real money). Folder `C:\Users\leon4\Desktop\LXAV1`, repo github.com/leoxoxana/LXAV1 (remotes `origin` and `leo`, same URL), branch `main`.
-- Local HEAD: `c82da19` (65+ commits). Working tree clean. GitHub `origin/main` is still `7d2e724` -> **10 local commits are NOT on GitHub** until the user runs `git push origin main`.
-  GitHub also has branch `main-hsvmm0` (made by the user's cloud session: removes the "WILD xN - %" tag); it is already merged locally (`239c766`). It can be deleted on GitHub.
+- Code state = commit `c82da19` (65+ commits); newer local commits (`a02275e` and later) are docs-only. Working tree clean. GitHub `origin/main` = `c82da19`: the user pushed everything up to there;
+  only docs-only commits after it can still be unpushed (check `git rev-list --count origin/main..HEAD`).
+  GitHub also has two cloud-made branches: `main-hsvmm0` (1 commit, WILD tag removal; merged locally in `239c766`, safe to delete) and `claude/project-thread-n4n2yo` (2 OLD commits, 31 behind main:
+  old header GIF / lock changes — STALE, do NOT merge, safe to delete).
 - Deploy: the USER deploys (`vercel --prod` from the LXAV1 folder). Last confirmed live build = `116ffd8` (assets layout-fix 431 / renderer 399 / spin-button 7). Everything after it is committed
   locally but NOT confirmed deployed.
 - Vercel: project lxa3/lxa; domains lxoxa.vercel.app (primary), lxav1.vercel.app, lxa-lxa3.vercel.app. Database: Firebase Realtime DB `lxav1-a5cfd` (europe-west1).
@@ -47,7 +49,7 @@ CHANGELOG.md (what changed and why). The same four files are mirrored in the rep
 ## 5. Sessions, usage and cloud hand-off
 - Plan: Claude Pro. Usage windows: 5-hour (was 86% at the last check, resets about every 5 h) and weekly (51%, resets Thursday 21:00). "Extra usage" is OFF (0 EUR).
 - Separate credit: "Cloud session credits" $70 of $100 left, expires 2026-11-05 08:59 (GMT+1). It applies automatically ONLY to cloud sessions (after it is used, the normal plan applies).
-- Hand-off: (1) user runs `git push origin main`; (2) menu `LXAV1 v` -> Open in -> Continue in -> Cloud, or New -> Cloud on repo leoxoxana/LXAV1 branch main;
+- Hand-off: (1) if `git rev-list --count origin/main..HEAD` is not 0 the user runs `git push origin main` (docs-only commits may be pending); (2) menu `LXAV1 v` -> Open in -> Continue in -> Cloud, or New -> Cloud on repo leoxoxana/LXAV1 branch main;
   (3) first message: "Citește docs-context/CONTEXT.md și docs-context/MEMORY.md. Răspunde scurt, numerotat, în română. Nu face deploy și nu face push fără să-ți cer. Textele noi se scriu în de, ro, en.";
   (4) check `git log -1 --oneline` = latest hash. Only ONE session edits the code at a time. Cloud cannot run the Edge/CDP tests nor `vercel --prod`. `.env.local` never leaves the PC.
 - An in-app attempt to move the session to the cloud was blocked by the safety classifier; the user does the move/push from the UI (do not work around that).
