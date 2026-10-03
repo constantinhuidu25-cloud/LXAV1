@@ -5450,3 +5450,42 @@ html body:not(#_):not(#__):not(#___){background:transparent!important}
 html body:not(#_):not(#__):not(#___) .hero,
 html body:not(#_):not(#__):not(#___) .controls,
 html body:not(#_):not(#__):not(#___) .machine{background:none!important}
+
+/* ===== Header: letters ~22% taller/wider (the image is scaled inside its box, so the bar itself barely grows: +2px),
+   and the wide landscape animation is back - pure CSS in the page colours: a light sweep across the whole band, a
+   pulsing glow behind the letters and the neon rails, none of it baked into the image ===== */
+html body:not(#_):not(#__):not(#___):not(#____){--lxa-logo-h:50px;--lxa-art-scale:1.22}
+@media (max-width:900px){html body:not(#_):not(#__):not(#___):not(#____){--lxa-logo-h:42px}}
+@media (orientation:landscape) and (max-height:540px){html body:not(#_):not(#__):not(#___):not(#____){--lxa-logo-h:30px}}
+@media (min-width:700px){
+  html body:not(#_):not(#__):not(#___):not(#____) .topbar .brand-cluster .brand img{transform:translateX(-50%) scale(var(--lxa-art-scale))!important;transform-origin:50% 55%!important}
+}
+@media (max-width:699px){
+  html body:not(#_):not(#__):not(#___):not(#____) .topbar .brand-cluster .brand img,
+  html.lxa-standalone body:not(#_):not(#__):not(#___):not(#____) .topbar .brand-cluster .brand img{transform:scale(var(--lxa-art-scale))!important;transform-origin:30% 55%!important}
+}
+@keyframes lxaSweep{from{background-position:100% 0,0 0}to{background-position:0% 0,0 0}}
+@keyframes lxaGlow{from{opacity:.45;filter:hue-rotate(0deg)}to{opacity:1;filter:hue-rotate(42deg)}}
+html body:not(#_):not(#__):not(#___):not(#____) .topbar .brand-cluster .brand::after{
+  content:""!important;position:absolute!important;inset:0!important;z-index:1!important;pointer-events:none!important;height:auto!important;
+  background:
+    linear-gradient(100deg,transparent 42%,rgba(175,210,255,.5) 50%,transparent 58%) 100% 0/300% 100% no-repeat,
+    radial-gradient(ellipse 30% 135% at 50% 55%,rgba(70,130,255,.5),rgba(190,70,255,.22) 55%,transparent 74%)!important;
+  mix-blend-mode:screen;animation:lxaSweep 5.4s linear infinite,lxaGlow 3.6s ease-in-out infinite alternate!important;
+}
+@media (max-width:699px){
+  html body:not(#_):not(#__):not(#___):not(#____) .topbar .brand-cluster .brand::after{
+    background:
+      linear-gradient(100deg,transparent 42%,rgba(175,210,255,.5) 50%,transparent 58%) 100% 0/300% 100% no-repeat,
+      radial-gradient(ellipse 34% 135% at 32% 55%,rgba(70,130,255,.5),rgba(190,70,255,.22) 55%,transparent 74%)!important;
+  }
+}
+@media (prefers-reduced-motion:reduce){html body:not(#_):not(#__):not(#___):not(#____) .topbar .brand-cluster .brand::after{animation:none!important}}
+
+/* phone: scale the art about its LEFT-centre so the letters grow in height without moving toward the buttons */
+@media (max-width:699px){
+  html body:not(#_):not(#__):not(#___):not(#____) .topbar .brand-cluster .brand img,
+  html.lxa-standalone body:not(#_):not(#__):not(#___):not(#____) .topbar .brand-cluster .brand img{
+    transform:scale(1.18)!important;transform-origin:18% 55%!important;object-position:78% 50%!important;
+  }
+}

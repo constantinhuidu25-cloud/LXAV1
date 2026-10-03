@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const SPIN_MS = 3000;
+  const SPIN_MS = 4200;
   const LEARN_KEY = 'lxa-spin-stop-learned-v1';
   const COACH_SPINS = 3;
   const LABEL = { spin: 'SPIN', stop: 'STOP' };

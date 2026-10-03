@@ -780,25 +780,28 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
   // waiting for it. Lets the user click SPIN quickly in succession while each
   // individual spin's letters still visually roll at the slower speed.
   let activeSpinHandle = null, stopRequested = false;
-  // Reels start the instant SPIN is pressed: they roll a looping strip of random
-  // letters at once, and only when the server's result arrives (land) do they switch to
-  // the decelerating final run that stops on the real board. The network wait is hidden
-  // inside the rolling instead of delaying its start.
+  // ONE continuous, slow motion. The reels start rolling in the same frame as the tap (a looping strip of random
+  // letters at a constant, slow speed). When the server's result arrives, each reel is re-laid out WITHOUT any visible
+  // jump: [result rows][a few filler cells][the cells currently on screen, at the same offset] and a single eased
+  // slide whose starting speed equals the loop speed carries it down onto the result. No second "restart".
   function startReelSpin() {
     const nodes = [...document.querySelectorAll('.reel')];
     const rnd = () => symbols[Math.floor(Math.random() * symbols.length)];
     const cellHtml = value => {
       const isWild = value === game.WILD;
-      return `<span class="${isWild ? 'wild-symbol' : 'letter-' + value}">${isWild ? '${WILD_IMG}' : value}</span>`;
+      return `<span class="${isWild ? 'wild-symbol' : 'letter-' + value}">${isWild ? WILD_IMG : value}</span>`;
     };
-    const t0 = performance.now();
-    const loops = [];
-    nodes.forEach(node => {
+    const CELL_MS = 130;                    // loop speed: one cell per 130ms
+    const SLOPE0 = 2.4;                     // initial slope of the landing curve (cubic-bezier .25,.6,.35,1 -> .6/.25)
+    const EASE = 'cubic-bezier(.25,.6,.35,1)';
+    const FILLER = 3;
+    const reels = nodes.map(node => {
       const strip = Array.from({ length: 12 }, rnd);
       node.innerHTML = `<div class="reel-track rolling">${[...strip, ...strip].map(cellHtml).join('')}</div>`;
       const track = node.firstElementChild;
-      const height = track.firstElementChild?.getBoundingClientRect().height || cell;
-      loops.push(track.animate([{ transform: `translateY(-${strip.length * height}px)` }, { transform: 'translateY(0)' }], { duration: strip.length * 90, iterations: Infinity, easing: 'linear' }));
+      const h = track.firstElementChild?.getBoundingClientRect().height || cell;
+      const loop = track.animate([{ transform: `translateY(${-strip.length * h}px)` }, { transform: 'translateY(0px)' }], { duration: strip.length * CELL_MS, iterations: Infinity, easing: 'linear' });
+      return { node, h, loop, strip };
     });
     let landed = false, stopWanted = false, animations = [], timer = null, resolvePromise = null;
     const finishAll = () => {
@@ -809,18 +812,27 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
     const handle = {
       land(grid) {
         landed = true;
-        loops.forEach(loop => { try { loop.cancel(); } catch (error) { /* gone */ } });
-        const duration = Math.max(1500, 3000 - (performance.now() - t0));
-        nodes.forEach((node, column) => {
-          const filler = Array.from({ length: 30 }, rnd);
-          node.innerHTML = `<div class="reel-track rolling">${[...grid.map(row => row[column]), ...filler].map(cellHtml).join('')}</div>`;
+        let longest = 0;
+        reels.forEach((reel, column) => {
+          const { node, h, loop, strip } = reel;
+          const period = strip.length * CELL_MS;
+          const ty = -strip.length * h + ((Number(loop.currentTime) || 0) % period) / period * strip.length * h;
+          const first = Math.max(0, Math.floor(-ty / h));
+          const top0 = ty + first * h;
+          const onScreen = [...strip, ...strip].slice(first, first + 6);
+          const result = grid.map(row => row[column]);
+          const filler = Array.from({ length: FILLER }, rnd);
+          loop.cancel();
+          node.innerHTML = `<div class="reel-track rolling">${[...result, ...filler, ...onScreen].map(cellHtml).join('')}</div>`;
           const track = node.firstElementChild;
-          const height = track.firstElementChild?.getBoundingClientRect().height || cell;
-          const finish = filler.length * height;
-          track.style.transform = `translateY(-${finish}px)`;
-          animations.push(track.animate([{ transform: `translateY(-${finish}px)` }, { transform: 'translateY(0)' }], { duration, easing: 'cubic-bezier(.12,.71,.15,1)', fill: 'forwards' }));
+          const startY = -((result.length + FILLER) * h) + top0;
+          const distance = -startY;
+          const duration = SLOPE0 * distance * CELL_MS / h;
+          longest = Math.max(longest, duration);
+          track.style.transform = `translateY(${startY}px)`;
+          animations.push(track.animate([{ transform: `translateY(${startY}px)` }, { transform: 'translateY(0px)' }], { duration, easing: EASE, fill: 'forwards' }));
         });
-        const promise = new Promise(resolve => { resolvePromise = resolve; timer = setTimeout(resolve, duration + 200); });
+        const promise = new Promise(resolve => { resolvePromise = resolve; timer = setTimeout(resolve, longest + 150); });
         if (stopWanted) finishAll();
         return promise;
       },
@@ -830,7 +842,7 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
         finishAll();
       },
       abort() {
-        loops.forEach(loop => { try { loop.cancel(); } catch (error) { /* gone */ } });
+        reels.forEach(reel => { try { reel.loop.cancel(); } catch (error) { /* gone */ } });
         if (!landed) render(gameState.lastSpin?.board || Array.from({ length: rows }, () => target.slice()));
       }
     };
