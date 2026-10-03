@@ -1,10 +1,15 @@
 # LXAV1 — CONTEXT (current state)
 
-## Current state (as of 2026-10-03, git HEAD 116ffd8)
+## Current state (as of 2026-10-03, after the AUTO-stake commit; previous HEAD 7d2e724)
 - LEONXOXANA reskin: complete. Core game/server rules: stable, 56/56 Jest tests, ESLint 0 errors.
-- DEPLOY STATE: the user deploys by hand (`vercel --prod`). GitHub `leo/main` is at 8c385e2; 20 newer commits are local-only. Everything below
-  (max stake, SPIN ring sync, header fade, seamless page edges) is committed locally and NOT live until the user deploys.
-- Last round (2026-10-03), all committed, measured in headless Edge:
+- DEPLOY STATE: the user deploys by hand (`vercel --prod`). The USER pushed GitHub `origin/main` to 7d2e724 (docs-context + the 20 earlier commits).
+  Commits after 7d2e724 are local until the user pushes again. Nothing below is live until the user deploys.
+- SESSIONS: the user has $70 of "Cloud session credits" (expire 2026-11-05) to use when the Pro limit runs out. Hand-off = user pushes
+  (`git push origin main`), then opens a cloud session (LXAV1 menu -> Open in -> Continue in -> Cloud, or New -> Cloud) and says
+  "git pull origin main, then read docs-context/CONTEXT.md and MEMORY.md". Only ONE session works on the code at a time (avoid conflicts).
+  Keep this file and CHANGELOG.md updated after each real change, so a fresh cloud session can resume from them.
+- Latest change: stake can be changed during AUTO (queued, applied to the next round, same caps). See CHANGELOG 2026-10-03 "AUTO stake".
+- Earlier last round (2026-10-03), all committed, measured in headless Edge:
   1. Max stake: "+" up to the whole balance but never above half the next WILD level price; 50% = half the balance, same cap; "MAX ..." line
      under the stake (a90c4b9, b590e52, 5800313, 3d41b01). WILD 50 = 25.5M (ladder continues).
   2. SPIN progress ring synced with the real reel stop (~2.5 s) (937c527).

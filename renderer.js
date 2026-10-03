@@ -947,6 +947,7 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
     if (!autoSpinEnabled && normalizeLocalBet()) { persist(); renderGameV79(); }
     if (gameState.credits < gameState.bet) { setMsg(t[lang].noMoney); return; }
     spinning = true;
+    queuedBet = null;
     activeSpinHandle = null;
     stopRequested = false;
     window.LXASpinButton?.start();
@@ -969,8 +970,12 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
       // the newer run owns gameState/credits/UI from here on.
       if (myToken !== spinToken || myToken === canceledToken) return;
       gameState = result.state;
-      // V118: during AUTO the chosen stake stays frozen; AUTO stops instead.
-      if (!autoSpinEnabled) normalizeLocalBet();
+      // A stake changed during AUTO applies to the NEXT round (same caps).
+      if (queuedBet !== null) {
+        const room = Math.floor(Number(gameState.credits) || 0);
+        gameState.bet = room >= 5 ? Math.min(queuedBet, room, game.maxBetForWildLevel(gameState.wildLevel)) : queuedBet;
+        queuedBet = null;
+      } else if (!autoSpinEnabled) normalizeLocalBet();
       // Persist the resolved state before the animation finishes. A reload
       // during the reel animation therefore cannot lose the completed spin.
       persist();
@@ -1016,6 +1021,7 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
   };
   const chanceInput = $('#chance');
   chanceInput?.addEventListener('change', () => { gameState.difficulty = Number(chance) + 1; persist(); paintPaytable(); });
+  let queuedBet = null;
   const stakeStep = balance => Number(balance) >= 5000000 ? 10000 : Number(balance) >= 1000000 ? 2500 : Number(balance) >= 250000 ? 500 : 5;
   // A stale MAX 50% or manually raised stake must never leave the player with
   // a button that cannot spin after the balance changes. Keep a valid, scaled
@@ -1036,6 +1042,7 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
     const wanted = Math.round(Number(value) / step) * step;
     gameState.bet = Math.min(cap, Math.max(step, Math.min(Math.max(step, gameState.credits), wanted)));
     if (wanted > cap && !spinning) $('#message').textContent = `${T118('maxBet')}: ${euro(cap)}`;
+    if (spinning && autoSpinEnabled) queuedBet = gameState.bet;
     persist(); renderGameV79();
   };
   // Scale +/- with the current stake: small balances still move in €5/€500
@@ -1052,7 +1059,7 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
     const button = $(id);
     if (!button) return;
     let timer = null, delay = 320, held = false, changedOnPress = false, ignoreClickUntil = 0;
-    const change = () => { if (!spinning) setLocalBet(gameState.bet + direction * scaledDelta()); };
+    const change = () => { if (!spinning || autoSpinEnabled) setLocalBet(gameState.bet + direction * scaledDelta()); };
     const stop = () => { if (timer) clearTimeout(timer); timer = null; held = false; delay = 320; };
     const repeat = () => {
       if (!held) return;
@@ -1090,7 +1097,7 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
   };
   if (betHalfButton) betHalfButton.addEventListener('click', event => {
     event.preventDefault();
-    if (spinning) return;
+    if (spinning && !autoSpinEnabled) return;
     setLocalBet(fiftyPercentBet(gameState.credits));
   });
   // AUTO is intentionally a visible toggle: it continues until STOP is

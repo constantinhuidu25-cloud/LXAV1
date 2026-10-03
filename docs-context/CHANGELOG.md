@@ -65,6 +65,21 @@ Fix: html background layers now die out inside the page (glows positioned a full
 Verification: full-page CDP screenshot, first/last rows = rgb(39,32,121) at 5 x positions on phone and PC; page looks coherent.
 Result: done; NOT verified on a real iPhone/Android rubber-band.
 
+## 2026-10-03 — Stake can be changed while AUTO runs (new commit after 7d2e724)
+Task: user: "why can't I change the stake while AUTO runs?". Cause: (1) `+`/`-`/50% returned early while `spinning` (a round ~2.5 s, AUTO gap only 0.26 s);
+(2) V118 rule "stake frozen during AUTO"; and at landing `gameState = result.state` overwrote any mid-round change with the round's stake.
+Files: renderer.js (queuedBet in setLocalBet, spin landing, hold-bet `change`, 50% handler), index.html (renderer.js?v=400).
+Changes: while AUTO is on, `+`/`-`/50% work during a round; the new stake is shown at once, remembered in `queuedBet` and re-applied right after
+`gameState = result.state`, clamped to balance and `maxBetForWildLevel`; `queuedBet` is cleared at every round start. Manual (non-AUTO) spins stay locked.
+Verification (headless Edge 390px, guest): 100 -> `+,+` mid-round -> 120; stake per round measured from before/gross/after = 100 (round in flight), then 120,120,120,120.
+50% mid-round at 100k -> 50,000 and used next round; `+` x30 at 120M WILD 0 -> 1,250,000 (cap kept); manual spin: `+` during the round stays 100; AUTO start/stop label OK;
+Jest 56/56, ESLint 0 errors. No new visible text (no translations needed).
+Result: done locally; NOT deployed; NOT verified on a real phone (touch hold-repeat during AUTO).
+
+## 2026-10-03 — Cloud hand-off set up
+User pushed origin/main to 7d2e724 himself (an app-side push/move was blocked by the safety classifier, not worked around). docs-context/ added to the repo
+(copies of these 4 docs; middleware.js 404s any .md path so they are not public). Cloud credits: $70 of $100 left, expire 2026-11-05.
+
 ## 2026-10-03 — Android "Install app" investigation (no code change)
 Findings: Chromium reports 0 installability errors on https://lxoxa.vercel.app and local; manifest/sw/icons OK (sizes 192/512/512-maskable correct, HTTP 200).
 User: "Install app" does nothing on Android, "Add to home screen" makes a browser-style shortcut; iOS gives a real app look. Probable device-side WebAPK minting failure.

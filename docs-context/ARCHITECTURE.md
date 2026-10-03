@@ -38,6 +38,8 @@ Idempotency: client sends a requestId for spin/buy-wild/deposit (reused on a tim
 await reel stop -> update state, `render`, `showSpinV79`, `LXASpinButton.finish`, balance count-up, `scheduleRankRefresh` (quiet leaderboard refresh).
 Stake controls (renderer.js ~L1019-1095): `stakeStep` (5 / 500 / 2500 / 10000 by balance), `normalizeLocalBet`, `setLocalBet` (clamps to balance and WILD cap and
 shows "MAX. EINSATZ/MIZĂ MAXIMĂ/MAX BET: <cap>" when the wish exceeded it), hold-to-repeat `bindHoldBet`, 50% button (`fiftyPercentBet` = balance x 0.5, then setLocalBet).
+During AUTO the stake buttons stay active: `setLocalBet` stores the wish in `queuedBet` when `spinning && autoSpinEnabled`; the spin landing re-applies it (clamped) right after
+`gameState = result.state`, and `queuedBet` is cleared at each round start. Manual spins keep the stake locked while `spinning`.
 Display: `#bet`, `#betMax` ("MAX <effective ceiling>"), `#lineStake`; set in `renderGameV79` (~L579-581).
 
 ## 5. Persistence
