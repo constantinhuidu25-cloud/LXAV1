@@ -5522,3 +5522,17 @@ html body:not(#_):not(#__):not(#___):not(#____) .topbar .brand-cluster .brand::a
    letters at the top and bottom; let it overflow - the image's own four-side fade is already zero at its true edges */
 html body:not(#_):not(#__):not(#___):not(#____) .topbar .brand-cluster .brand{overflow:visible!important}
 html body:not(#_):not(#__):not(#___):not(#____) .topbar{overflow:visible!important}
+
+/* ===== Overscroll / force-scroll: the area beyond the page edge is painted with the root background-colour (#272079, same as
+   theme-color). The page gradient used to be lighter at the top and different at the bottom, so a pull past either end showed
+   a band of another colour. Now every layer dies out inside the page and the base gradient starts and ends on exactly that
+   colour, so the edges are seamless at any pull distance ===== */
+html{
+  background-color:#272079!important;
+  background-image:
+    radial-gradient(ellipse 520px 200px at 88% 220px,rgba(232,44,255,.20),transparent 100%),
+    radial-gradient(ellipse 560px 380px at 4% 420px,rgba(30,90,255,.34),transparent 100%),
+    radial-gradient(ellipse 800px 380px at 50% calc(100% - 420px),rgba(113,60,255,.30),transparent 100%),
+    linear-gradient(180deg,#272079 0%,#1c1c80 45%,#272079 100%)!important;
+  background-repeat:no-repeat!important;background-size:100% 100%!important;
+}
