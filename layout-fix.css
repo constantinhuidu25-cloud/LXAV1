@@ -5489,3 +5489,8 @@ html body:not(#_):not(#__):not(#___):not(#____) .topbar .brand-cluster .brand::a
     transform:scale(1.18)!important;transform-origin:18% 55%!important;object-position:78% 50%!important;
   }
 }
+/* ===== effective max stake (min of Guthaben and half the next WILD price) as a tiny line under the stake amount ===== */
+html body:not(#_):not(#__):not(#___) #bet{align-self:start!important;margin-top:2px!important}
+html body:not(#_):not(#__):not(#___) #betMax{grid-column:2!important;grid-row:2!important;align-self:end!important;justify-self:center!important;display:block!important;max-width:100%!important;
+  margin:0!important;padding:0!important;font:700 8px/1 var(--v117-mono)!important;letter-spacing:.3px!important;color:var(--lxa-text-muted)!important;white-space:nowrap!important;text-transform:none!important;pointer-events:none}
+@media (max-width:420px){html body:not(#_):not(#__):not(#___) #betMax{font-size:7px!important;letter-spacing:0!important}}
