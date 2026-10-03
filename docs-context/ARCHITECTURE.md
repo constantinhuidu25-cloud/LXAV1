@@ -17,6 +17,7 @@ Rewritten from scratch 2026-10-03 from the code as of commit `c82da19`. Open onl
 - UMD module, frozen API. `resolveSpin(state, rng, now)` = the single source of truth for one spin (guest path): per-line result -> WILD application -> payouts (PAYTABLE x line stake) -> jackpot award ->
   credits = credits - stake + payout. Throws "Insufficient credits." and "Bet exceeds the maximum for this WILD level.".
 - `maxBetForWildLevel`, `wildUpgradeCost` (price of the NEXT level), `wildChance`, `recommendedBet`, JACKPOT_TIER_MULTIPLIERS [1..5], admin getters/setters (RTP, WILD, multipliers) mirrored from Firebase.
+- RTP functions: `computeDistribution(index, lineTarget)` (pure), `expectedTotalRtp(d, level)` (exact total = lines + WILD + jackpot), `setDifficultyTotalRtp(d, target, level)` (connected-mode solver), `applyAdminSettings(settings)` (the only way stored admin settings reach the engine: server before every spin / settings read, browser guest mirror at startup; deterministic order, connected solve last).
 - Client and server keep their own copies of the WILD-placement/payout code, kept in sync by hand; `deployment-check.js` compares the numbers (last run: in sync).
 
 ## 3. Server (`functions/lxa-account.js`)
@@ -24,7 +25,7 @@ Rewritten from scratch 2026-10-03 from the code as of commit `c82da19`. Open onl
   x-real-ip > x-forwarded-for[0]. Errors -> HTTP 500 "Server temporarily unavailable." (also when a Firebase read fails: fail closed).
 - Actions: create, login (password / silent with token), logout, update (name/password; password only), set-difficulty, deposit (BANK), reset-geld (GELD), reset-new-game (RESET), buy-wild, spin, leaderboard, get-rtp-settings,
   and admin-only set-rtp-settings, reset-rtp-settings, set-custom-distribution, reset-leaderboard, list-players, admin-update-player, admin-delete-player.
-- `spin`: validateBet (min 5, <= balance) -> difficulty -> `applyRtpSettings` -> cap check `maxBetForWildLevel` (400) -> grid (LXA letters + WILD marker) -> payouts -> jackpot/records (WILD lines skipped) ->
+- `spin`: validateBet (min 5, <= balance) -> difficulty -> `applyRtpSettings` (reads Firebase `rtpSettings`, calls `game.applyAdminSettings`) -> cap check `maxBetForWildLevel` (400) -> grid (LXA letters + WILD marker) -> payouts -> jackpot/records (WILD lines skipped) ->
   save + leaderboard (strict read) -> response. Idempotency: client `requestId` (reused on a timeout retry) -> `idempotencyCache` replays the response.
 - Storage (`firebase-storage.js`): `getAccounts` throws on failure; `getLeaderboard/getRtpSettings({strict})`; `updateAccount(key, mutate)` = Firebase transaction on `accounts/<key>`; node key `"<id> : <name>"`,
   lookup by the `id` field (`findEntryById`), `save()` migrates a node whose key changed. `create` id = max(11, existing ids, 10) + 1 (a simultaneous double create can still collide; needs an id counter node).
