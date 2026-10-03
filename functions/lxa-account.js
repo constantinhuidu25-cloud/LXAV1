@@ -80,13 +80,27 @@ const publicAccount = account => { if (!account) return null; const { safeWord, 
 const makeSessionToken = () => crypto.randomBytes(24).toString('hex');
 const hashToken = token => crypto.createHash('sha256').update(String(token)).digest('hex');
 const sameText = (x, y) => { const a = Buffer.from(String(x)), b = Buffer.from(String(y)); return a.length === b.length && crypto.timingSafeEqual(a, b); };
-const MAX_SESSIONS = 8;
+const MAX_SESSIONS = 25;   // devices (browser tabs, installed apps, PCs) per account; the oldest session is dropped beyond this (it was 8, which repeated logins could exhaust)
 // SESSIONS: one entry per device ({h: sha256(token), at}); the plain token only exists on that device, so one logout (or a password
 // change) can revoke exactly what it should. The legacy single `sessionToken` field is still honoured until a logout / password change.
 const tokenMatches = (account, given) => { const token = String(given || ''); if (!token) return false; const h = hashToken(token); if ((account && Array.isArray(account.sessions) ? account.sessions : []).some(x => x && x.h && sameText(x.h, h))) return true; const legacy = String((account && account.sessionToken) || ''); return Boolean(legacy) && sameText(legacy, token); };
-const issueSession = account => { const token = makeSessionToken(); account.sessions = [{ h: hashToken(token), at: Date.now() }, ...(Array.isArray(account.sessions) ? account.sessions : [])].slice(0, MAX_SESSIONS); return token; };
-const revokeSession = (account, given) => { const h = hashToken(given || ''); account.sessions = (Array.isArray(account.sessions) ? account.sessions : []).filter(x => !(x && x.h && sameText(x.h, h))); if (account.sessionToken && sameText(account.sessionToken, String(given || ''))) delete account.sessionToken; };
-const revokeAllSessions = account => { account.sessions = []; delete account.sessionToken; };
+// Every session change is also recorded as an operation on the account object (non-enumerable, never stored). save() applies these operations to the account as it is
+// stored RIGHT NOW (inside the database transaction), so a request that read the account a moment earlier can no longer wipe the sessions other devices created.
+const sessionOps = account => { if (!account.__sessionOps) Object.defineProperty(account, '__sessionOps', { value: [], enumerable: false, writable: true, configurable: true }); return account.__sessionOps; };
+const issueSession = account => { const token = makeSessionToken(), entry = { h: hashToken(token), at: Date.now() }; account.sessions = [entry, ...(Array.isArray(account.sessions) ? account.sessions : [])].slice(0, MAX_SESSIONS); sessionOps(account).push({ t: 'add', entry }); return token; };
+const revokeSession = (account, given) => { const h = hashToken(given || ''); account.sessions = (Array.isArray(account.sessions) ? account.sessions : []).filter(x => !(x && x.h && sameText(x.h, h))); if (account.sessionToken && sameText(account.sessionToken, String(given || ''))) delete account.sessionToken; sessionOps(account).push({ t: 'revoke', h, token: String(given || '') }); };
+const revokeAllSessions = account => { account.sessions = []; delete account.sessionToken; sessionOps(account).push({ t: 'clear' }); };
+// The sessions to store: start from what is stored now (or, for a node that does not exist yet, from the account object) and replay this request's operations.
+const mergeSessions = (current, account, ops) => {
+  const base = current || account;
+  let list = (Array.isArray(base.sessions) ? base.sessions : []).filter(x => x && x.h), legacy = base.sessionToken;
+  for (const op of ops) {
+    if (op.t === 'add') list = [op.entry, ...list.filter(x => x.h !== op.entry.h)].slice(0, MAX_SESSIONS);
+    else if (op.t === 'revoke') { list = list.filter(x => !sameText(x.h, op.h)); if (legacy && sameText(legacy, op.token)) legacy = undefined; }
+    else if (op.t === 'clear') { list = []; legacy = undefined; }
+  }
+  return { sessions: list, sessionToken: legacy };
+};
 // A valid session token (issued only after a REAL password login) is enough for normal play actions, so closing the browser is not a logout.
 // Changing the password and the admin tools still demand the password itself.
 const authorize = async (account, input) => (tokenMatches(account, input.token) ? null : checkSafeWord(account, input.safeWord));
@@ -118,17 +132,25 @@ async function read(id) { const accounts = await getAccounts(); const entry = fi
 // Node key = "<id> : <name>" (e.g. "25 : ANA") and is refreshed whenever the ID or name changes (or a hand-edited / legacy `account:N` node is saved).
 async function save(account, keepStamp) {
   if (!keepStamp) account.updatedAt = Date.now();
-  const plain = () => JSON.parse(JSON.stringify(account));
+  const ops = Array.isArray(account.__sessionOps) ? account.__sessionOps.slice() : [];
+  const plain = current => {
+    const copy = JSON.parse(JSON.stringify(account)), merged = mergeSessions(current, account, ops);
+    copy.sessions = merged.sessions;
+    if (merged.sessionToken) copy.sessionToken = merged.sessionToken; else delete copy.sessionToken;
+    return copy;
+  };
   const newKey = accountKey(account.id, account.name), oldKey = account.__key;
   if (oldKey && oldKey !== newKey) {
     let moved = false;
-    try { await updateAccount(newKey, current => (current && current.createdAt !== account.createdAt) ? undefined : plain()); moved = true; } catch (error) { /* target key busy: keep the node where it is */ }
-    if (moved) { await updateAccount(oldKey, () => null); rememberKey(account, newKey); return; }
-    await updateAccount(oldKey, () => plain());
+    try { await updateAccount(newKey, current => (current && current.createdAt !== account.createdAt) ? undefined : plain(current)); moved = true; } catch (error) { /* target key busy: keep the node where it is */ }
+    if (moved) { await updateAccount(oldKey, () => null); rememberKey(account, newKey); ops.length = 0; if (account.__sessionOps) account.__sessionOps.length = 0; return; }
+    await updateAccount(oldKey, current => plain(current));
+    if (account.__sessionOps) account.__sessionOps.length = 0;
     return;
   }
-  await updateAccount(newKey, () => plain());
+  await updateAccount(newKey, current => plain(current));
   rememberKey(account, newKey);
+  if (account.__sessionOps) account.__sessionOps.length = 0;
 }
 const LEADERBOARD_EXCLUDED_NAMES = new Set(['LXA', 'AXL', 'WOW']);
 async function leaderboard(account) { const level = String(account.difficulty), boardKey = `leaderboard:profile-${DIFFICULTY_PROFILE_VERSION}:${level}`, boards = await getLeaderboard({ strict: true }), board = boards[boardKey] || [], next = board.filter(row => Number(row.id) !== Number(account.id)); if (!LEADERBOARD_EXCLUDED_NAMES.has(String(account.name || '').toUpperCase())) { next.push({ id: account.id, name: account.name, score: number(account.difficultyData[level]?.score), updatedAt: account.updatedAt }); } next.sort((a, b) => number(b.score) - number(a.score) || number(a.updatedAt) - number(b.updatedAt)); boards[boardKey] = next.slice(0, 100); await saveLeaderboard(boards); }
@@ -463,7 +485,7 @@ exports.handler = async event => {
         if (!Number.isFinite(newId) || newId <= 0) return json({ error: 'Invalid new ID.' }, 400);
         if (findEntryById(accounts, newId)) return json({ error: 'This ID is already in use.' }, 409);
       }
-      const updated = rememberKey({ ...target, id: newId, name, safeWord, sessionToken, sessions }, target.__key);
+      const updated = rememberKey({ ...target, id: newId, name, safeWord, sessionToken, sessions }, target.__key); if (input.newSafeWord !== undefined && String(input.newSafeWord).trim()) sessionOps(updated).push({ t: 'clear' });
       await save(updated);
       if (newId !== Number(target.id)) {
         const boards = await getLeaderboard({ strict: true });
