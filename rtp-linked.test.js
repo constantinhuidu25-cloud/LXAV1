@@ -32,6 +32,22 @@ describe('exact total RTP model', () => {
   });
 });
 
+describe('no rounding: the same return at every stake (guest engine = server)', () => {
+  jest.setTimeout(120000);
+  test('stake 5 and stake 10 pay what the model says (they used to pay up to 18 points more)', () => {
+    for (const [bet, seed] of [[5, 41], [10, 43]]) {
+      const rng = mulberry32(seed); let state = game.initialState({ credits: 1e12, bet, difficulty: 1, wildLevel: 0 }), stake = 0, pay = 0, squares = 0; const N = 150000;
+      for (let i = 0; i < N; i++) { state = { ...state, credits: 1e12 }; const r = game.resolveSpin(state, rng); stake += r.spin.totalStake; pay += r.spin.totalPayout; const x = r.spin.totalPayout / r.spin.totalStake; squares += x * x; state = r.state; }
+      const mean = pay / stake, se = Math.sqrt(squares / N - mean * mean) / Math.sqrt(N) * 100;
+      expect(Math.abs(mean * 100 - game.expectedTotalRtp(1, 0))).toBeLessThan(Math.max(0.8, 3.5 * se));
+    }
+  });
+  test('balances and payouts keep at most two decimals', () => {
+    let state = game.initialState({ credits: 1000, bet: 5, difficulty: 2 }); const rng = mulberry32(3);
+    for (let i = 0; i < 400; i++) { state = game.resolveSpin({ ...state, credits: Math.max(state.credits, 50) }, rng).state; expect(Math.abs(state.credits * 100 - Math.round(state.credits * 100))).toBeLessThan(1e-6); }
+  });
+});
+
 describe('connected mode solves for the TOTAL', () => {
   test('130 / 110 / 95 as total targets land within 0.2 points (exact model) and the line targets drop', () => {
     const results = [1, 2, 3].map((d, i) => game.setDifficultyTotalRtp(d, [130, 110, 95][i], 0));

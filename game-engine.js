@@ -357,7 +357,9 @@
   // "default" placeholder should show that target, not the old shape's
   // incidental RTP.
   const getDefaultRtpPercent = difficulty => DEFAULT_RTP_TARGET_PERCENT[clampDifficulty(difficulty) - 1];
-  const cents = value => Math.round(Number(value) || 0);
+  // Money has CENT precision, exactly like the server's money(): no payout is rounded to a whole euro, so the return is the same at every stake
+  // (the old whole-euro rounding paid guests up to ~18 points more at a 5 stake: 181.6 / 156.5 / 129.5 instead of 163.2 / 136.7 / 107.6).
+  const cents = value => Math.round((Number(value) || 0) * 100) / 100;
   const recommendedBet = credits => Number(credits) >= 5000000 ? 25000 : Number(credits) >= 1000000 ? 5000 : Number(credits) >= 250000 ? 1000 : 5;
   // v152: two more admin-adjustable WILD knobs, same one-dial-per-concept
   // pattern as everything else here. wildUpgradeCost's ladder shape and
