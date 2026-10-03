@@ -43,8 +43,7 @@ Rewritten from scratch 2026-10-03. Everything here was checked against the code/
   144.0% / 121.1% / 105.8% at WILD 50) - WILD upgrades stay valuable. A custom win-chance table keeps precedence (that difficulty is skipped). An unreachable total is clamped and reported (`clamped`).
   `game.applyAdminSettings(settings)` is the ONE function that turns stored admin settings into engine state (fixed order, deterministic, payout multiplier reset first, connected solve last): the server runs it before
   every spin / settings read, the browser runs it for the guest mirror (this also fixed guests silently ignoring the jackpot-frequency and payout/jackpot multipliers). The admin panel shows line / total / WILD 0 / WILD 50 figures.
-  KNOWN LIMIT (not changed): `resolveSpin` rounds every line payout to whole units (`cents()`), so at small stakes the real RTP is HIGHER than the model: stake 5 = 181.6% / 156.5% / 129.5%, stake 50 = 164.0 / 137.6 / 108.8,
-  stake >= 1000 = the model (163.2 / 136.7 / 107.7). The connected target is exact for stakes of about 50 and above.
+  NO ROUNDING, SAME RETURN AT EVERY STAKE (fixed 2026-10-03, engine v=378): money has CENT precision everywhere. The server (logged-in players) always used `money()` = 2 decimals: measured through the real handler difficulty 1 = 163.0 / 162.7 / 163.5 / 163.6% at stakes 5 / 10 / 50 / 1000 (model 163.2). The guest/local engine used `cents()` = whole euros, which paid guests more at small stakes (stake 5: 181.6 / 156.5 / 129.5%); `cents()` now rounds to 2 decimals like the server, and the guest return is 163.2 / 136.7 / 107.7% at stakes 5, 50 and 1000. Balances and wins can therefore have cents (as for accounts); the UI shows whole euros.
 
 ## 4. Accounts, server, configuration ownership
 - Files: `api/lxa-account.js` (Vercel adapter) -> `functions/lxa-account.js` (all actions) + `functions/firebase-storage.js` (firebase-admin Realtime DB) + `functions/security.js` (limits, idempotency).

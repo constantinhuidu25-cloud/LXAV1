@@ -3,6 +3,12 @@
 Rewritten from scratch 2026-10-03 (65 commits at that time; the hash is the authoritative detail). Newest first. Format per entry: what the user asked / cause / change / how it was verified / limits.
 "Verified" = measured in headless Edge or Jest unless it says otherwise; nothing here was verified on a real phone.
 
+## 2026-10-03 (latest) — No rounding: same return at every stake (game-engine v=378)
+- Owner: RTP must be the same for everyone, no rounding. Measured first: the REAL SERVER path (logged-in players) is already exact - difficulty 1 = 163.0 / 162.7 / 163.5 / 163.6% at stakes 5 / 10 / 50 / 1000 (model 163.2%);
+  my earlier "stake 5 pays +18 points more" finding was about the GUEST engine only (whole-euro `cents()`), not a general problem - I stated it too broadly.
+- Fix: engine `cents()` now rounds to 2 decimals (same as the server `money()`); guest return at stakes 5 / 50 / 1000 = 163.2 / 136.7 / 107.7% (model 163.2 / 136.7 / 107.6). Regression tests (stake 5 and 10 within the model, balances keep <= 2 decimals).
+- Jest 91/91, ESLint 0 errors. A guest session of 8 rounds plays normally (amounts displayed in whole euros). NOT deployed (needs `vercel --prod`).
+
 ## 2026-10-03 (latest) — Deployed by the owner; live verified; Firebase rules recorded
 - Owner ran `vercel --prod` (deployment lxa-jap8guh9a-lxa3, alias lxoxa.vercel.app). Read-only checks: HTTP 200 on the alias, live assets game-engine 377 / layout-fix 436 / renderer 406 / spin-button 9 / style 376,
   Permissions-Policy + Cross-Origin-Opener-Policy present, `get-rtp-settings` answers with the new `computed` figures, `/functions/..`, `/docs-context/..`, tests -> 404, manifest + new icons + sw -> 200.
