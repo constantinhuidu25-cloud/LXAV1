@@ -3,6 +3,11 @@
 Rewritten from scratch 2026-10-03 (65 commits at that time; the hash is the authoritative detail). Newest first. Format per entry: what the user asked / cause / change / how it was verified / limits.
 "Verified" = measured in headless Edge or Jest unless it says otherwise; nothing here was verified on a real phone.
 
+## 2026-10-03 (latest) - Lock + floating Ko-fi: one column, one gap (commit eff2d16; layout-fix v=440, inline script in index.html)
+- Owner: "chaos" in the distances. Measured before: floating lock 2/4/17/29 px from the right edge vs 13/13/23/35 at rest; Ko-fi 9/9/24/36 vs 15.4/11.8/23.8/35.8; gap lock->Ko-fi 1/4/4/4 at rest and 8 floating.
+- Cause: updateLockKofiFloat() parked the floating pair on the content-card edge and used 	op = lock + 8, while at rest the header grid decided the x and a margin decided the gap.
+- Now: floating lock keeps the x of the header column (right edge of #headerActions), Ko-fi is centred under it (+ the existing 10% cup nudge), gap 4 px in both states (#headerActions{row-gap:4px} at rest, top offset 4 px floating). Measured: x identical at rest and floating in 4 viewports, gap 4 px everywhere, floating Ko-fi top 52/52/56/56 px; floating top still includes the safe-area inset.
+- Verified in headless Edge (measurements + crops). NOT verified on a real iPhone (notch / Dynamic Island, emoji metrics). NOT deployed.
 ## 2026-10-03 (latest) - SPIN button v3 (commit 7af0380; spin-button.js v=11, layout-fix v=439)
 - Owner: v2 effects were poor, vanished too fast, profit vs loss unclear; wanted a play icon and a double play for AUTO.
 - Causes: the light-blue loss pulse was invisible on the blue button; the burst peaked at 16% of ~1 s; and renderer.js calls LXASpinButton.idle() right after finish() when the round animations end, which removed the effect class (idle() no longer touches it).
