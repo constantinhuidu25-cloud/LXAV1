@@ -1052,6 +1052,7 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
   // PLUS/MINUS only change the bet of the NEXT round (gameState.bet); the round in flight keeps its own stake. AUTO waits until the changes settle.
   let lastBetChangeAt = 0, betHolding = 0;
   const BET_SETTLE_MS = 800;
+  const AUTO_PROFIT_PAUSE_MS = 1000;   // AUTO pauses this long after a profit so the gold result is seen
   const stakeStep = balance => Number(balance) >= 5000000 ? 10000 : Number(balance) >= 1000000 ? 2500 : Number(balance) >= 250000 ? 500 : 5;
   // A stale MAX 50% or manually raised stake must never leave the player with
   // a button that cannot spin after the balance changes. Keep a valid, scaled
@@ -1151,7 +1152,9 @@ document.querySelector('#leaderboardTabs')?.addEventListener('click',event=>{con
       return;
     }
     await $('#spin').onclick();
-    if (autoSpinEnabled) autoSpinTimer = setTimeout(runAutoSpin, 260);
+    // A profit stays on screen for a moment in AUTO (gold SPIN); otherwise the next round wipes it ~0.3 s later.
+    const lastNet = gameState.lastSpin ? spinNetResult(gameState.lastSpin) : 0;
+    if (autoSpinEnabled) autoSpinTimer = setTimeout(runAutoSpin, lastNet > 0 ? AUTO_PROFIT_PAUSE_MS : 260);
   };
   autoSpinButton?.addEventListener('click', event => {
     event.preventDefault();
