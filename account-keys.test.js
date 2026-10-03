@@ -89,4 +89,15 @@ describe('account node keys', () => {
       expect(login.account.role).toBe('admin');
       expect((await call('list-players', { id, safeWord: 'pw' })).players.length).toBeGreaterThan(0);
     }
-  });});
+  });
+
+  test('server rejects a stake above half the next WILD level price and accepts exactly that stake', async () => {
+    const { storage, call } = setup();
+    storage.__put('1 : Rich', player(1, 'Rich', { balance: 1e10 }));
+    const tooMuch = await call('spin', { id: 1, safeWord: 'pw', bet: 1250005, difficulty: 2 });
+    expect(tooMuch.error).toMatch(/maximum/);
+    const ok = await call('spin', { id: 1, safeWord: 'pw', bet: 1250000, difficulty: 2 });
+    expect(ok.error).toBeUndefined();
+    expect(ok.account).toBeDefined();
+  });
+});

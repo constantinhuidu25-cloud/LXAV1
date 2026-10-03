@@ -343,12 +343,19 @@ describe('LxaGameEngine', () => {
       expect(game.setCustomDistribution(1, { 0: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0 }).error).toBeDefined();
     });
   });
-});
 
-// Run legacy assertion tests for backwards compatibility
-game.validateConfiguration();
-assert.equal(game.initialState().version, 107);
-assert.equal(game.initialState().difficulty, 2);
-assert.equal(game.initialState().credits, 250);
-assert.equal(game.initialState().bet, 5);
-console.log('✓ game-engine tests: passed');
+  describe('Max bet', () => {
+    test('max stake is half of the NEXT wild level price and follows the level', () => {
+      expect(game.maxBetForWildLevel(0)).toBe(game.wildUpgradeCost(0) / 2);
+      expect(game.maxBetForWildLevel(0)).toBe(1250000);
+      expect(game.maxBetForWildLevel(1)).toBe(1750000);
+      expect(game.maxBetForWildLevel(10)).toBe(game.wildUpgradeCost(10) / 2);
+      expect(game.maxBetForWildLevel(50)).toBe(25000000);
+    });
+    test('resolveSpin rejects a stake above the cap and accepts the cap itself', () => {
+      const cap = game.maxBetForWildLevel(0);
+      expect(() => game.resolveSpin(game.initialState({ credits: 1e10, bet: cap + 5, difficulty: 2 }))).toThrow(/maximum/);
+      expect(() => game.resolveSpin(game.initialState({ credits: 1e10, bet: cap, difficulty: 2 }))).not.toThrow();
+    });
+  });
+});

@@ -304,3 +304,7 @@ Yes, the game works offline. Leaderboard and account sync require internet.
 ## Firebase account nodes
 
 Accounts live under `accounts/<id> : <name>` (e.g. `25 : ANA`). The server looks accounts up by their `id` field, so a hand-edited node is still found; the node key is refreshed on every save and after an admin edit of the ID or name. Opening the admin PLAYERS list renames any leftover legacy `account:N` nodes once. Note: the Firebase console sorts keys as text, so `100 : X` is listed before `25 : ANA`.
+
+## Maximum stake
+
+The stake can never exceed **half of the price of the next WILD level** (game.maxBetForWildLevel, e.g. 1.250.000 at level 0, 1.750.000 at level 1; it follows the admin WILD cost multiplier). Enforced in the engine (esolveSpin), on the server (spin returns 400) and in the UI (+/- and the 50% button are clamped; a short message shows the cap). The 50% button still means half of the balance, but never more than the cap. Rationale: jackpot tiers pay a multiple of the stake, so an uncapped stake would act as a money multiplier.

@@ -375,6 +375,9 @@
     const base = nextLevel === 1 ? 2500000 : nextLevel <= 3 ? 3500000 : nextLevel <= 5 ? 4500000 : nextLevel * 1000000;
     return Math.round(base * WILD_COST_MULTIPLIER);
   };
+  // Highest allowed stake: half of what the NEXT Wild level costs (follows the admin cost multiplier). The
+  // jackpot tiers pay a multiple of the stake, so an uncapped stake would turn money into a multiplier.
+  const maxBetForWildLevel = level => Math.max(5, Math.floor(wildUpgradeCost(level) / 2));
   const wildChance = level => Math.min(1, NATURAL_WILD_CHANCE + Math.max(0, Math.min(WILD_LEVEL_MAX, Number(level) || 0)) * WILD_CHANCE_PER_LEVEL);
   // v152: applyWild() (functions/lxa-account.js) draws the "level"-source
   // extra-Wild count from a fixed 78%/20%/2% band distribution capped by the
@@ -502,6 +505,7 @@
   function resolveSpin(rawState, rng = Math.random, now = Date.now()) {
     const state = initialState(rawState);
     if (state.credits < state.bet) throw new Error('Insufficient credits.');
+    if (state.bet > maxBetForWildLevel(state.wildLevel)) throw new Error('Bet exceeds the maximum for this WILD level.');
     const totalStake = cents(state.bet);
     const lineStake = cents(totalStake / LINE_COUNT);
     const baseResults = Array.from({ length: LINE_COUNT }, () => selectLineResult(state.difficulty, rng));
@@ -606,7 +610,7 @@
     PAYOUT_MULTIPLIER_MIN, PAYOUT_MULTIPLIER_MAX, JACKPOT_VALUE_MULTIPLIER_MIN, JACKPOT_VALUE_MULTIPLIER_MAX,
     WILD_COST_MULTIPLIER_MIN, WILD_COST_MULTIPLIER_MAX, EXTRA_WILD_FREQ_MIN, EXTRA_WILD_FREQ_MAX,
     DEFAULT_WILD_COST_MULTIPLIER, DEFAULT_EXTRA_WILD_FREQUENCY,
-    recommendedBet, wildUpgradeCost, wildChance, initialState, selectLineResult, applyWild, resolveSpin, totalProbability, expectedLineMultiplier,
+    recommendedBet, wildUpgradeCost, maxBetForWildLevel, wildChance, initialState, selectLineResult, applyWild, resolveSpin, totalProbability, expectedLineMultiplier,
     setDifficultyRtp, resetDifficultyRtp, resetAllDifficultyRtp, getDefaultRtpPercent, rtpRangeForDifficulty,
     setCustomDistribution, resetCustomDistribution, resetAllCustomDistribution, getCustomDistribution,
     setJackpotFrequency, resetJackpotFrequency, resetAllJackpotFrequency, getJackpotFrequency,
