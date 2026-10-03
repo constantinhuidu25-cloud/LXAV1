@@ -70,6 +70,11 @@
       if (state !== 'spinning') return;
       ringTo(snapped ? SNAP_MS : ms);
     },
+    // A rejected round: keep the reason visible under the label (red) until the next result replaces it.
+    fail(text) {
+      lastResult = { text: String(text || ''), sign: 'loss' };
+      if (state === 'idle' && btn) paint();
+    },
     stopped() {
       if (state !== 'spinning') return;
       setLearned(COACH_SPINS);

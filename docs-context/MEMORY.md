@@ -91,6 +91,12 @@ bump on EVERY edit (current: layout-fix 431, renderer 399, game-engine 376, spin
   iOS "Add to Home Screen" behaves like an app. Probable cause is on the phone (Chrome could not mint a WebAPK: Play Services/network/other browser).
   NOT confirmed — need phone model + browser. Do not add an install button unless asked.
 
+- Icons (2026-10-03): manifest icons = `assets/icons/lxa-icon-192.png`, `lxa-icon-512.png`, `lxa-icon-512-maskable.png` (palette-compressed, 32/171/110 KB, no query strings); old `icon-*.png` files
+  still in the folder (unused). Drollyv3 had the same icon set; its files were ~5x smaller. A shortcut on the home screen stores its icon bitmap when created: after changing icons the user must
+  remove and re-add it. An Android icon on a white tile = launcher-made shortcut (no WebAPK).
+- `#message` (live status text) is `display:none` in this layout: never rely on it to show errors. Use the SPIN subtitle (`LXASpinButton.fail(text)`) or the account panel notice.
+- Session facts: spin needs only the cached token; RESET/WILD/GELD/update/admin need the real password in memory (asked again after reopening, by design).
+
 ## Testing / tooling (what works here)
 - Jest: 56 tests pass (game-engine, account-keys, idempotency, renderer-money-routing, spin-grid-letters). ESLint: 0 errors, 18 pre-existing warnings.
 - Headless Edge via CDP (scripts live in the session scratchpad, recreate when needed): screenshot at a viewport, `Runtime.evaluate` to click/measure.

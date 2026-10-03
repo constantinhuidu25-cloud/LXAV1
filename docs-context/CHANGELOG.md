@@ -86,6 +86,24 @@ The user's PWA screenshot has NO "MAX ..." line under the stake, so that PWA ins
 step in that screenshot is the OLD background, already fixed in 116ffd8; the user must fully close and reopen the PWA. NOT reproduced: SPIN dead in phone browsers (touch tap works in emulated
 browser/PWA/PC; the browser screenshot shows RUNDE 005, so spins ran) -> asked the user for the exact symptom + browser. NOT verified on a real device.
 
+## 2026-10-03 — Android home-screen icon, mission card, visible spin errors (layout-fix.css v=434, renderer.js v=402, spin-button.js v=9, sw cache lxa-v3)
+1) Icon (user screenshot, Android launcher): DROLLY fills its tile (real WebAPK, maskable) while LXA sits on a white tile (launcher-generated shortcut = WebAPK minting did not happen).
+   Drollyv3 had the SAME icon set (192, 512, 512-maskable, apple 180, favicons) and the same manifest layout, so "more icon versions" was not the difference. Differences found: LXA icon bytes
+   79/454/352 KB vs Drolly 14/52/41 KB, and `?v=2` on the manifest/icon URLs (Drolly had none). Changes: new palette-compressed icons `assets/icons/lxa-icon-192/512/512-maskable.png`
+   (32/171/110 KB, mean error 3/255, visually identical), manifest + sw.js point to them, `?v=2` removed from the manifest link and icon URLs, sw cache lxa-v3. apple-touch-icon untouched
+   (iOS already looks right). Verified locally: manifest errors [], installability errors [], icons HTTP 200. NOT verified: whether Chrome now mints a WebAPK on the user's phone. An
+   existing home-screen shortcut keeps its old bitmap -> remove it and add again after deploying.
+2) Mission card (user): heading `#missionTitle` and goal `#missionGoal` smaller (clamp 13-23px / 10-14px; desktop 18-25 / 12-15), `#missionList` gap 2->6px (the progress bars sit on the
+   cells' bottom edge), light 1px frame around `.mission-line-grid` removed. Verified at 320/360/390/440/768/1280 px x de/ro/en: text fits, gap 6px, card height within 2px of before.
+   The prize row (`.milestone-list`) keeps its light frame (not requested).
+3) Spin errors were invisible: `#message` is `display:none`, so a rejected spin (expired session, 429, network) looked like "nothing happens, the ring flashes once". Now the reason shows
+   under SPIN in red (`LXASpinButton.fail`, keys spinErrSession/Busy/Net/Fail in de/ro/en; stake cap shows MAX. EINSATZ), and an expired session opens the login panel with the same notice.
+   Verified with intercepted server answers 401/429/500/400 in de/ro/en.
+   Session finding: spin uses only the cached token; `lxaRestoreSession` shows the cached account even when the server says "Session expired", so the UI looked logged in while spins failed.
+   Protected actions that need the real password in memory (re-asked after every reopen BY DESIGN): update, deposit (GELD), reset-new-game (RESET), buy-wild (WILD), admin actions.
+   Server limits (in memory, per warm instance): spin 500/h per account, real logins 10/h per IP, create 5/h. Root cause of the lost token NOT found (server keeps one sessionToken per account,
+   created at account creation / first real login); the visible error will name it next time.
+
 ## 2026-10-03 — Installed app header: no purple haze above the art (layout-fix.css v=433)
 Task: user (two iPhone screenshots, browser vs PWA): "big background difference at the GIF/header between phone browser and PWA; the browser looks much better".
 Cause (reproduced with Edge --app + safe-area 62px, 440 px wide): in standalone the `.brand` box also contains the status-bar spacer (box 112px = 62 + 50), and the animated `::after`

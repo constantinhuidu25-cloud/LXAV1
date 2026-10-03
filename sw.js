@@ -4,7 +4,7 @@
  * old CSS/JS until the cache name was bumped). API calls are never cached.
  */
 
-const CACHE_NAME = 'lxa-v2-cache';
+const CACHE_NAME = 'lxa-v3-cache';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -17,8 +17,8 @@ const ASSETS_TO_CACHE = [
   '/assets/wild-wide.webp',
   '/assets/wild-stack.webp',
   '/manifest.webmanifest',
-  '/assets/icons/icon-192.png',
-  '/assets/icons/icon-512.png'
+  '/assets/icons/lxa-icon-192.png',
+  '/assets/icons/lxa-icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {
